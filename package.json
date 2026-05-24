@@ -1,0 +1,9 @@
+{
+  "name": "aevon-root",
+  "version": "1.0.0",
+  "description": "Root package for AEVON monorepo deployment",
+  "scripts": {
+    "postinstall": "npm install --prefix backend",
+    "start": "npm start --prefix backend"
+  }
+}
