@@ -35,8 +35,12 @@ async function apiFetch(endpoint, options = {}) {
     let data;
     try {
         data = text ? JSON.parse(text) : {};
-    } catch {
-        throw new Error('Server returned an invalid response. Please try again.');
+    } catch (parseErr) {
+        // Provide detailed error to help debugging: include status, content-type, and raw body
+        const contentType = response.headers.get('content-type') || 'unknown';
+        const snippet = text ? text.slice(0, 200) : ''; // avoid huge logs
+        console.error('apiFetch parse error:', { endpoint, status: response.status, contentType, snippet, parseErr });
+        throw new Error(`Server returned an invalid response (status ${response.status}, content-type ${contentType}). See console for details.`);
     }
 
     if (!response.ok) {
