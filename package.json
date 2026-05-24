@@ -4,6 +4,7 @@
   "description": "Root package for AEVON monorepo deployment",
   "scripts": {
     "postinstall": "npm install --prefix backend",
+    "build": "echo 'No build step required'",
     "start": "npm start --prefix backend"
   }
 }
