@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AEVON — The next generation of AI-powered student performance analytics. Professional, deep insights, and academic ERP solutions.">
+    <title>AEVON — AI-Powered Academic Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary:    #8b5cf6;
+            --primary-dark: #6d28d9;
+            --primary-rgb: 139, 92, 246;
+            --secondary:  #475569;
+            --navy:       #f8fafc;
+            --bg:         #0a0b0d;
+            --surface:    rgba(15, 23, 42, 0.55);
+            --text:       #e2e8f0;
+            --text-dark:  #ffffff;
+            --text-secondary: #94a3b8;
+            --muted:      #64748b;
+            --success:    #10b981;
+            --warning:    #f59e0b;
+            --danger:     #ef4444;
+            --border:     rgba(255, 255, 255, 0.08);
+            --radius:     12px;
+            --shadow:     0 20px 40px rgba(0, 0, 0, 0.4);
+            --transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(180deg, rgba(10, 11, 13, 0.5) 0%, rgba(10, 11, 13, 0.85) 100%), url('background.png') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .nav-brand { font-family: 'Inter', sans-serif; }
+
+        /* ── Navbar ── */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0;
+            z-index: 1000;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1rem 8%;
+            background: rgba(10, 11, 13, 0.7);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-brand {
+            font-size: 1.4rem; font-weight: 800;
+            color: var(--navy); display: flex; align-items: center; gap: 14px;
+        }
+        .nav-brand span {
+            background: linear-gradient(135deg, var(--primary), #a78bfa);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .nav-links { display: flex; gap: 2rem; align-items: center; }
+        .nav-links a {
+            text-decoration: none; color: var(--text);
+            font-size: 0.9rem; font-weight: 600;
+            transition: var(--transition);
+        }
+        .nav-links a:hover { color: var(--primary); }
+        .btn-login {
+            background: var(--secondary);
+            color: #fff; font-weight: 700;
+            border: none; border-radius: 6px;
+            padding: 0.5rem 1.5rem; font-size: 0.85rem;
+            cursor: pointer; transition: var(--transition);
+        }
+        .btn-login:hover { transform: translateY(-1px); background: var(--primary); box-shadow: 0 6px 15px rgba(139, 92, 246, 0.3); }
+
+        /* ── Full Page Sections ── */
+        .section-view {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 80px 8% 40px;
+            position: relative;
+        }
+
+        /* ── Hero ── */
+        .hero {
+            background: radial-gradient(circle at center, rgba(139, 92, 246, 0.06), transparent 70%),
+                        radial-gradient(circle at bottom left, rgba(10, 11, 13, 0.05), transparent);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            gap: 20px;
+        }
+        .hero-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            max-width: 800px;
+        }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #a78bfa; border-radius: 20px;
+            padding: 0.4rem 1.2rem; font-size: 0.75rem; font-weight: 800;
+            margin-bottom: 1.25rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .hero-cta { display: flex; gap: 1rem; align-items: center; }
+        .btn-primary-lg {
+            background: linear-gradient(135deg, var(--primary), #a78bfa); color: #fff; font-weight: 700;
+            border: none; border-radius: var(--radius);
+            padding: 0.9rem 2rem; font-size: 0.95rem;
+            cursor: pointer; transition: var(--transition);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.2);
+        }
+        .btn-primary-lg:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(139, 92, 246, 0.35); }
+        .btn-outline-lg {
+            background: rgba(255, 255, 255, 0.03); color: var(--text); font-weight: 600;
+            border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 0.85rem 2rem; font-size: 0.95rem;
+            cursor: pointer; transition: var(--transition);
+        }
+        .btn-outline-lg:hover { background: rgba(255, 255, 255, 0.08); border-color: var(--primary); color: #fff; }
+
+        .hero-image {
+            flex: 1.1; position: relative;
+        }
+        
+        /* ── Stats (Analytics) ── */
+        .stats-section {
+            background: transparent;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .stats-header {
+            text-align: center;
+            margin-bottom: 3.5rem;
+            width: 100%;
+        }
+        .stats-grid {
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr);
+            border-radius: var(--radius); 
+            padding: 3rem 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            width: 100%;
+        }
+        .stat-item { text-align: center; border-right: 1px solid var(--border); }
+        .stat-item:last-child { border-right: none; }
+        .stat-item .num {
+            font-size: 2.5rem; font-weight: 800;
+            background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.25rem;
+        }
+        .stat-item .label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+
+        /* ── Features ── */
+        .features-section {
+            justify-content: center;
+            flex-direction: column;
+            background: transparent;
+        }
+        .section-header { text-align: center; margin-bottom: 3.5rem; width: 100%; }
+        .section-label {
+            font-size: 0.8rem; font-weight: 800; color: var(--primary);
+            text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.8rem;
+        }
+        .section-title { font-size: 2.5rem; font-weight: 900; color: var(--navy); letter-spacing: -1px; line-height: 1.15; }
+        
+        .features-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            width: 100%;
+        }
+        .feature-card {
+            background: rgba(30, 41, 59, 0.45);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            padding: 2.5rem 2rem; border-radius: var(--radius); transition: var(--transition);
+        }
+        .feature-card:hover { transform: translateY(-6px); border-color: var(--primary); box-shadow: 0 15px 35px rgba(139, 92, 246, 0.15); }
+        .feature-icon {
+            width: 50px; height: 50px;
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #a78bfa; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; margin-bottom: 1.5rem;
+        }
+        .feature-card h3 { font-size: 1.25rem; font-weight: 700; color: var(--navy); margin-bottom: 0.75rem; }
+        .feature-card p { color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; }
+
+        /* ── Footer ── */
+        footer {
+            padding: 40px 8%;
+            background: rgba(10, 11, 13, 0.7);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid var(--border);
+        }
+        .footer-grid {
+            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 3.5rem; margin-bottom: 30px;
+        }
+        .footer-brand { font-size: 1.6rem; font-weight: 900; color: var(--navy); margin-bottom: 1rem; }
+        .footer-brand span { color: var(--primary); }
+        .footer-desc { color: var(--muted); line-height: 1.6; max-width: 320px; font-size: 0.95rem; }
+        .footer-links h4 { font-size: 1.05rem; color: var(--navy); margin-bottom: 1.25rem; font-weight: 750; }
+        .footer-links ul { list-style: none; }
+        .footer-links ul li { margin-bottom: 0.75rem; }
+        .footer-links ul li a { text-decoration: none; color: var(--muted); transition: var(--transition); font-weight: 500; font-size: 0.9rem; }
+        .footer-links ul li a:hover { color: var(--primary); padding-left: 4px; }
+
+        .footer-bottom {
+            padding-top: 30px; border-top: 1px solid var(--border);
+            text-align: center; color: var(--muted); font-size: 0.85rem; font-weight: 500;
+        }
+
+        /* ── Modal ── */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 2000;
+            background: rgba(13, 19, 33, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: var(--transition);
+        }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal-card {
+            background: rgba(15, 23, 42, 0.95); border-radius: var(--radius);
+            backdrop-filter: blur(16px);
+            padding: 2.5rem 2rem; width: 100%; max-width: 440px;
+            transform: scale(0.95); transition: var(--transition);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .modal-overlay.open .modal-card { transform: scale(1); }
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem; color: var(--navy); }
+        .form-control {
+            width: 100%; padding: 0.8rem 1rem;
+            border: 1px solid var(--border); border-radius: 6px;
+            font-size: 0.95rem; outline: none; transition: var(--transition);
+            background: rgba(10, 11, 13, 0.5);
+            color: #fff;
+        }
+        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2); background: rgba(10, 11, 13, 0.8); }
+        .btn-signin {
+            width: 100%; padding: 0.9rem; background: var(--primary);
+            color: #fff; font-weight: 700; border: none; border-radius: 6px;
+            cursor: pointer; transition: var(--transition); font-size: 0.95rem;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .btn-signin:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3); }
+
+        @media (max-width: 1100px) {
+            .section-view { height: auto; min-height: auto; padding: 100px 5% 50px; }
+            .hero { flex-direction: column; text-align: center; }
+            .hero-content { max-width: 100%; }
+            .hero-cta { justify-content: center; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 2.5rem; }
+            .footer-grid { grid-template-columns: 1fr 1fr; gap: 3rem; }
+        }
+
+        @media (max-width: 768px) {
+            nav { padding: 1.2rem 5%; }
+            .hide-mobile { display: none !important; }
+            .section-title { font-size: 2.2rem; }
+            .modal-card { padding: 2.5rem; }
+        }
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; gap: 2rem; }
+            .stat-item { border-right: none; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; }
+            .stat-item:last-child { border-bottom: none; padding-bottom: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav>
+    <div class="nav-brand">
+        <span style="font-weight: 900; letter-spacing: -1px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AEVON</span>
+    </div>
+    <div class="nav-links">
+        <a href="#features" class="hide-mobile">Features</a>
+        <a href="#stats" class="hide-mobile">Analytics</a>
+        <button class="btn-login" onclick="openLogin()">Log In</button>
+    </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="section-view hero">
+    <div class="hero-content">
+        <!-- Center Logo Mark -->
+        <div class="hero-logo" style="margin-bottom: 2rem;">
+            <img src="logo.png" alt="AEVON Logo" style="height: 280px; width: auto; object-fit: contain; filter: drop-shadow(0 15px 35px rgba(0,0,0,0.15));">
+        </div>
+
+        <div class="hero-badge">BELIEVE THE CHANGE</div>
+        
+        <h1 style="font-size: 3.5rem; font-weight: 900; letter-spacing: -2px; margin-bottom: 1rem; background: linear-gradient(135deg, #ffffff, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'Inter', sans-serif;">AEVON</h1>
+        <p style="font-size: 1.25rem; color: var(--text-secondary); max-width: 680px; line-height: 1.6; margin-bottom: 2.5rem; margin-top: 0;">We combine cutting-edge AI analytics with a passion for educational transformation. Track performance, unlock insights, and embrace the future of learning.</p>
+    </div>
+</section>
+
+<!-- ── Stats (Analytics) ── -->
+<section class="section-view stats-section" id="stats">
+    <div class="stats-header">
+        <div class="section-label">Engine Efficiency</div>
+        <h2 class="section-title">Performance Metrics & Sync Engine</h2>
+    </div>
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div class="num">99%</div>
+            <div class="label">Reliability</div>
+        </div>
+        <div class="stat-item">
+            <div class="num">Groq AI</div>
+            <div class="label">Processing Engine</div>
+        </div>
+        <div class="stat-item">
+            <div class="num">Real-time</div>
+            <div class="label">Syncing</div>
+        </div>
+        <div class="stat-item">
+            <div class="num">1-Click</div>
+            <div class="label">PDF Reports</div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Features ── -->
+<section class="section-view features-section" id="features">
+    <div class="section-header">
+        <div class="section-label">Academic Ecosystem</div>
+        <h2 class="section-title">Design Your Educational Future</h2>
+    </div>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">01</div>
+            <h3>Smart Dashboards</h3>
+            <p>Experience a fluid, intuitive interface that puts student performance and institutional growth at your fingertips.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">02</div>
+            <h3>AI Insight Engine</h3>
+            <p>Our sophisticated AI models analyze patterns to provide actionable feedback for every single student.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">03</div>
+            <h3>Secure Exams</h3>
+            <p>A tamper-proof examination portal designed to ensure academic integrity in a digital-first world.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">04</div>
+            <h3>Deep Analytics</h3>
+            <p>Go beyond simple grades. Understand the 'why' behind performance with multi-dimensional data mapping.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">05</div>
+            <h3>Groq AI Integration</h3>
+            <p>Leveraging ultra-fast Groq LPU™ technology to deliver LLaMA 3.3 academic insights and risk analysis in milliseconds.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">06</div>
+            <h3>High Performance</h3>
+            <p>Built with efficiency in mind, delivering instant data processing even for the largest student databases.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+    <div style="text-align: center; max-width: 800px; margin: 0 auto;">
+        <div class="footer-brand" style="font-size: 1.8rem; font-weight: 900; margin-bottom: 0.75rem; justify-content: center; display: flex; color: var(--navy);">AEVON<span style="color: var(--primary);">.</span></div>
+        <p style="color: var(--muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem;">A free and open-access academic intelligence and performance analytics platform for students, teachers, and administrators. Believe in change.</p>
+        <div class="footer-bottom" style="padding-top: 20px; border-top: 1px solid var(--border);">
+            <p>&copy; 2026 AEVON Academic Intelligence. Believe In Change. Built by Rishabh Nayak.</p>
+        </div>
+    </div>
+</footer>
+
+<!-- ── Login Modal ── -->
+<div class="modal-overlay" id="login-modal">
+    <div class="modal-card">
+        <div style="text-align: center; margin-bottom: 2.5rem;">
+            <div style="font-size: 2.5rem; font-weight: 900; letter-spacing: -2px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; font-family: 'Inter', sans-serif;">AEVON</div>
+            <h2 style="color: var(--navy); font-weight: 900; font-size: 1.8rem; margin-top: 0.5rem;">Welcome Back</h2>
+            <p style="color: var(--muted); font-size: 0.95rem; font-weight: 500; margin-top: 0.25rem;">Access the evolution of education</p>
+        </div>
+        <form onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="username" class="form-control" placeholder="yourname@AEVON.com" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+            </div>
+            <div id="login-error" style="color: var(--danger); font-size: 0.9rem; margin-bottom: 1.5rem; display: none; font-weight: 600;"></div>
+            <button type="submit" class="btn-signin" id="login-btn">Enter Portal</button>
+            <button type="button" class="btn-outline-lg" style="width:100%; margin-top: 1.2rem; border-width: 1px;" onclick="closeLogin()">Cancel</button>
+        </form>
+    </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script>
+    function openLogin() {
+        document.getElementById('login-modal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeLogin() {
+        document.getElementById('login-modal').classList.remove('open');
+        document.body.style.overflow = 'auto';
+    }
+    // Close on Escape
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLogin(); });
+</script>
+
+</body>
+</html>

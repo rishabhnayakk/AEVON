@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard — AEVON</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <style>
+        .chat-widget { position: fixed; bottom: 20px; right: 20px; width: 320px; background: #141414; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); display: flex; flex-direction: column; z-index: 1000; overflow: hidden; transition: all 0.3s; color: #ffffff; }
+        .chat-widget.collapsed { height: 50px; cursor: pointer; }
+        .chat-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; padding: 12px 16px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .chat-body { height: 300px; padding: 12px; overflow-y: auto; background: #0a0a0a; display: flex; flex-direction: column; gap: 8px; }
+        .chat-msg { max-width: 85%; padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; color: #ffffff; line-height: 1.4; }
+        .chat-msg.user { background: rgba(241, 143, 1, 0.25); border: 1px solid rgba(241, 143, 1, 0.4); align-self: flex-end; }
+        .chat-msg.bot { background: #222222; border: 1px solid #333333; align-self: flex-start; }
+        .chat-footer { padding: 12px; border-top: 1px solid var(--border); display: flex; gap: 8px; background: #141414; }
+        .chat-footer input { flex: 1; padding: 8px 12px; border: 1px solid var(--border); background: #222; color: #fff; border-radius: 6px; font-size: 0.9rem; }
+        .chat-footer button { background: var(--primary); border: none; color: #fff; padding: 8px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; font-size: 0.9rem; }
+        .chat-footer button:hover { background: var(--primary-dark); }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>AEVON</h2>
+                <div class="user-role">Teacher Panel</div>
+            </div>
+            <nav class="sidebar-nav" id="nav-links"></nav>
+            <div class="sidebar-footer">
+                <button class="btn btn-secondary" style="width:100%;" onclick="handleLogout()">Logout</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1>Teacher Dashboard</h1>
+                    <p class="subtitle">System-wide performance analytics & AI insights</p>
+                </div>
+                <div class="flex gap-1">
+                    <select id="class-select" class="form-control" style="width:180px;" onchange="updateDashboard()">
+                        <option value="">Select Class</option>
+                    </select>
+                    <select id="exam-select" class="form-control" style="width:180px;" onchange="updateDashboard()">
+                        <option value="all">All Exams</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="loading" class="loading-overlay">
+                <div class="spinner"></div><p>Loading analytics...</p>
+            </div>
+
+            <div id="dashboard-content" class="hidden">
+                <div class="stats-grid" id="stats-grid"></div>
+                <div class="charts-grid">
+                    <div class="chart-card"><div class="card-header"><span class="card-title">Subject Average</span></div><div style="height:280px;"><canvas id="chart-subject-perf"></canvas></div></div>
+                    <div class="chart-card"><div class="card-header"><span class="card-title">Class Comparison</span></div><div style="height:280px;"><canvas id="chart-class-comparison"></canvas></div></div>
+                </div>
+                <div id="class-detail" class="hidden">
+                    <div class="card mt-2"><div class="card-header"><span class="card-title">Rankings</span></div><div id="rankings-table"></div></div>
+                </div>
+                <div class="card mt-2">
+                    <div class="card-header"><span class="card-title">At-Risk Students</span></div>
+                    <div id="at-risk-container"></div>
+                </div>
+                <div class="card mt-2">
+                    <div class="card-header"><span class="card-title">Broadcast Notification</span></div>
+                    <div style="padding: 1.5rem;">
+                        <form id="broadcast-notification-form">
+                            <div class="form-group">
+                                <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 0.9rem;">Notification Message</label>
+                                <textarea id="notif-message" class="form-control" placeholder="Type notification message here..." rows="3" required style="resize: vertical; width: 100%; border: 1px solid var(--border); background: #222; color: #fff; border-radius: 6px; padding: 10px;"></textarea>
+                            </div>
+                            <div class="form-group" style="margin-top: 10px;">
+                                <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 0.9rem;">Target Audience</label>
+                                <select id="notif-target-type" class="form-control" onchange="toggleTargetFields(this.value, 'teacher')" style="width: 100%; border: 1px solid var(--border); background: #222; color: #fff; border-radius: 6px; padding: 10px;">
+                                    <option value="all">Every Student</option>
+                                    <option value="class">Whole Class</option>
+                                    <option value="student">Specific Student</option>
+                                </select>
+                            </div>
+                            <div class="form-group hidden" id="class-target-group" style="margin-top: 10px;">
+                                <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 0.9rem;">Select Class</label>
+                                <select id="notif-target-class" class="form-control" style="width: 100%; border: 1px solid var(--border); background: #222; color: #fff; border-radius: 6px; padding: 10px;">
+                                    <option value="">Select Class...</option>
+                                </select>
+                            </div>
+                            <div class="form-group hidden" id="student-target-group" style="margin-top: 10px;">
+                                <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 0.9rem;">Select Student</label>
+                                <select id="notif-target-student" class="form-control" style="width: 100%; border: 1px solid var(--border); background: #222; color: #fff; border-radius: 6px; padding: 10px;">
+                                    <option value="">Select Student...</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 15px;">Send Notification</button>
+                        </form>
+                        <div id="notification-list-container" style="margin-top: 20px;">
+                            <h4 style="margin-bottom: 10px; color: var(--text-primary); font-size: 1rem;">Sent Notifications</h4>
+                            <div id="sent-notifications-list" style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                                <!-- Will be loaded dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="chat-widget collapsed" id="chat-widget">
+        <div class="chat-header" onclick="toggleChat()"><span>Teacher Assistant</span><button id="chat-toggle-icon">▲</button></div>
+        <div class="chat-body" id="chat-body"><div class="chat-msg bot">Hello! How can I help you today?</div></div>
+        <div class="chat-footer">
+            <input type="text" id="chat-input" placeholder="Ask AI..." onkeypress="if(event.key==='Enter')sendChatMessage()">
+            <button onclick="sendChatMessage()">Send</button>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/charts.js"></script>
+    <script>
+        let currentClassId = null;
+        let notificationClasses = [];
+        let notificationStudents = [];
+
+        async function init() {
+            const user = await requireAuth(['teacher', 'admin']);
+            if (!user) return;
+            renderSidebar('teacher.html');
+            
+            loadNotifications();
+
+            try {
+                const [clsRes, studRes] = await Promise.all([
+                    AnalyticsAPI.getClasses(),
+                    StudentsAPI.getAll()
+                ]);
+                notificationClasses = clsRes.classes || [];
+                notificationStudents = studRes.students || [];
+                
+                const select = document.getElementById('class-select');
+                notificationClasses.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id; opt.textContent = c.name;
+                    select.appendChild(opt);
+                });
+                if (notificationClasses.length && !select.value) {
+                    select.value = notificationClasses[0].id;
+                    updateDashboard();
+                }
+            } catch(e) {}
+        }
+
+        async function updateDashboard() {
+            const classId = document.getElementById('class-select').value;
+            const examId = document.getElementById('exam-select').value;
+            if (!classId) return;
+
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('dashboard-content').classList.add('hidden');
+
+            try {
+                if (classId !== currentClassId) {
+                    currentClassId = classId;
+                    const { exams } = await AdminAPI.getExams(classId);
+                    const eSel = document.getElementById('exam-select');
+                    eSel.innerHTML = '<option value="all">All Exams</option>' + exams.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+                }
+
+                const [overview, data, atRisk] = await Promise.all([
+                    AnalyticsAPI.overview(classId, examId),
+                    AnalyticsAPI.classAnalytics(classId, examId),
+                    AIAPI.atRisk(classId)
+                ]);
+
+                renderStats(overview);
+                renderCharts(overview);
+                renderRankings(data.students);
+                renderAtRisk(atRisk.at_risk_students || []);
+
+                document.getElementById('class-detail').classList.remove('hidden');
+                document.getElementById('dashboard-content').classList.remove('hidden');
+            } catch (err) { showToast(err.message, 'error'); }
+            document.getElementById('loading').classList.add('hidden');
+        }
+
+        function renderStats(data) {
+            document.getElementById('stats-grid').innerHTML = `
+                <div class="stat-card"><div class="stat-value">${data.total_students}</div><div class="stat-label">Students</div></div>
+                <div class="stat-card"><div class="stat-value">${data.average_percentage || 0}%</div><div class="stat-label">Avg Performance</div></div>
+            `;
+        }
+
+        function renderCharts(data) {
+            if (data.subject_performance) Charts.renderSubjectPerformance('chart-subject-perf', data.subject_performance);
+            if (data.class_performance) Charts.renderClassComparison('chart-class-comparison', data.class_performance);
+        }
+
+        function renderRankings(students) {
+            const container = document.getElementById('rankings-table');
+            container.innerHTML = `<table class="data-table">
+                <thead><tr><th>Rank</th><th>Name</th><th>Avg %</th><th>Actions</th></tr></thead>
+                <tbody>${students.map((s, i) => `
+                    <tr><td>#${i+1}</td><td>${s.name}</td><td>${s.avg_percentage}%</td>
+                    <td><button class="btn btn-sm btn-secondary" onclick="window.location.href='student.html?id=${s.id}'">View</button></td></tr>
+                `).join('')}</tbody></table>`;
+        }
+
+        function renderAtRisk(students) {
+            const container = document.getElementById('at-risk-container');
+            if (!students.length) { container.innerHTML = '<p class="p-2">No students at risk.</p>'; return; }
+            container.innerHTML = `<table class="data-table">
+                <thead><tr><th>Name</th><th>Risk</th><th>Reasons</th></tr></thead>
+                <tbody>${students.map(s => `
+                    <tr><td>${s.name}</td><td><span class="badge ${s.risk_level === 'high' ? 'badge-danger' : 'badge-warning'}">${s.risk_level.toUpperCase()}</span></td>
+                    <td>${s.reasons.join(', ')}</td></tr>
+                `).join('')}</tbody></table>`;
+        }
+
+        function toggleChat() {
+            const w = document.getElementById('chat-widget');
+            w.classList.toggle('collapsed');
+            document.getElementById('chat-toggle-icon').textContent = w.classList.contains('collapsed') ? '▲' : '▼';
+        }
+        async function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim(); if (!text) return;
+            const body = document.getElementById('chat-body');
+            body.innerHTML += `<div class="chat-msg user">${text}</div>`;
+            input.value = '';
+            body.scrollTop = body.scrollHeight;
+            try {
+                const res = await AIAPI.chat(text);
+                body.innerHTML += `<div class="chat-msg bot">${res.reply}</div>`;
+            } catch(e) { body.innerHTML += `<div class="chat-msg bot">Error.</div>`; }
+            body.scrollTop = body.scrollHeight;
+        }
+
+        async function loadNotifications() {
+            try {
+                const res = await NotificationsAPI.getAll();
+                renderNotifications(res.notifications);
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        function renderNotifications(list) {
+            const container = document.getElementById('sent-notifications-list');
+            if (!list || !list.length) {
+                container.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.9rem;">No notifications sent yet.</p>';
+                return;
+            }
+            container.innerHTML = list.map(n => {
+                let targetDisplay = 'Every Student';
+                if (n.targetType === 'class') {
+                    targetDisplay = `Class: ${n.targetClassId?.name || 'Unknown'}`;
+                } else if (n.targetType === 'student') {
+                    targetDisplay = `Student: ${n.targetStudentId?.name || 'Unknown'}`;
+                }
+
+                return `
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                    <div>
+                        <div style="font-size: 0.95rem; font-weight: 500; color: #fff; white-space: pre-line;">${n.message}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">
+                            By: <span style="color: var(--text-primary); font-weight: bold;">${n.senderName}</span> (${n.senderRole.toUpperCase()}) • To: <span style="color: var(--success); font-weight: 600;">${targetDisplay}</span> • ${new Date(n.createdAt).toLocaleString()}
+                        </div>
+                    </div>
+                    <button class="btn-danger" onclick="deleteNotification('${n._id}')" style="padding: 4px 8px; font-size: 0.75rem; flex-shrink: 0;">Delete</button>
+                </div>
+                `;
+            }).join('');
+        }
+
+        async function deleteNotification(id) {
+            try {
+                await NotificationsAPI.delete(id);
+                showToast('Notification deleted successfully');
+                loadNotifications();
+            } catch (err) { showToast('Failed to delete: ' + err.message, 'error'); }
+        }
+
+        function toggleTargetFields(value, role) {
+            const classGroup = document.getElementById('class-target-group');
+            const studentGroup = document.getElementById('student-target-group');
+            
+            classGroup.classList.add('hidden');
+            studentGroup.classList.add('hidden');
+            
+            if (value === 'class') {
+                classGroup.classList.remove('hidden');
+                populateTargetClassesDropdown(role);
+            } else if (value === 'student') {
+                studentGroup.classList.remove('hidden');
+                populateTargetStudentsDropdown(role);
+            }
+        }
+
+        function populateTargetClassesDropdown(role) {
+            const select = document.getElementById('notif-target-class');
+            select.innerHTML = '<option value="">Select Class...</option>';
+            notificationClasses.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.name;
+                select.appendChild(opt);
+            });
+        }
+
+        function populateTargetStudentsDropdown(role) {
+            const select = document.getElementById('notif-target-student');
+            select.innerHTML = '<option value="">Select Student...</option>';
+            notificationStudents.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = `${s.name} (${s.class_name})`;
+                select.appendChild(opt);
+            });
+        }
+
+        document.getElementById('broadcast-notification-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const msgInput = document.getElementById('notif-message');
+            const targetType = document.getElementById('notif-target-type').value;
+            const targetClassId = document.getElementById('notif-target-class').value;
+            const targetStudentId = document.getElementById('notif-target-student').value;
+            
+            const message = msgInput.value.trim();
+            if (!message) return;
+
+            if (targetType === 'class' && !targetClassId) {
+                showToast('Please select a target class', 'error');
+                return;
+            }
+            if (targetType === 'student' && !targetStudentId) {
+                showToast('Please select a target student', 'error');
+                return;
+            }
+
+            try {
+                await NotificationsAPI.create(message, targetType, targetClassId, targetStudentId);
+                showToast('Notification sent successfully!');
+                msgInput.value = '';
+                document.getElementById('notif-target-type').value = 'all';
+                toggleTargetFields('all', 'teacher');
+                loadNotifications();
+            } catch (err) { showToast(err.message, 'error'); }
+        };
+
+        init();
+    </script>
+</body>
+</html>

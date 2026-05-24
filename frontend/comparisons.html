@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparisons — AEVON</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>AEVON</h2>
+                <div class="user-role" id="role-label">Panel</div>
+            </div>
+            <nav class="sidebar-nav" id="nav-links"></nav>
+            <div class="sidebar-footer">
+                <button class="btn btn-secondary" style="width:100%;" onclick="handleLogout()">Logout</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1>Performance Comparisons</h1>
+                    <p class="subtitle">Analyze and compare student progress across exams</p>
+                </div>
+                <div class="flex gap-1">
+                    <select id="compare-class-filter" class="form-control" style="width:250px;" onchange="loadComparisonChart()">
+                        <option value="">Select Class to Compare</option>
+                    </select>
+                    <button class="btn btn-secondary btn-sm" onclick="loadComparisonChart()">🔄 Refresh</button>
+                </div>
+            </div>
+
+            <div id="loading" class="loading-overlay hidden">
+                <div class="spinner"></div>
+                <p>Analyzing class data...</p>
+            </div>
+
+            <div class="card" style="margin-top: 1rem;">
+                <div class="card-header">
+                    <span class="card-title">Student Exam-wise Trend Line (Overall)</span>
+                </div>
+                <div id="comparison-container" style="height:450px; padding:1.5rem; position: relative;">
+                    <canvas id="chart-comparison"></canvas>
+                    <div id="comparison-empty" class="empty-state" style="padding-top:100px;">
+                        <div class="icon"></div>
+                        <p>Select a class from the dropdown above to visualize overall progress</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subject-wise Comparison Section -->
+            <div class="card" style="margin-top: 2rem; margin-bottom: 2rem;">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="card-title">Subject-wise Performance Comparison</span>
+                    <div class="flex gap-1">
+                        <select id="sub-compare-class" class="form-control" style="width:200px;" onchange="updateSubCompareSubjects()">
+                            <option value="">Select Class</option>
+                        </select>
+                        <select id="sub-compare-subject" class="form-control" style="width:200px;" onchange="loadSubjectComparisonChart()">
+                            <option value="">Select Subject</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="sub-comparison-container" style="height:450px; padding:1.5rem; position: relative;">
+                    <canvas id="chart-sub-comparison"></canvas>
+                    <div id="sub-comparison-empty" class="empty-state" style="padding-top:100px;">
+                        <div class="icon"></div>
+                        <p>Select a class and subject to compare student scores over time</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/charts.js"></script>
+    <script>
+        let comparisonChart = null;
+        let subjectComparisonChart = null;
+
+        async function init() {
+            const user = await requireAuth(['admin', 'teacher']);
+            if (!user) return;
+            renderSidebar('comparisons.html');
+
+            try {
+                const { classes } = await AnalyticsAPI.getClasses();
+                const compareSel = document.getElementById('compare-class-filter');
+                const subCompareClassSel = document.getElementById('sub-compare-class');
+                
+                classes.forEach(c => {
+                    const opt = `<option value="${c.id}">${c.name} (${c.student_count || 0} Students)</option>`;
+                    compareSel.innerHTML += opt;
+                    subCompareClassSel.innerHTML += opt;
+                });
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        async function loadComparisonChart() {
+            const classId = document.getElementById('compare-class-filter').value;
+            const canvas = document.getElementById('chart-comparison');
+            const empty = document.getElementById('comparison-empty');
+            const loading = document.getElementById('loading');
+
+            if (!classId) {
+                canvas.style.display = 'none';
+                empty.style.display = 'flex';
+                return;
+            }
+
+            loading.classList.remove('hidden');
+            empty.style.display = 'none';
+
+            try {
+                const [marksRes, examsRes, studentsRes] = await Promise.all([
+                    MarksAPI.getAll({ class_id: classId }),
+                    AdminAPI.getExams(classId),
+                    StudentsAPI.getAll({ class_id: classId })
+                ]);
+
+                const marks = marksRes.marks || [];
+                const exams = (examsRes.exams || []).sort((a, b) => new Date(a.date) - new Date(b.date));
+                const students = studentsRes.students || [];
+
+                if (!exams.length || !students.length) throw new Error('No data found for this class.');
+
+                const labels = exams.map(e => e.name);
+                const datasets = students.map((s, index) => ({
+                    label: s.name,
+                    data: exams.map(e => {
+                        const m = marks.filter(mk => mk.student_id === s.id && mk.exam_id === e.id);
+                        if (!m.length) return null;
+                        return Math.round((m.reduce((sum, x) => sum + x.marks_obtained, 0) / m.reduce((sum, x) => sum + x.max_marks, 0)) * 100);
+                    }),
+                    fill: false,
+                    tension: 0.3
+                }));
+
+                canvas.style.display = 'block';
+                if (comparisonChart) { comparisonChart.destroy(); comparisonChart = null; }
+                comparisonChart = Charts._createLine('chart-comparison', labels, datasets, {
+                    plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } },
+                    scales: { y: { max: 100 } }
+                });
+            } catch (err) {
+                empty.innerHTML = `<div class="icon"></div><p>${err.message}</p>`;
+                empty.style.display = 'flex';
+                canvas.style.display = 'none';
+            } finally { loading.classList.add('hidden'); }
+        }
+
+        async function updateSubCompareSubjects() {
+            const classId = document.getElementById('sub-compare-class').value;
+            const subSel = document.getElementById('sub-compare-subject');
+            subSel.innerHTML = '<option value="">Select Subject</option>';
+            
+            if (!classId) return;
+
+            try {
+                const { subjects } = await AnalyticsAPI.getSubjects(classId);
+                subjects.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.textContent = s.name;
+                    subSel.appendChild(opt);
+                });
+            } catch (err) {
+                showToast('Failed to load subjects: ' + err.message, 'error');
+            }
+        }
+
+        async function loadSubjectComparisonChart() {
+            const classId = document.getElementById('sub-compare-class').value;
+            const subjectId = document.getElementById('sub-compare-subject').value;
+            const canvas = document.getElementById('chart-sub-comparison');
+            const empty = document.getElementById('sub-comparison-empty');
+            const loading = document.getElementById('loading');
+
+            if (!classId || !subjectId) {
+                canvas.style.display = 'none';
+                empty.style.display = 'flex';
+                return;
+            }
+
+            loading.classList.remove('hidden');
+            empty.style.display = 'none';
+
+            try {
+                const [marksRes, examsRes, studentsRes] = await Promise.all([
+                    MarksAPI.getAll({ class_id: classId, subject_id: subjectId }),
+                    AdminAPI.getExams(classId),
+                    StudentsAPI.getAll({ class_id: classId })
+                ]);
+
+                const marks = marksRes.marks || [];
+                const exams = (examsRes.exams || []).sort((a, b) => new Date(a.date) - new Date(b.date));
+                const students = studentsRes.students || [];
+
+                if (!marks.length) throw new Error('No marks found for this subject.');
+
+                const labels = exams.map(e => e.name);
+                const datasets = students.map((s, index) => ({
+                    label: s.name,
+                    data: exams.map(e => {
+                        const m = marks.find(mk => mk.student_id === s.id && mk.exam_id === e.id);
+                        return m ? m.percentage : null;
+                    }),
+                    fill: false,
+                    tension: 0.3
+                }));
+
+                canvas.style.display = 'block';
+                if (subjectComparisonChart) { subjectComparisonChart.destroy(); subjectComparisonChart = null; }
+                subjectComparisonChart = Charts._createLine('chart-sub-comparison', labels, datasets, {
+                    plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } },
+                    scales: { y: { max: 100 } }
+                });
+            } catch (err) {
+                empty.innerHTML = `<div class="icon"></div><p>${err.message}</p>`;
+                empty.style.display = 'flex';
+                canvas.style.display = 'none';
+            } finally { loading.classList.add('hidden'); }
+        }
+
+        init();
+    </script>
+</body>
+</html>

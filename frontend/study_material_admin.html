@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Materials — AEVON</title>
+    <meta name="description" content="Upload and manage chapter-wise study materials for students.">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* ────────────────────────────────
+           FILE INPUT
+        ──────────────────────────────── */
+        .file-input-wrapper { position: relative; }
+        .file-input-wrapper input[type="file"] {
+            opacity: 0; position: absolute; inset: 0;
+            cursor: pointer; width: 100%; height: 100%;
+        }
+        .file-input-label {
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.7rem 1rem;
+            border: 2px dashed var(--border); border-radius: var(--radius-sm);
+            color: var(--text-secondary); font-size: 0.88rem; cursor: pointer;
+            transition: var(--transition); background: var(--bg-input);
+            min-height: 46px;
+        }
+        .file-input-label:hover { border-color: var(--primary); color: var(--primary); }
+        .file-input-label.has-file { border-color: var(--success); color: var(--success); border-style: solid; }
+
+        /* ────────────────────────────────
+           TEACHER SECTION
+        ──────────────────────────────── */
+        .teacher-section {
+            background: rgba(59,130,246,0.04);
+            border: 1px solid rgba(59,130,246,0.15);
+            border-radius: var(--radius-sm);
+            padding: 1rem 1.1rem;
+            margin-top: 1rem;
+        }
+        .teacher-section-label {
+            font-size: 0.73rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--primary); margin-bottom: 0.75rem;
+            display: flex; align-items: center; gap: 0.4rem;
+        }
+
+        /* ────────────────────────────────
+           FORM GRIDS
+        ──────────────────────────────── */
+        .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .form-row-sr { display: grid; grid-template-columns: 90px 1fr; gap: 1rem; align-items: end; }
+        .form-group-0 { margin-bottom: 0; }
+
+        @media (max-width: 640px) {
+            .form-row-2  { grid-template-columns: 1fr; gap: 0.75rem; }
+            .form-row-sr { grid-template-columns: 72px 1fr; gap: 0.65rem; }
+        }
+
+        /* ────────────────────────────────
+           BADGES / LINKS
+        ──────────────────────────────── */
+        .ext-badge {
+            display: inline-block; padding: 2px 8px; border-radius: 20px;
+            font-size: 0.7rem; font-weight: 700;
+        }
+        .ext-pdf  { background: rgba(239,68,68,0.1);  color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+        .ext-jpg, .ext-jpeg, .ext-png { background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid rgba(16,185,129,0.25); }
+        .ext-zip  { background: rgba(245,158,11,0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+        .ext-file { background: rgba(99,102,241,0.1); color: #6366f1; border: 1px solid rgba(99,102,241,0.25); }
+
+        .teacher-link { color: var(--primary); font-weight: 700; text-decoration: none; white-space: nowrap; }
+        .teacher-link:hover { text-decoration: underline; }
+        .no-link-teacher { font-weight: 600; color: var(--text-primary); }
+        .action-file-link { color: var(--primary); font-size: 0.82rem; font-weight: 600; text-decoration: none; }
+        .action-file-link:hover { text-decoration: underline; }
+
+        /* ────────────────────────────────
+           DESKTOP TABLE
+        ──────────────────────────────── */
+        .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .data-table thead th { white-space: nowrap; }
+        .desc-cell {
+            font-size: 0.8rem; color: var(--text-secondary);
+            max-width: 180px; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis;
+        }
+
+        /* ────────────────────────────────
+           MOBILE MATERIAL CARDS (< 640px)
+        ──────────────────────────────── */
+        .mobile-cards { display: none; flex-direction: column; gap: 0.75rem; padding: 0.5rem; }
+        .mat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 0.9rem 1rem;
+        }
+        .mat-card-header {
+            display: flex; align-items: center; gap: 0.6rem;
+            margin-bottom: 0.65rem;
+        }
+        .mat-card-sr {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 28px; height: 28px; border-radius: 50%;
+            background: rgba(59,130,246,0.1); color: var(--primary);
+            font-weight: 700; font-size: 0.8rem; flex-shrink: 0;
+        }
+        .mat-card-name { font-weight: 700; font-size: 0.92rem; color: var(--text-primary); }
+        .mat-card-body { display: flex; flex-direction: column; gap: 0.45rem; }
+        .mat-card-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.81rem; flex-wrap: wrap; }
+        .mat-card-row .lbl { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); min-width: 55px; flex-shrink: 0; }
+        .mat-card-footer { margin-top: 0.65rem; padding-top: 0.65rem; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; }
+
+        @media (max-width: 640px) {
+            .table-scroll table { display: none; }
+            .mobile-cards { display: flex !important; }
+
+            /* Stack selector row on mobile */
+            .selector-row { flex-direction: column !important; gap: 0.75rem !important; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-layout">
+    <aside class="sidebar">
+        <div class="sidebar-header"><h2>AEVON</h2><div class="user-role" id="role-label">Panel</div></div>
+        <nav class="sidebar-nav" id="nav-links"></nav>
+        <div class="sidebar-footer">
+            <button class="btn btn-secondary" style="width:100%;" onclick="handleLogout()">Logout</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1>Study Materials</h1>
+                <p class="subtitle">Upload chapter-wise materials — documents &amp; video lectures by teacher.</p>
+            </div>
+        </div>
+
+        <!-- Class & Subject Selector -->
+        <div class="card" style="margin-bottom:1.25rem;">
+            <div class="card-header"><span class="card-title">Select Class &amp; Subject</span></div>
+            <div class="form-row-2" style="margin-top:0.65rem;">
+                <div class="form-group form-group-0">
+                    <label>Class</label>
+                    <select id="sel-class" class="form-control" onchange="onClassChange()">
+                        <option value="">— Select Class —</option>
+                    </select>
+                </div>
+                <div class="form-group form-group-0">
+                    <label>Subject</label>
+                    <select id="sel-subject" class="form-control" onchange="loadMaterials()" disabled>
+                        <option value="">— Select Subject —</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Form -->
+        <div class="card" id="upload-section" style="margin-bottom:1.25rem;display:none;">
+            <div class="card-header"><span class="card-title">Add Chapter Material</span></div>
+            <form id="upload-form" style="margin-top:0.75rem;">
+
+                <!-- Chapter No + Name -->
+                <div class="form-row-sr">
+                    <div class="form-group form-group-0">
+                        <label>Ch. No.</label>
+                        <input type="number" id="inp-chapter-no" class="form-control" min="1" placeholder="1" required>
+                    </div>
+                    <div class="form-group form-group-0">
+                        <label>Chapter Name</label>
+                        <input type="text" id="inp-chapter-name" class="form-control" placeholder="e.g. Laws of Motion" required>
+                    </div>
+                </div>
+
+                <!-- Document upload -->
+                <div class="form-group" style="margin-top:1rem;margin-bottom:0;">
+                    <label>Document — PDF / JPG / ZIP
+                        <span style="color:var(--text-muted);font-weight:400;">(optional)</span>
+                    </label>
+                    <div class="file-input-wrapper">
+                        <div class="file-input-label" id="file-label">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            <span id="file-label-text">Tap to upload PDF, JPG, or ZIP</span>
+                        </div>
+                        <input type="file" id="inp-file" accept=".pdf,.jpg,.jpeg,.png,.zip" onchange="onFileChange(this)">
+                    </div>
+                </div>
+
+                <!-- Teacher Section -->
+                <div class="teacher-section">
+                    <div class="teacher-section-label">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        Teacher / Lecture Details
+                    </div>
+                    <div class="form-row-2" style="margin-top:0;">
+                        <div class="form-group form-group-0">
+                            <label>Teacher Name
+                                <span style="color:var(--text-muted);font-weight:400;font-size:0.8rem;">
+                                    (click opens video)
+                                </span>
+                            </label>
+                            <input type="text" id="inp-teacher-name" class="form-control" placeholder="e.g. Prof. Ramesh Kumar">
+                        </div>
+                        <div class="form-group form-group-0">
+                            <label>YouTube / Video URL
+                                <span style="color:var(--text-muted);font-weight:400;font-size:0.8rem;">
+                                    (linked to name)
+                                </span>
+                            </label>
+                            <input type="url" id="inp-yt-url" class="form-control" placeholder="https://youtube.com/watch?v=...">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="form-group" style="margin-top:1rem;margin-bottom:0;">
+                    <label>Description / Notes
+                        <span style="color:var(--text-muted);font-weight:400;">(optional)</span>
+                    </label>
+                    <textarea id="inp-description" class="form-control" rows="2"
+                        placeholder="Topics covered, instructions for students…"
+                        style="resize:vertical;"></textarea>
+                </div>
+
+                <div style="margin-top:1.1rem;display:flex;gap:0.65rem;align-items:center;flex-wrap:wrap;">
+                    <button type="submit" class="btn btn-primary" id="upload-btn" style="flex:1;min-width:130px;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Add Chapter
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()" style="flex:1;min-width:90px;">Clear</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Materials Table / Cards -->
+        <div class="card" id="materials-section" style="display:none;padding:0;overflow:hidden;">
+            <div class="card-header" style="padding:1rem 1.25rem;">
+                <span class="card-title">Uploaded Chapters</span>
+                <span id="materials-count" class="badge badge-info">0 chapters</span>
+            </div>
+
+            <div id="materials-loading" style="text-align:center;padding:2rem;color:var(--text-muted);display:none;">
+                <div class="spinner"></div><p style="margin-top:0.5rem;font-size:0.88rem;">Loading...</p>
+            </div>
+
+            <!-- Desktop table -->
+            <div class="table-scroll">
+                <table class="data-table" style="min-width:620px;">
+                    <thead>
+                        <tr>
+                            <th style="width:52px;">Sr.</th>
+                            <th>Chapter Name</th>
+                            <th>Document</th>
+                            <th>YT Teacher</th>
+                            <th>Description</th>
+                            <th style="width:80px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="materials-tbody">
+                        <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted);">Select a class and subject to view materials.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile cards -->
+            <div class="mobile-cards" id="mobile-mat-cards">
+                <p style="text-align:center;color:var(--text-muted);padding:1.5rem;font-size:0.88rem;">Select a class and subject.</p>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script>
+    let selectedClassId  = '';
+    let selectedSubjectId = '';
+    let currentFileData  = null;
+    let currentFileName  = '';
+
+    async function init() {
+        const user = await requireAuth(['admin', 'teacher']);
+        if (!user) return;
+        renderSidebar('study_material_admin.html');
+        await loadClasses();
+    }
+
+    async function loadClasses() {
+        try {
+            const res = await AnalyticsAPI.getClasses();
+            const sel = document.getElementById('sel-class');
+            (res.classes || []).forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id; opt.textContent = c.name;
+                sel.appendChild(opt);
+            });
+        } catch (e) { showToast(e.message, 'error'); }
+    }
+
+    async function onClassChange() {
+        selectedClassId = document.getElementById('sel-class').value;
+        const subSel = document.getElementById('sel-subject');
+        subSel.innerHTML = '<option value="">— Select Subject —</option>';
+        subSel.disabled = true;
+        document.getElementById('upload-section').style.display   = 'none';
+        document.getElementById('materials-section').style.display = 'none';
+        selectedSubjectId = '';
+        if (!selectedClassId) return;
+        try {
+            const res = await AnalyticsAPI.getSubjects(selectedClassId);
+            (res.subjects || []).forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id; opt.textContent = s.name;
+                subSel.appendChild(opt);
+            });
+            subSel.disabled = false;
+        } catch (e) { showToast(e.message, 'error'); }
+    }
+
+    async function loadMaterials() {
+        selectedSubjectId = document.getElementById('sel-subject').value;
+        if (!selectedClassId || !selectedSubjectId) return;
+        document.getElementById('upload-section').style.display    = 'block';
+        document.getElementById('materials-section').style.display = 'block';
+        document.getElementById('materials-loading').style.display = 'block';
+        try {
+            const res = await MaterialsAPI.getAll(selectedClassId, selectedSubjectId);
+            renderMaterials(res.materials || []);
+        } catch (e) {
+            showToast(e.message, 'error');
+        } finally {
+            document.getElementById('materials-loading').style.display = 'none';
+        }
+    }
+
+    function renderMaterials(list) {
+        const tbody = document.getElementById('materials-tbody');
+        const mobileCards = document.getElementById('mobile-mat-cards');
+        document.getElementById('materials-count').textContent =
+            `${list.length} chapter${list.length !== 1 ? 's' : ''}`;
+
+        if (list.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted);">No chapters yet. Use the form above to add your first chapter.</td></tr>`;
+            mobileCards.innerHTML = `<p style="text-align:center;color:var(--text-muted);padding:1.5rem;font-size:0.88rem;">No chapters yet.</p>`;
+            return;
+        }
+
+        let tableRows = '';
+        let cardItems = '';
+
+        list.forEach(m => {
+            const docHtml     = buildDocHtml(m);
+            const teacherHtml = buildTeacherHtml(m);
+            const descHtml    = m.description
+                ? `<span class="desc-cell" title="${esc(m.description)}">${esc(m.description)}</span>`
+                : `<span style="color:var(--text-muted);font-size:0.8rem;">—</span>`;
+
+            tableRows += `<tr>
+                <td><strong style="color:var(--primary);">${m.chapter_no}</strong></td>
+                <td style="font-weight:600;">${esc(m.chapter_name)}</td>
+                <td>${docHtml}</td>
+                <td>${teacherHtml}</td>
+                <td>${descHtml}</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteMaterial('${m.id}')">Delete</button></td>
+            </tr>`;
+
+            cardItems += `<div class="mat-card">
+                <div class="mat-card-header">
+                    <span class="mat-card-sr">${m.chapter_no}</span>
+                    <span class="mat-card-name">${esc(m.chapter_name)}</span>
+                </div>
+                <div class="mat-card-body">
+                    <div class="mat-card-row"><span class="lbl">Doc</span>${docHtml || '<span style="color:var(--text-muted)">—</span>'}</div>
+                    <div class="mat-card-row"><span class="lbl">Teacher</span>${teacherHtml || '<span style="color:var(--text-muted)">—</span>'}</div>
+                    ${m.description ? `<div class="mat-card-row" style="align-items:flex-start;"><span class="lbl">Note</span><span style="font-size:0.81rem;color:var(--text-secondary);">${esc(m.description)}</span></div>` : ''}
+                    <div class="mat-card-row"><span class="lbl">By</span><span style="font-size:0.79rem;color:var(--text-muted);">${esc(m.uploaded_by||'—')}</span></div>
+                </div>
+                <div class="mat-card-footer">
+                    <button class="btn btn-sm btn-danger" onclick="deleteMaterial('${m.id}')">Delete</button>
+                </div>
+            </div>`;
+        });
+
+        tbody.innerHTML = tableRows;
+        mobileCards.innerHTML = cardItems;
+    }
+
+    function buildDocHtml(m) {
+        if (!m.file_url) return `<span style="color:var(--text-muted);font-size:0.8rem;">—</span>`;
+        const ext = (m.file_name || '').split('.').pop().toLowerCase();
+        const cls = ['jpg','jpeg','png'].includes(ext) ? `ext-${ext}` : `ext-${ext}` || 'ext-file';
+        return `<a href="${esc(m.file_url)}" target="_blank" class="action-file-link" style="display:inline-flex;align-items:center;gap:5px;">
+            <span class="ext-badge ${cls}">${ext.toUpperCase()}</span>
+            <span>${esc(m.file_name || 'Open')}</span>
+        </a>`;
+    }
+
+    function buildTeacherHtml(m) {
+        if (m.teacher_name && m.youtube_url) {
+            return `<a href="${esc(m.youtube_url)}" target="_blank" class="teacher-link" title="Watch lecture">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="#ef4444" style="vertical-align:middle;margin-right:3px"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-2.75 12.66 12.66 0 0 0-4.31-.77 12.66 12.66 0 0 0-4.31.77 4.83 4.83 0 0 1-3.77 2.75A4.78 4.78 0 0 0 2 10.5v3a4.78 4.78 0 0 0 1.43 3.81 4.83 4.83 0 0 1 3.77 2.75 12.66 12.66 0 0 0 4.31.77 12.66 12.66 0 0 0 4.31-.77 4.83 4.83 0 0 1 3.77-2.75A4.78 4.78 0 0 0 22 13.5v-3a4.78 4.78 0 0 0-2.41-3.81z"/><polygon fill="white" points="10 15 15 12 10 9 10 15"/></svg>
+                ${esc(m.teacher_name)}
+            </a>`;
+        } else if (m.teacher_name) {
+            return `<span class="no-link-teacher">${esc(m.teacher_name)}</span>`;
+        } else if (m.youtube_url) {
+            return `<a href="${esc(m.youtube_url)}" target="_blank" class="teacher-link">▶ Watch Video</a>`;
+        }
+        return `<span style="color:var(--text-muted);font-size:0.8rem;">—</span>`;
+    }
+
+    function onFileChange(input) {
+        const file = input.files[0];
+        const label = document.getElementById('file-label');
+        const labelText = document.getElementById('file-label-text');
+        if (!file) {
+            currentFileData = null; currentFileName = '';
+            label.classList.remove('has-file');
+            labelText.textContent = 'Tap to upload PDF, JPG, or ZIP';
+            return;
+        }
+        currentFileName = file.name;
+        label.classList.add('has-file');
+        labelText.textContent = `✓ ${file.name}`;
+        const reader = new FileReader();
+        reader.onload = e => { currentFileData = e.target.result; };
+        reader.readAsDataURL(file);
+    }
+
+    document.getElementById('upload-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const chapterNo   = document.getElementById('inp-chapter-no').value;
+        const chapterName = document.getElementById('inp-chapter-name').value.trim();
+        const teacherName = document.getElementById('inp-teacher-name').value.trim();
+        const youtubeUrl  = document.getElementById('inp-yt-url').value.trim();
+        const description = document.getElementById('inp-description').value.trim();
+
+        if (!chapterNo || !chapterName) {
+            showToast('Chapter number and name are required', 'error'); return;
+        }
+        if (!currentFileData && !youtubeUrl && !teacherName) {
+            showToast('Please provide at least a document, teacher name, or video URL', 'error'); return;
+        }
+
+        const btn = document.getElementById('upload-btn');
+        btn.disabled = true; btn.textContent = 'Uploading…';
+
+        try {
+            await MaterialsAPI.create({
+                class_id:     selectedClassId,
+                subject_id:   selectedSubjectId,
+                chapter_no:   Number(chapterNo),
+                chapter_name: chapterName,
+                teacher_name: teacherName,
+                youtube_url:  youtubeUrl,
+                description,
+                file_data:    currentFileData || '',
+                file_name:    currentFileName,
+            });
+            showToast('Chapter added!');
+            resetForm();
+            loadMaterials();
+        } catch (err) {
+            showToast(err.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Chapter';
+        }
+    };
+
+    async function deleteMaterial(id) {
+        if (!confirm('Delete this chapter? Cannot be undone.')) return;
+        try {
+            await MaterialsAPI.delete(id);
+            showToast('Chapter deleted');
+            loadMaterials();
+        } catch (err) { showToast(err.message, 'error'); }
+    }
+
+    function resetForm() {
+        document.getElementById('upload-form').reset();
+        currentFileData = null; currentFileName = '';
+        document.getElementById('file-label').classList.remove('has-file');
+        document.getElementById('file-label-text').textContent = 'Tap to upload PDF, JPG, or ZIP';
+    }
+
+    function esc(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    init();
+</script>
+</body>
+</html>

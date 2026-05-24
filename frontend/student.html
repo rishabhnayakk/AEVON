@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard — AEVON</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        .chat-widget { position: fixed; bottom: 20px; right: 20px; width: 320px; background: #141414; border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: 0 4px 20px rgba(0,0,0,0.4); display: flex; flex-direction: column; z-index: 1000; overflow: hidden; transition: all 0.3s; color: #ffffff; }
+        .chat-widget.collapsed { height: 50px; cursor: pointer; }
+        .chat-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; padding: 12px 16px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .chat-body { height: 300px; padding: 12px; overflow-y: auto; background: #0a0a0a; display: flex; flex-direction: column; gap: 8px; }
+        .chat-msg { max-width: 85%; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.9rem; color: #ffffff; line-height: 1.4; }
+        .chat-msg.user { background: rgba(241, 143, 1, 0.25); border: 1px solid rgba(241, 143, 1, 0.4); align-self: flex-end; }
+        .chat-msg.bot { background: #222222; border: 1px solid #333333; align-self: flex-start; }
+        .chat-footer { padding: 12px; border-top: 1px solid var(--border); display: flex; gap: 8px; background: #141414; }
+        .chat-footer input { flex: 1; padding: 8px 12px; border: 1px solid var(--border); background: #222; color: #fff; border-radius: var(--radius-sm); font-size: 0.9rem; }
+        .chat-footer button { background: var(--primary); border: none; color: #fff; padding: 8px 14px; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; transition: background 0.2s; font-size: 0.9rem; }
+        .chat-footer button:hover { background: var(--primary-dark); }
+        @keyframes pulseBell {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1) rotate(5deg); }
+            100% { transform: scale(1); }
+        }
+        @keyframes zoomIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        /* Gamification Styles */
+        .badge-grid-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: var(--transition);
+        }
+        .badge-grid-item.locked {
+            opacity: 0.4;
+            filter: grayscale(100%);
+            border-style: dashed;
+        }
+        .badge-grid-item:hover:not(.locked) {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+            transform: translateY(-2px);
+        }
+        .badge-grid-icon {
+            font-size: 2.25rem;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .badge-grid-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .badge-grid-name {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+        .badge-grid-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.3;
+        }
+        .badge-grid-date {
+            font-size: 0.7rem;
+            color: var(--success);
+            font-weight: 600;
+        }
+        .leaderboard-row-self {
+            background: rgba(59, 130, 246, 0.05) !important;
+            border-left: 4px solid var(--primary) !important;
+        }
+        .leaderboard-row-self td {
+            font-weight: 600 !important;
+            color: var(--primary-dark) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>AEVON</h2>
+                <div class="user-role">Student Panel</div>
+            </div>
+            <nav class="sidebar-nav" id="nav-links"></nav>
+            <div class="sidebar-footer">
+                <button class="btn btn-secondary" style="width:100%;" onclick="handleLogout()">Logout</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header" style="align-items: flex-end;">
+                <div style="display:flex; align-items:center; gap:1.5rem;">
+                    <div id="student-avatar" style="width:64px; height:64px; background:linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: var(--radius-md); display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.5rem; font-weight:800; box-shadow: var(--shadow-md);">
+                        ?
+                    </div>
+                    <div>
+                        <h1 id="page-title" style="margin-bottom:0.25rem;">Loading Student...</h1>
+                        <p class="subtitle" id="page-subtitle" style="font-weight:500; color:var(--primary);">Fetching your profile...</p>
+                    </div>
+                </div>
+                <div class="flex gap-1" style="align-items: center; position: relative;">
+                    <!-- Notification Bell Container -->
+                    <div class="notification-container" style="position: relative;">
+                        <button class="btn btn-secondary" id="notification-bell-btn" onclick="toggleNotificationsDropdown()" style="padding: 0.7rem; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; position: relative;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            <span id="notification-badge" class="badge-danger" style="position: absolute; top: -5px; right: -5px; font-size: 0.7rem; padding: 2px 6px; border-radius: 50%; min-width: 18px; text-align: center; display: none;">0</span>
+                        </button>
+                        <!-- Dropdown -->
+                        <div id="notifications-dropdown" class="hidden" style="position: absolute; right: 0; top: 110%; width: 340px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); z-index: 1000; overflow: hidden; max-height: 400px; display: flex; flex-direction: column;">
+                            <div style="padding: 12px 16px; border-bottom: 1px solid var(--border); font-weight: 700; color: var(--primary); display: flex; justify-content: space-between; align-items: center;">
+                                <span>Notifications</span>
+                                <button onclick="markAllNotificationsRead()" style="background: none; border: none; color: var(--text-secondary); font-size: 0.75rem; cursor: pointer; text-decoration: underline;">Mark read</button>
+                            </div>
+                            <div id="notifications-list" style="overflow-y: auto; flex: 1; display: flex; flex-direction: column;">
+                                <!-- Loaded dynamically -->
+                                <p style="padding: 20px; text-align: center; color: var(--text-secondary); font-size: 0.9rem; margin: 0;">No new notifications</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="downloadReport()">PDF Report</button>
+                </div>
+            </div>
+
+            <div id="loading" class="loading-overlay">
+                <div class="spinner"></div><p>Loading your data...</p>
+            </div>
+
+            <div id="dashboard-content" class="hidden">
+                <!-- Tab Switching Navigation -->
+                <div class="tabs-container" style="display:flex; gap:0.5rem; margin-bottom:1.5rem; border-bottom:1px solid var(--border); padding-bottom:0.75rem; flex-wrap: wrap;">
+                    <button class="btn btn-primary tab-btn active" id="btn-tab-performance" onclick="switchTab('performance')">
+                        📊 Performance Overview
+                    </button>
+                    <button class="btn btn-secondary tab-btn" id="btn-tab-leaderboard" onclick="switchTab('leaderboard')">
+                        🏆 Leaderboard & Badges
+                    </button>
+                </div>
+
+                <!-- Tab 1: Performance Overview -->
+                <div id="tab-performance">
+                    <div class="stats-grid" id="stats-grid"></div>
+                    <div class="charts-grid">
+                        <div class="chart-card"><div class="card-header"><span class="card-title">Subject Performance</span></div><div style="height:280px;"><canvas id="chart-subjects"></canvas></div></div>
+                        <div class="chart-card"><div class="card-header"><span class="card-title">Exam-wise Trend</span></div><div style="height:280px;"><canvas id="chart-exams"></canvas></div></div>
+                        <div class="chart-card"><div class="card-header"><span class="card-title">Pass/Fail Analysis</span></div><div style="height:280px;"><canvas id="chart-passfail"></canvas></div></div>
+                    </div>
+                    <div class="card mt-2"><div class="card-header"><span class="card-title">AI Study Tips & Insights</span></div><div id="recommendations-container"></div></div>
+                    <div class="card mt-2" id="marks-table-section">
+                        <div class="card-header"><span class="card-title">Detailed Marks Ledger</span></div>
+                        <div id="marks-table"></div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Leaderboard & Badges -->
+                <div id="tab-leaderboard" class="hidden">
+                    <!-- Achievements & Badges Card -->
+                    <div class="card mt-2">
+                        <div class="card-header">
+                            <span class="card-title">🏆 Visual Achievement Badges</span>
+                        </div>
+                        <p class="subtitle mb-2" style="font-size:0.9rem; color:var(--text-secondary); margin-bottom: 1rem;">Earn visual badges by excelling in your subjects and exams.</p>
+                        <div id="badges-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem;">
+                            <!-- Dynamically loaded badges -->
+                        </div>
+                    </div>
+
+                    <!-- Privacy & Alias settings card -->
+                    <div class="card mt-2 text-left" style="text-align: left;">
+                        <div class="card-header">
+                            <span class="card-title">🔒 Leaderboard Privacy Settings</span>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:1rem; margin-top:0.5rem; text-align: left;">
+                            <div class="form-group" style="margin-bottom:0; text-align: left;">
+                                <label for="input-alias">Anonymous Alias</label>
+                                <input type="text" id="input-alias" class="form-control" placeholder="e.g. CodingNinja, MathWizard99" style="max-width:320px;">
+                            </div>
+                            <div style="display:flex; align-items:center; gap:0.5rem; text-align: left;">
+                                <input type="checkbox" id="checkbox-use-alias" style="width:18px; height:18px; cursor:pointer;">
+                                <label for="checkbox-use-alias" style="cursor:pointer; font-size:0.95rem; user-select:none; color:var(--text-secondary);">Use anonymous alias on leaderboard (Hides real name from class)</label>
+                            </div>
+                            <div>
+                                <button class="btn btn-primary" onclick="saveAliasSettings()">Save Settings</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Classroom Leaderboard Card -->
+                    <div class="card mt-2">
+                        <div class="card-header" style="flex-direction:row; flex-wrap:wrap; gap:1rem;">
+                            <div>
+                                <span class="card-title">🥇 Classroom Leaderboard</span>
+                            </div>
+                            <div style="display:flex; gap:0.5rem;">
+                                <button class="btn btn-secondary btn-sm" id="btn-sort-overall" onclick="loadLeaderboard('overall')" style="font-size:0.75rem;">Top Scorers</button>
+                                <button class="btn btn-secondary btn-sm" id="btn-sort-improvement" onclick="loadLeaderboard('improvement')" style="font-size:0.75rem;">Top Improvers</button>
+                            </div>
+                        </div>
+                        <div style="overflow-x:auto; margin-top:1rem;">
+                            <table class="data-table" id="leaderboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Student</th>
+                                        <th style="text-align:right;">Overall Average</th>
+                                        <th style="text-align:right;">Improvement Trend</th>
+                                        <th style="text-align:right;">Badges Earned</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leaderboard-tbody">
+                                    <!-- Loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="chat-widget collapsed" id="chat-widget">
+        <div class="chat-header" onclick="toggleChat()"><span>AI Assistant</span><button id="chat-toggle-icon">▲</button></div>
+        <div class="chat-body" id="chat-body"><div class="chat-msg bot">Hi! Ask me anything about your progress.</div></div>
+        <div class="chat-footer">
+            <input type="text" id="chat-input" placeholder="Type here..." onkeypress="if(event.key==='Enter')sendChatMessage()">
+            <button onclick="sendChatMessage()">Send</button>
+        </div>
+    </div>
+
+    <!-- Notification Popup Modal -->
+    <div id="notification-alert-modal" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:10100; display:flex; align-items:center; justify-content:center; padding:2rem;">
+        <div class="card" style="width:100%; max-width:480px; padding:2rem; text-align:center; position:relative; border: 1px solid var(--gold); box-shadow: 0 0 24px rgba(241,143,1,0.25); animation: zoomIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <div style="margin-bottom:1rem; display: flex; justify-content: center; animation: pulseBell 2s infinite;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            </div>
+            <h3 style="color:var(--primary); margin-bottom:1rem; font-weight:700;">New Notification</h3>
+            <p id="notif-alert-message" style="font-size:1.05rem; color:var(--text-primary); line-height:1.5; margin-bottom:1.5rem; font-weight:500; white-space: pre-line;"></p>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1.5rem;" id="notif-alert-sender"></div>
+            <button class="btn btn-primary" id="notif-alert-read-btn" style="width:100%;">Mark as Read</button>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/charts.js"></script>
+    <script>
+        let currentStudentId = null;
+        let studentClassId = null;
+        let leaderboardSortMode = 'overall';
+        let studentDataLoaded = null;
+
+        async function init() {
+            const user = await requireAuth(['student', 'teacher', 'admin']);
+            if (!user) return;
+            renderSidebar('student.html');
+
+            loadNotifications();
+
+            const params = new URLSearchParams(window.location.search);
+            currentStudentId = params.get('id') || user.student_id;
+            
+            if (!currentStudentId || currentStudentId === 'undefined') {
+                document.getElementById('loading').innerHTML = '<p class="p-2">No student profile linked.</p>';
+                return;
+            }
+
+            try {
+                const [analytics, recommendations] = await Promise.all([
+                    AnalyticsAPI.studentAnalytics(currentStudentId),
+                    AIAPI.recommendations(currentStudentId)
+                ]);
+
+                studentDataLoaded = analytics;
+                studentClassId = analytics.student.class_id || null;
+
+                renderStudentDashboard(analytics, recommendations);
+                
+                // Populate privacy fields
+                document.getElementById('input-alias').value = analytics.student.alias || '';
+                document.getElementById('checkbox-use-alias').checked = !!analytics.student.useAlias;
+
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('dashboard-content').classList.remove('hidden');
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        function renderStudentDashboard(data, recommendations) {
+            const s = data.student;
+            document.getElementById('page-title').textContent = s.name;
+            document.getElementById('page-subtitle').textContent = `${s.class_name} • ${s.enrollment_no}`;
+            
+            // Set Avatar Initials
+            const initials = s.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            document.getElementById('student-avatar').textContent = initials;
+
+            const marks = data.marks || [];
+            const passCount = marks.filter(m => m.percentage >= 40).length;
+            const failCount = marks.length - passCount;
+
+            document.getElementById('stats-grid').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value" style="color:var(--text-primary);">${data.overall_average || 0}%</div>
+                    <div class="stat-label">Overall Average</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color:var(--text-primary);">#${data.rank || '-'}</div>
+                    <div class="stat-label">Class Rank</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color:var(--text-primary);">${marks.length}</div>
+                    <div class="stat-label">Total Exams</div>
+                </div>
+            `;
+
+            if (data.subject_marks) Charts.renderSubjectPerformance('chart-subjects', data.subject_marks);
+            
+            const examAvg = {};
+            marks.forEach(m => { 
+                if(!examAvg[m.exam_name]) examAvg[m.exam_name] = [];
+                examAvg[m.exam_name].push(m.percentage);
+            });
+            const examData = Object.entries(examAvg).map(([name, vals]) => ({ name, avg: Math.round(vals.reduce((a,b)=>a+b,0)/vals.length) }));
+            Charts.renderExamPerformance('chart-exams', examData);
+
+            // Pass/Fail chart
+            Charts.renderPie('chart-passfail', ['Pass', 'Fail'], [passCount, failCount], {
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            });
+
+            const recContainer = document.getElementById('recommendations-container');
+            recContainer.innerHTML = (recommendations.recommendations || []).map(r => `
+                <div class="rec-card" style="padding:1rem;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:0.5rem;border-left:4px solid var(--gold);">
+                    <strong>${r.message}</strong>
+                    <ul style="margin-top:0.5rem;font-size:0.9rem;color:var(--text-secondary);">${(r.tips||[]).map(t=>`<li>${t}</li>`).join('')}</ul>
+                </div>
+            `).join('');
+
+            // Group marks by exam_name
+            const examGroups = {};
+            marks.forEach(m => {
+                if (!examGroups[m.exam_name]) {
+                    examGroups[m.exam_name] = [];
+                }
+                examGroups[m.exam_name].push(m);
+            });
+
+            // Generate HTML for each exam accordion dropdown
+            let accordionHtml = '';
+            Object.entries(examGroups).forEach(([examName, examMarks], idx) => {
+                const subjectCount = examMarks.length;
+                const contentId = `exam-content-${idx}`;
+                const headerId = `exam-header-${idx}`;
+                
+                accordionHtml += `
+                    <div class="exam-accordion">
+                        <div class="exam-accordion-header" id="${headerId}" onclick="toggleExamAccordion('${headerId}', '${contentId}')">
+                            <div class="exam-title-group">
+                                <span class="exam-icon" style="margin-right: 0.5rem; display: inline-flex; align-items: center; vertical-align: middle;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                </span>
+                                <span class="exam-name">${examName}</span>
+                            </div>
+                            <div class="exam-meta">
+                                <span class="badge badge-info">${subjectCount} Subject${subjectCount > 1 ? 's' : ''}</span>
+                                <span class="accordion-arrow">▼</span>
+                            </div>
+                        </div>
+                        <div class="exam-accordion-content" id="${contentId}">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Subject</th>
+                                        <th>Percentage</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${examMarks.map(m => `
+                                        <tr>
+                                            <td>${m.subject_name}</td>
+                                            <td>${m.percentage}%</td>
+                                            <td>
+                                                <span class="badge ${m.percentage >= 40 ? 'badge-success' : 'badge-danger'}">
+                                                    ${m.percentage >= 40 ? 'PASS' : 'FAIL'}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('marks-table').innerHTML = accordionHtml || '<p class="p-2 text-center text-muted">No marks records found.</p>';
+        }
+
+        function toggleExamAccordion(headerId, contentId) {
+            const header = document.getElementById(headerId);
+            const content = document.getElementById(contentId);
+            if (header && content) {
+                header.classList.toggle('active');
+                content.classList.toggle('open');
+            }
+        }
+
+        function downloadReport() { if(currentStudentId) ReportsAPI.downloadStudentReport(currentStudentId); }
+
+        function toggleChat() {
+            const w = document.getElementById('chat-widget');
+            w.classList.toggle('collapsed');
+            document.getElementById('chat-toggle-icon').textContent = w.classList.contains('collapsed') ? '▲' : '▼';
+        }
+        async function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim(); if(!text) return;
+            const body = document.getElementById('chat-body');
+            body.innerHTML += `<div class="chat-msg user">${text}</div>`;
+            input.value = '';
+            body.scrollTop = body.scrollHeight;
+            try {
+                const res = await AIAPI.chat(text);
+                body.innerHTML += `<div class="chat-msg bot">${res.reply}</div>`;
+            } catch(e) { body.innerHTML += `<div class="chat-msg bot">Error.</div>`; }
+            body.scrollTop = body.scrollHeight;
+        }
+
+        // ─── Notification Operations ───────────────────────────────────
+        let notificationsList = [];
+        async function loadNotifications() {
+            try {
+                const res = await NotificationsAPI.getAll();
+                notificationsList = res.notifications || [];
+                renderNotificationsBadge();
+                renderNotificationsDropdown();
+                checkUnreadNotificationsForPopup();
+            } catch (err) { console.error('Failed to load notifications', err); }
+        }
+
+        function renderNotificationsBadge() {
+            const badge = document.getElementById('notification-badge');
+            let readIds = [];
+            try {
+                const stored = localStorage.getItem('readNotificationIds');
+                if (stored) readIds = JSON.parse(stored);
+            } catch (e) {}
+            
+            const unreadCount = notificationsList.filter(n => !readIds.includes(n._id)).length;
+
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function toggleNotificationsDropdown() {
+            const dropdown = document.getElementById('notifications-dropdown');
+            const isOpen = !dropdown.classList.contains('hidden');
+            if (isOpen) {
+                dropdown.classList.add('hidden');
+            } else {
+                dropdown.classList.remove('hidden');
+                markAllNotificationsRead();
+            }
+        }
+
+        function markAllNotificationsRead() {
+            let readIds = [];
+            try {
+                const stored = localStorage.getItem('readNotificationIds');
+                if (stored) readIds = JSON.parse(stored);
+            } catch (e) {}
+            
+            notificationsList.forEach(n => {
+                if (!readIds.includes(n._id)) {
+                    readIds.push(n._id);
+                }
+            });
+            
+            localStorage.setItem('readNotificationIds', JSON.stringify(readIds));
+            renderNotificationsBadge();
+            hideNotificationAlertPopup();
+        }
+
+        function checkUnreadNotificationsForPopup() {
+            let readIds = [];
+            try {
+                const stored = localStorage.getItem('readNotificationIds');
+                if (stored) readIds = JSON.parse(stored);
+            } catch (e) {}
+            
+            // Find first unread notification
+            const unread = notificationsList.find(n => !readIds.includes(n._id));
+            if (unread) {
+                showNotificationAlertPopup(unread);
+            } else {
+                hideNotificationAlertPopup();
+            }
+        }
+
+        function showNotificationAlertPopup(notification) {
+            const modal = document.getElementById('notification-alert-modal');
+            const msgEl = document.getElementById('notif-alert-message');
+            const senderEl = document.getElementById('notif-alert-sender');
+            const btn = document.getElementById('notif-alert-read-btn');
+            
+            if (!modal || !msgEl || !senderEl || !btn) return;
+            
+            msgEl.textContent = notification.message;
+            
+            let sender = 'System';
+            if (notification.senderRole === 'admin') {
+                sender = 'Administrator';
+            } else if (notification.senderRole === 'teacher') {
+                sender = `${notification.senderName} (Teacher)`;
+            }
+            senderEl.textContent = `Sent by ${sender} on ${new Date(notification.createdAt).toLocaleString()}`;
+            
+            btn.onclick = () => {
+                markNotificationAsRead(notification._id);
+            };
+            
+            modal.classList.remove('hidden');
+        }
+
+        function hideNotificationAlertPopup() {
+            const modal = document.getElementById('notification-alert-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function markNotificationAsRead(id) {
+            let readIds = [];
+            try {
+                const stored = localStorage.getItem('readNotificationIds');
+                if (stored) readIds = JSON.parse(stored);
+            } catch (e) {}
+            
+            if (!readIds.includes(id)) {
+                readIds.push(id);
+                localStorage.setItem('readNotificationIds', JSON.stringify(readIds));
+            }
+            
+            renderNotificationsBadge();
+            checkUnreadNotificationsForPopup();
+        }
+
+        function renderNotificationsDropdown() {
+            const container = document.getElementById('notifications-list');
+            if (!notificationsList || !notificationsList.length) {
+                container.innerHTML = '<p style="padding: 20px; text-align: center; color: var(--text-secondary); font-size: 0.9rem; margin: 0;">No notifications yet.</p>';
+                return;
+            }
+            
+            container.innerHTML = notificationsList.map(n => {
+                let subtitle = '';
+                if (n.senderRole === 'admin') {
+                    subtitle = 'ADMIN';
+                } else if (n.senderRole === 'teacher') {
+                    subtitle = `${n.senderName} (Teacher)`;
+                }
+
+                return `
+                    <div style="padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; text-align: left;">
+                        <div style="font-size: 0.9rem; font-weight: 500; color: var(--text-primary); line-height: 1.4; white-space: pre-line;">${n.message}</div>
+                        <div style="font-size: 0.75rem; font-weight: bold; color: var(--primary); margin-top: 2px;">${subtitle}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">${new Date(n.createdAt).toLocaleString()}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Close notification dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('notifications-dropdown');
+            const btn = document.getElementById('notification-bell-btn');
+            if (dropdown && btn && !dropdown.classList.contains('hidden')) {
+                if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            }
+        });
+
+        function renderBadges(earnedBadges) {
+            const grid = document.getElementById('badges-grid');
+            if (!grid) return;
+
+            const defaultBadges = [
+                { name: 'Math Wizard', description: 'Achieve an average of 85% or higher in Math subjects.', icon: '🧙‍♂️' },
+                { name: 'Perfect Score', description: 'Score 100% in any subject exam.', icon: '💯' },
+                { name: 'Streak Master', description: 'Achieve 90% or higher in three consecutive exams.', icon: '🔥' },
+                { name: 'Consistent Performer', description: 'Achieve 75% or higher in at least three exams.', icon: '🌟' },
+                { name: 'Most Improved', description: 'Improve your overall exam score by 15% or more between consecutive exams.', icon: '📈' }
+            ];
+
+            grid.innerHTML = defaultBadges.map(b => {
+                const earned = earnedBadges.find(eb => eb.name === b.name);
+                if (earned) {
+                    const dateStr = new Date(earned.awardedAt).toLocaleDateString();
+                    return `
+                        <div class="badge-grid-item">
+                            <div class="badge-grid-icon">${b.icon}</div>
+                            <div class="badge-grid-info">
+                                <div class="badge-grid-name">${b.name}</div>
+                                <div class="badge-grid-desc">${b.description}</div>
+                                <div class="badge-grid-date">Earned on ${dateStr}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="badge-grid-item locked">
+                            <div class="badge-grid-icon">${b.icon}</div>
+                            <div class="badge-grid-info">
+                                <div class="badge-grid-name">${b.name} (Locked)</div>
+                                <div class="badge-grid-desc">${b.description}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }).join('');
+        }
+
+        async function loadLeaderboard(sortMode) {
+            leaderboardSortMode = sortMode;
+            
+            // Toggle active state of sort buttons
+            const overallBtn = document.getElementById('btn-sort-overall');
+            const improvementBtn = document.getElementById('btn-sort-improvement');
+            if (sortMode === 'overall') {
+                overallBtn?.classList.remove('btn-secondary');
+                overallBtn?.classList.add('btn-primary');
+                improvementBtn?.classList.remove('btn-primary');
+                improvementBtn?.classList.add('btn-secondary');
+            } else {
+                overallBtn?.classList.remove('btn-primary');
+                overallBtn?.classList.add('btn-secondary');
+                improvementBtn?.classList.remove('btn-secondary');
+                improvementBtn?.classList.add('btn-primary');
+            }
+
+            if (!studentClassId) return;
+
+            try {
+                const res = await LeaderboardAPI.getClassLeaderboard(studentClassId);
+                const list = res.leaderboard || [];
+
+                // Re-sort list based on mode
+                if (sortMode === 'overall') {
+                    list.sort((a, b) => b.overallAverage - a.overallAverage || b.improvementTrend - a.improvementTrend);
+                } else {
+                    list.sort((a, b) => b.improvementTrend - a.improvementTrend || b.overallAverage - a.overallAverage);
+                }
+
+                const tbody = document.getElementById('leaderboard-tbody');
+                if (!tbody) return;
+
+                if (list.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--text-secondary);">No students on the leaderboard yet.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = list.map((item, idx) => {
+                    const rowClass = item.isCurrentUser ? 'leaderboard-row-self' : '';
+                    const trendIcon = item.improvementTrend > 0 ? '📈' : item.improvementTrend < 0 ? '📉' : '➖';
+                    const trendColor = item.improvementTrend > 0 ? 'var(--success)' : item.improvementTrend < 0 ? 'var(--danger)' : 'var(--text-muted)';
+                    const selfIndicator = item.isCurrentUser ? ' <span class="badge badge-info" style="font-size:0.65rem; padding: 2px 6px;">You</span>' : '';
+                    
+                    return `
+                        <tr class="${rowClass}">
+                            <td><strong>#${idx + 1}</strong></td>
+                            <td>${item.name}${selfIndicator}</td>
+                            <td style="text-align:right;"><strong>${item.overallAverage}%</strong></td>
+                            <td style="text-align:right; color:${trendColor}; font-weight:600;">
+                                ${trendIcon} ${item.improvementTrend > 0 ? '+' : ''}${item.improvementTrend}%
+                            </td>
+                            <td style="text-align:right;">🏅 ${item.badgesCount}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error('Failed to load leaderboard', err);
+            }
+        }
+
+        async function saveAliasSettings() {
+            const aliasVal = document.getElementById('input-alias').value.trim();
+            const useAliasChecked = document.getElementById('checkbox-use-alias').checked;
+
+            if (useAliasChecked && !aliasVal) {
+                showToast('Please specify an alias if you wish to use it.', 'error');
+                return;
+            }
+
+            try {
+                await LeaderboardAPI.updateAlias(currentStudentId, {
+                    alias: aliasVal,
+                    useAlias: useAliasChecked
+                });
+                showToast('Privacy settings updated successfully!');
+                
+                // Update local model reference and reload leaderboard
+                if (studentDataLoaded && studentDataLoaded.student) {
+                    studentDataLoaded.student.alias = aliasVal;
+                    studentDataLoaded.student.useAlias = useAliasChecked;
+                }
+                loadLeaderboard(leaderboardSortMode);
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        function switchTab(tab) {
+            const perfTab = document.getElementById('tab-performance');
+            const leadTab = document.getElementById('tab-leaderboard');
+            const perfBtn = document.getElementById('btn-tab-performance');
+            const leadBtn = document.getElementById('btn-tab-leaderboard');
+
+            if (tab === 'performance') {
+                perfTab.classList.remove('hidden');
+                leadTab.classList.add('hidden');
+                
+                perfBtn.classList.remove('btn-secondary');
+                perfBtn.classList.add('btn-primary');
+                leadBtn.classList.remove('btn-primary');
+                leadBtn.classList.add('btn-secondary');
+            } else {
+                perfTab.classList.add('hidden');
+                leadTab.classList.remove('hidden');
+                
+                perfBtn.classList.remove('btn-primary');
+                perfBtn.classList.add('btn-secondary');
+                leadBtn.classList.remove('btn-secondary');
+                leadBtn.classList.add('btn-primary');
+
+                // Reload leaderboard and badges grid
+                if (studentDataLoaded && studentDataLoaded.student) {
+                    renderBadges(studentDataLoaded.student.badges || []);
+                }
+                loadLeaderboard(leaderboardSortMode);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

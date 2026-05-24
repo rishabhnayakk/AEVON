@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marks Management — AEVON</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>AEVON</h2>
+                <div class="user-role" id="user-role-label">Teacher Panel</div>
+            </div>
+            <nav class="sidebar-nav" id="nav-links"></nav>
+            <div class="sidebar-footer">
+                <button class="btn btn-secondary" style="width:100%;" onclick="handleLogout()">Logout</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1>Marks Management</h1>
+                    <p class="subtitle">View and edit student marks</p>
+                </div>
+                <div class="flex gap-1">
+                    <select id="class-filter" class="form-control" style="width:180px;" onchange="loadStudents()">
+                        <option value="">All Classes</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex gap-1 mb-2">
+                <button class="btn btn-secondary active" id="tab-by-student" onclick="switchMode('student')">Individual (Update Marks)</button>
+                <button class="btn btn-secondary" id="tab-by-exam" onclick="switchMode('exam')">Bulk (Upload Marks)</button>
+            </div>
+
+            <div id="status-banner" class="hidden" style="padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-weight: 600; display: flex; align-items: center; gap: 0.75rem;"></div>
+
+            <div id="section-by-student">
+                <div class="card mb-2">
+                    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="card-title">Step 1: Select Student to Update</span>
+                        <input type="text" id="student-search" placeholder="Search by name or enrollment..." class="form-control" style="width:250px; padding: 6px 12px;" oninput="filterStudents()">
+                    </div>
+                    <div id="students-list">
+                        <div class="loading-overlay"><div class="spinner"></div><p>Loading...</p></div>
+                    </div>
+                </div>
+
+                <div id="marks-editor" class="hidden">
+                    <div class="card mb-2">
+                        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                            <span class="card-title" id="editor-title">Step 2: Edit Marks for Selected Student</span>
+                            <div class="flex gap-1">
+                                <button class="btn btn-primary btn-sm" id="btn-show-add" onclick="showAddMarkForm()">Add New Entry</button>
+                                <button class="btn btn-secondary btn-sm" onclick="closeEditor()">✕ Close Editor</button>
+                            </div>
+                        </div>
+                        <div id="marks-table"></div>
+                    </div>
+
+                    <div id="add-mark-form" class="card hidden mb-2">
+                        <div class="card-header"><span class="card-title">Record New Mark Entry</span></div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr auto; gap:1rem; align-items:end; padding:1.5rem;">
+                            <div class="form-group" style="margin:0;"><label>Exam</label><select id="add-exam" class="form-control" onchange="checkStatusForAdd(this.value)"><option value="">No Exam</option></select></div>
+                            <div class="form-group" style="margin:0;"><label>Subject</label><select id="add-subject" class="form-control"></select></div>
+                            <div class="form-group" style="margin:0;"><label>Marks</label><input type="number" id="add-marks" class="form-control" min="0" max="100" placeholder="0-100" oninput="updateAddPercentage()"></div>
+                            <div class="form-group" style="margin:0;"><label>Max Marks</label><input type="number" id="add-max" class="form-control" min="1" value="100" readonly></div>
+                            <button class="btn btn-success" id="btn-save-add" onclick="addMark()" style="height:42px;">Save Mark</button>
+                        </div>
+                        <div id="add-pct-preview" style="padding: 0 1.5rem 1rem 1.5rem; font-size: 0.85rem; color: var(--primary); font-weight:600;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-by-exam" class="hidden">
+                <div class="card mb-2">
+                    <div class="card-header"><span class="card-title">Step 1: Bulk Upload by Exam & Subject</span></div>
+                    <div class="p-2 grid grid-cols-3 gap-1">
+                        <div class="form-group"><label>Select Exam</label><select id="bulk-exam-filter" class="form-control" onchange="handleBulkExamChange()"><option value="">Select Exam</option></select></div>
+                        <div class="form-group"><label>Subject</label><select id="bulk-subject-filter" class="form-control" onchange="loadBulkStudents()"><option value="">Select Subject</option></select></div>
+                        <div class="form-group flex items-end gap-1">
+                            <button class="btn btn-success" id="btn-save-bulk" style="flex:1; height:42px;" onclick="saveBulkMarks()">Save All (Bulk Upload)</button>
+                            <button class="btn btn-danger" id="btn-del-exam" style="height:42px;" title="Delete this Exam" onclick="deleteCurrentExam()">Delete</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card"><div id="bulk-students-table"><div class="empty-state"><div class="icon"></div><p>Step 2: Enter marks for the selected class below</p></div></div></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        let selectedStudentId = null;
+        let selectedStudentName = '';
+        let allExams = [];
+
+        async function init() {
+            const user = await requireAuth(['teacher', 'admin']);
+            if (!user) return;
+            renderSidebar('marks.html');
+            
+            try {
+                const { classes } = await AnalyticsAPI.getClasses();
+                const sel = document.getElementById('class-filter');
+                classes.forEach(c => {
+                    sel.innerHTML += `<option value="${c.id}">${c.name} (${c.student_count})</option>`;
+                });
+                loadStudents();
+                loadExamsList();
+            } catch (err) { showToast('Failed to load initial data', 'error'); }
+        }
+
+        function switchMode(mode) {
+            const btnS = document.getElementById('tab-by-student');
+            const btnE = document.getElementById('tab-by-exam');
+            const secS = document.getElementById('section-by-student');
+            const secE = document.getElementById('section-by-exam');
+            document.getElementById('status-banner').classList.add('hidden');
+
+            if (mode === 'student') {
+                btnS.classList.add('active'); btnE.classList.remove('active');
+                secS.classList.remove('hidden'); secE.classList.add('hidden');
+            } else {
+                btnE.classList.add('active'); btnS.classList.remove('active');
+                secE.classList.remove('hidden'); secS.classList.add('hidden');
+            }
+        }
+
+        async function loadExamsList() {
+            try {
+                const classId = document.getElementById('class-filter').value;
+                const { exams } = await AdminAPI.getExams(classId || undefined);
+                allExams = exams;
+                
+                const bulkSel = document.getElementById('bulk-exam-filter');
+                bulkSel.innerHTML = '<option value="">Select Exam</option>' + 
+                    exams.map(e => `<option value="${e.id}">${e.name} (${e.class_name})</option>`).join('');
+
+                const addSel = document.getElementById('add-exam');
+                addSel.innerHTML = '<option value="">No Exam</option>' + 
+                    exams.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+            } catch (err) {}
+        }
+
+        async function handleBulkExamChange() {
+            const examId = document.getElementById('bulk-exam-filter').value;
+            const banner = document.getElementById('status-banner');
+            const btnSave = document.getElementById('btn-save-bulk');
+            const subFilter = document.getElementById('bulk-subject-filter');
+
+            // Reset subject dropdown and table on exam change
+            subFilter.innerHTML = '<option value="">Select Subject</option>';
+            document.getElementById('bulk-students-table').innerHTML = '<div class="empty-state"><div class="icon"></div><p>Select a subject to load students</p></div>';
+
+            if (!examId) { banner.classList.add('hidden'); return; }
+
+            const exam = allExams.find(e => e.id === examId);
+            if (!exam) return;
+
+            // Reload subjects for this exam's class
+            try {
+                const { subjects } = await AnalyticsAPI.getSubjects(exam.class_id);
+                subFilter.innerHTML = '<option value="">Select Subject</option>' +
+                    subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            } catch (err) { showToast('Failed to load subjects', 'error'); }
+
+            banner.classList.remove('hidden');
+
+            if (exam.status === 'completed') {
+                banner.style.background = 'rgba(16, 185, 129, 0.1)';
+                banner.style.color = '#10b981';
+                banner.style.border = '1px solid #10b981';
+                banner.innerHTML = 'Exam completed successfully. You can now upload marks.';
+                btnSave.disabled = false;
+                btnSave.style.opacity = '1';
+            } else {
+                banner.style.background = 'rgba(239, 68, 68, 0.1)';
+                banner.style.color = '#ef4444';
+                banner.style.border = '1px solid #ef4444';
+                banner.innerHTML = 'Marks can only be uploaded after exam completion.';
+                btnSave.disabled = true;
+                btnSave.style.opacity = '0.5';
+            }
+        }
+
+        function checkStatusForAdd(examId) {
+            const banner = document.getElementById('status-banner');
+            const btnSave = document.getElementById('btn-save-add');
+            const maxInput = document.getElementById('add-max');
+
+            if (!examId) { 
+                banner.classList.add('hidden'); 
+                btnSave.disabled = false; 
+                maxInput.value = 100;
+                return; 
+            }
+
+            const exam = allExams.find(e => e.id === examId);
+            banner.classList.remove('hidden');
+            maxInput.value = exam.total_marks || 100;
+
+            if (exam.status === 'completed') {
+                banner.style.background = 'rgba(16, 185, 129, 0.1)';
+                banner.style.color = '#10b981';
+                banner.innerHTML = 'Exam completed. You can now add marks.';
+                btnSave.disabled = false;
+            } else {
+                banner.style.background = 'rgba(239, 68, 68, 0.1)';
+                banner.style.color = '#ef4444';
+                banner.innerHTML = 'Marks can only be uploaded after exam completion.';
+                btnSave.disabled = true;
+            }
+        }
+
+        function updateAddPercentage() {
+            const marks = document.getElementById('add-marks').value;
+            const max = document.getElementById('add-max').value;
+            const preview = document.getElementById('add-pct-preview');
+            if (marks && max) {
+                const pct = Math.round((marks / max) * 100);
+                preview.textContent = `Percentage: ${pct}%`;
+                if (parseInt(marks) > parseInt(max)) preview.style.color = 'red';
+                else preview.style.color = 'var(--text-secondary)';
+            } else preview.textContent = '';
+        }
+
+        let currentStudents = [];
+
+        async function loadStudents() {
+            try {
+                loadExamsList();
+                const classId = document.getElementById('class-filter').value;
+                const container = document.getElementById('students-list');
+                container.innerHTML = '<div class="loading-overlay"><div class="spinner"></div><p>Loading students...</p></div>';
+                const { students } = await StudentsAPI.getAll(classId || undefined);
+                currentStudents = students;
+                renderStudentTable(students);
+            } catch (err) { document.getElementById('students-list').innerHTML = `<p class="p-2">Error: ${err.message}</p>`; }
+        }
+
+        function renderStudentTable(students) {
+            const container = document.getElementById('students-list');
+            if (!students.length) {
+                container.innerHTML = '<div class="empty-state"><div class="icon"></div><p>No students found</p></div>';
+                return;
+            }
+            let html = '<table class="data-table"><thead><tr><th>#</th><th>Name</th><th>Enrollment</th><th>Class</th><th>Actions</th></tr></thead><tbody>';
+            students.forEach((s, i) => {
+                html += `<tr class="student-row"><td>${i+1}</td><td>${s.name}</td><td>${s.enrollment_no}</td><td><span class="badge badge-info">${s.class_name}</span></td>
+                    <td><button class="btn btn-sm btn-primary" onclick="selectStudent('${s.id}', '${(s.name||'').replace(/'/g,"\\'")}', '${s.class_id}')">Select Student</button></td></tr>`;
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function filterStudents() {
+            const query = document.getElementById('student-search').value.toLowerCase();
+            const filtered = currentStudents.filter(s => 
+                (s.name || '').toLowerCase().includes(query) || 
+                (s.enrollment_no || '').toLowerCase().includes(query)
+            );
+            renderStudentTable(filtered);
+        }
+
+        async function selectStudent(id, name, classId) {
+            try {
+                selectedStudentId = id;
+                selectedStudentName = name;
+                document.getElementById('editor-title').textContent = `Marks for ${name}`;
+                document.getElementById('marks-editor').classList.remove('hidden');
+                document.getElementById('add-mark-form').classList.add('hidden');
+
+                const [{ subjects }, { exams }] = await Promise.all([
+                    AnalyticsAPI.getSubjects(classId),
+                    AdminAPI.getExams(classId)
+                ]);
+                
+                const subSel = document.getElementById('add-subject');
+                subSel.innerHTML = subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+                const examSel = document.getElementById('add-exam');
+                examSel.innerHTML = '<option value="">No Exam</option>' + exams.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+
+                await loadMarks();
+                
+                // Scroll to editor
+                document.getElementById('marks-editor').scrollIntoView({ behavior: 'smooth' });
+            } catch (err) { showToast('Failed to load data', 'error'); }
+        }
+
+        async function loadMarks() {
+            if (!selectedStudentId) return;
+            const container = document.getElementById('marks-table');
+            container.innerHTML = '<div class="loading-overlay"><div class="spinner"></div><p>Fetching...</p></div>';
+            try {
+                const { marks } = await MarksAPI.getByStudent(selectedStudentId);
+                if (!marks.length) {
+                    container.innerHTML = '<p class="p-2">No marks recorded.</p>';
+                    return;
+                }
+                let html = '<table class="data-table"><thead><tr><th>Exam</th><th>Subject</th><th>Marks</th><th>Max</th><th>%</th><th>Actions</th></tr></thead><tbody>';
+                marks.forEach(m => {
+                    const exam = allExams.find(e => e.id === m.exam_id);
+                    const isCompleted = !m.exam_id || (exam && exam.status === 'completed');
+                    html += `<tr><td style="font-size:0.8rem">${m.exam_name} ${!isCompleted ? '<br><small style="color:red">Not Completed</small>' : ''}</td><td>${m.subject_name}</td>
+                        <td><input type="number" id="marks-${m.id}" value="${m.marks_obtained}" class="form-control" style="width:80px;display:inline;" ${!isCompleted ? 'disabled' : ''}></td>
+                        <td>${m.max_marks}</td><td><span class="badge ${m.percentage >= 75 ? 'badge-success' : 'badge-warning'}">${m.percentage}%</span></td>
+                        <td><button class="btn btn-sm btn-success" onclick="updateMark('${m.id}', ${m.max_marks})" ${!isCompleted ? 'disabled style="opacity:0.5"' : ''}>Save</button></td></tr>`;
+                });
+                html += '</tbody></table>';
+                container.innerHTML = html;
+            } catch (err) { container.innerHTML = `<p class="p-2">Error: ${err.message}</p>`; }
+        }
+
+        async function updateMark(markId, maxMarks) {
+            const val = parseInt(document.getElementById(`marks-${markId}`).value);
+            if (isNaN(val) || val < 0 || val > maxMarks) return showToast('Invalid marks', 'error');
+            try {
+                await MarksAPI.update(markId, { marks_obtained: val, max_marks: maxMarks });
+                showToast('Mark saved!');
+                loadMarks();
+            } catch (e) { showToast(e.message, 'error'); }
+        }
+
+        async function addMark() {
+            const examId = document.getElementById('add-exam').value;
+            const data = {
+                student_id: selectedStudentId,
+                subject_id: document.getElementById('add-subject').value,
+                exam_id: examId || null,
+                marks_obtained: parseInt(document.getElementById('add-marks').value),
+                max_marks: parseInt(document.getElementById('add-max').value)
+            };
+            if (!data.subject_id || isNaN(data.marks_obtained)) return showToast('Fill all fields', 'error');
+            try {
+                await MarksAPI.add(data);
+                showToast('Mark added!');
+                document.getElementById('add-mark-form').classList.add('hidden');
+                loadMarks();
+            } catch (e) { showToast(e.message, 'error'); }
+        }
+
+        function showAddMarkForm() { document.getElementById('add-mark-form').classList.toggle('hidden'); }
+        function closeEditor() { selectedStudentId = null; document.getElementById('marks-editor').classList.add('hidden'); }
+
+        async function loadBulkStudents() {
+            const examId = document.getElementById('bulk-exam-filter').value;
+            const subjectId = document.getElementById('bulk-subject-filter').value;
+            const tableContainer = document.getElementById('bulk-students-table');
+            if (!examId || !subjectId) return;
+
+            const exam = allExams.find(e => e.id === examId);
+            if (!exam) return;
+
+            try {
+                const [{ students }, { marks }] = await Promise.all([
+                    StudentsAPI.getAll({ class_id: exam.class_id }),
+                    MarksAPI.getAll({ exam_id: examId, subject_id: subjectId })
+                ]);
+                const marksMap = {};
+                marks.forEach(m => marksMap[m.student_id] = m.marks_obtained);
+                const isCompleted = exam.status === 'completed';
+                
+                let html = `<table class="data-table"><thead><tr><th>Student</th><th>Marks (Max: ${exam.total_marks || 100})</th><th>Percentage</th></tr></thead><tbody>`;
+                students.forEach(s => {
+                    const obtained = marksMap[s.id] ?? '';
+                    const pct = obtained !== '' ? Math.round((obtained / (exam.total_marks || 100)) * 100) : '-';
+                    html += `<tr><td>${s.name}</td><td><input type="number" class="form-control bulk-mark-input" data-student-id="${s.id}" value="${obtained}" style="width:120px;" ${!isCompleted ? 'disabled' : ''} oninput="this.closest('tr').querySelector('.pct-cell').textContent = this.value ? Math.round((this.value / ${exam.total_marks || 100}) * 100) + '%' : '-'"></td><td class="pct-cell">${pct !== '-' ? pct + '%' : '-'}</td></tr>`;
+                });
+                html += '</tbody></table>';
+                tableContainer.innerHTML = html;
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        async function saveBulkMarks() {
+            const examId = document.getElementById('bulk-exam-filter').value;
+            const subjectId = document.getElementById('bulk-subject-filter').value;
+            const marksToSave = Array.from(document.querySelectorAll('.bulk-mark-input')).filter(i => i.value !== '').map(i => ({
+                student_id: i.dataset.studentId, subject_id: subjectId, exam_id: examId, marks_obtained: parseInt(i.value), max_marks: 100
+            }));
+            if (!marksToSave.length) return showToast('No data', 'warning');
+            try {
+                await MarksAPI.addBulk(marksToSave);
+                showToast('Saved!');
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        async function deleteCurrentExam() {
+            const examId = document.getElementById('bulk-exam-filter').value;
+            if (!examId || !confirm('Delete this exam and all its marks?')) return;
+            try {
+                await AdminAPI.deleteExam(examId);
+                showToast('Deleted');
+                loadExamsList();
+                document.getElementById('bulk-students-table').innerHTML = '';
+                document.getElementById('bulk-subject-filter').innerHTML = '<option value="">Select Subject</option>';
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        init();
+    </script>
+</body>
+</html>

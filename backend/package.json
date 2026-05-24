@@ -1,0 +1,20 @@
+{
+  "name": "eduanalytics-backend",
+  "version": "1.0.0",
+  "description": "AI Education Analyst — Node.js + MongoDB + Gemini API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node seed.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "bcryptjs": "^2.4.3",
+    "connect-mongo": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^4.21.0",
+    "express-session": "^1.18.1",
+    "mongoose": "^8.8.0"
+  }
+}
