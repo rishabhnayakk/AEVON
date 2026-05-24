@@ -4,7 +4,9 @@
  * All API functions return Promises with JSON data.
  */
 
-const API_BASE = '/api';
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:6060/api'
+    : 'https://aevon-4.onrender.com/api';
 
 /**
  * Generic fetch wrapper with error handling.

@@ -14,6 +14,11 @@ const app = express();
 // Middleware
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: '10mb' }));
+const isProd = process.env.NODE_ENV === 'production';
+if (isProd) {
+    app.set('trust proxy', 1);
+}
+
 app.use(session({
     secret: SESSION_SECRET,
     resave: false,
@@ -23,7 +28,11 @@ app.use(session({
         collectionName: 'sessions',
         ttl: 7 * 24 * 60 * 60  // 7 days
     }),
-    cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }  // 7 days
+    cookie: { 
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        secure: isProd,
+        sameSite: isProd ? 'none' : 'lax'
+    }
 }));
 
 // Serve frontend
