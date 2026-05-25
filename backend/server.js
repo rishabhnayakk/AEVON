@@ -2045,6 +2045,75 @@ app.get('/api/materials/subjects/:classId', requireLogin, async (req, res) => {
     }
 });
 
+// Update a study material (admin or teacher only)
+app.put('/api/materials/:id', requireLogin, async (req, res) => {
+    try {
+        if (req.session.role !== 'admin' && req.session.role !== 'teacher') {
+            return res.status(403).json({ error: 'Admin or Teacher access required' });
+        }
+
+        const mat = await StudyMaterial.findById(req.params.id);
+        if (!mat) return res.status(404).json({ error: 'Material not found' });
+
+        // Teacher access check — can only edit for their assigned classes
+        if (req.session.role === 'teacher') {
+            const teacherClassIds = await getTeacherClasses(req.session.userId);
+            if (!teacherClassIds.map(id => id.toString()).includes(mat.classId.toString())) {
+                return res.status(403).json({ error: 'You can only update materials for your assigned classes' });
+            }
+        }
+
+        const { chapter_no, chapter_name, teacher_name, youtube_url, description, file_data, file_name, remove_file } = req.body;
+
+        if (chapter_no !== undefined) mat.chapterNo = Number(chapter_no);
+        if (chapter_name !== undefined) mat.chapterName = chapter_name.trim();
+        if (teacher_name !== undefined) mat.teacherName = teacher_name || '';
+        if (youtube_url !== undefined) mat.youtubeUrl = youtube_url || '';
+        if (description !== undefined) mat.description = description || '';
+
+        // Handle file updates
+        if (remove_file) {
+            // Delete old file
+            if (mat.fileUrl) {
+                const filePath = path.join(__dirname, mat.fileUrl);
+                if (fs.existsSync(filePath)) {
+                    try { fs.unlinkSync(filePath); } catch (_) {}
+                }
+            }
+            mat.fileUrl = '';
+            mat.fileName = '';
+        } else if (file_data && typeof file_data === 'string' && file_data.startsWith('data:')) {
+            // Delete old file if exists
+            if (mat.fileUrl) {
+                const filePath = path.join(__dirname, mat.fileUrl);
+                if (fs.existsSync(filePath)) {
+                    try { fs.unlinkSync(filePath); } catch (_) {}
+                }
+            }
+            // Save new file
+            try {
+                const matches = file_data.match(/^data:([^;]+);base64,(.+)$/);
+                if (matches) {
+                    const ext = file_name ? file_name.split('.').pop().toLowerCase() : 'bin';
+                    const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+                    const filepath = path.join(materialsDir, safeName);
+                    fs.writeFileSync(filepath, Buffer.from(matches[2], 'base64'));
+                    mat.fileUrl = `/uploads/materials/${safeName}`;
+                    mat.fileName = file_name || safeName;
+                }
+            } catch (err) {
+                console.error('Failed to save material file:', err.message);
+                return res.status(500).json({ error: 'Failed to save material file' });
+            }
+        }
+
+        await mat.save();
+        res.json({ message: 'Material updated successfully', material: mat });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // Delete a study material (admin or teacher only)
 app.delete('/api/materials/:id', requireLogin, async (req, res) => {
     try {

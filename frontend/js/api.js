@@ -251,6 +251,7 @@ const MaterialsAPI = {
     getSubjectsForClass: (classId) =>
         apiFetch(`/materials/subjects/${classId}`),
     create: (data) => apiFetch('/materials', { method: 'POST', body: data }),
+    update: (id, data) => apiFetch(`/materials/${id}`, { method: 'PUT', body: data }),
     delete: (id) => apiFetch(`/materials/${id}`, { method: 'DELETE' }),
 };
 

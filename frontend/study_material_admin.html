@@ -157,7 +157,7 @@
 
         <!-- Upload Form -->
         <div class="card" id="upload-section" style="margin-bottom:1.25rem;display:none;">
-            <div class="card-header"><span class="card-title">Add Chapter Material</span></div>
+            <div class="card-header"><span class="card-title" id="form-title">Add Chapter Material</span></div>
             <form id="upload-form" style="margin-top:0.75rem;">
 
                 <!-- Chapter No + Name -->
@@ -183,6 +183,14 @@
                             <span id="file-label-text">Tap to upload PDF, JPG, or ZIP</span>
                         </div>
                         <input type="file" id="inp-file" accept=".pdf,.jpg,.jpeg,.png,.zip" onchange="onFileChange(this)">
+                    </div>
+                    <!-- Current file info (shown during edit mode) -->
+                    <div id="current-file-info" style="display:none; align-items:center; justify-content:space-between; margin-top:0.5rem; padding:0.5rem; background:rgba(0,0,0,0.02); border:1px solid var(--border); border-radius:var(--radius-sm); font-size:0.85rem;">
+                        <span style="display:flex; align-items:center; gap:0.5rem; color:var(--text-secondary);">
+                            <span style="font-weight:600;">Current Document:</span>
+                            <a id="current-file-name" href="#" target="_blank" style="color:var(--primary); font-weight:700; text-decoration:none;"></a>
+                        </span>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="handleRemoveCurrentFile()" style="padding:2px 8px; font-size:0.75rem;">Remove File</button>
                     </div>
                 </div>
 
@@ -228,6 +236,7 @@
                         Add Chapter
                     </button>
                     <button type="button" class="btn btn-secondary" onclick="resetForm()" style="flex:1;min-width:90px;">Clear</button>
+                    <button type="button" class="btn btn-danger" id="cancel-edit-btn" onclick="cancelEdit()" style="flex:1;min-width:110px;display:none;">Cancel Edit</button>
                 </div>
             </form>
         </div>
@@ -278,6 +287,9 @@
     let selectedSubjectId = '';
     let currentFileData  = null;
     let currentFileName  = '';
+    let currentMaterialsList = [];
+    let currentEditingId = null;
+    let removeCurrentFile = false;
 
     async function init() {
         const user = await requireAuth(['admin', 'teacher']);
@@ -326,7 +338,8 @@
         document.getElementById('materials-loading').style.display = 'block';
         try {
             const res = await MaterialsAPI.getAll(selectedClassId, selectedSubjectId);
-            renderMaterials(res.materials || []);
+            currentMaterialsList = res.materials || [];
+            renderMaterials(currentMaterialsList);
         } catch (e) {
             showToast(e.message, 'error');
         } finally {
@@ -362,7 +375,12 @@
                 <td>${docHtml}</td>
                 <td>${teacherHtml}</td>
                 <td>${descHtml}</td>
-                <td><button class="btn btn-sm btn-danger" onclick="deleteMaterial('${m.id}')">Delete</button></td>
+                <td>
+                    <div style="display:flex;gap:4px;">
+                        <button class="btn btn-sm btn-secondary" onclick="editMaterial('${m.id}')">Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteMaterial('${m.id}')">Delete</button>
+                    </div>
+                </td>
             </tr>`;
 
             cardItems += `<div class="mat-card">
@@ -376,7 +394,8 @@
                     ${m.description ? `<div class="mat-card-row" style="align-items:flex-start;"><span class="lbl">Note</span><span style="font-size:0.81rem;color:var(--text-secondary);">${esc(m.description)}</span></div>` : ''}
                     <div class="mat-card-row"><span class="lbl">By</span><span style="font-size:0.79rem;color:var(--text-muted);">${esc(m.uploaded_by||'—')}</span></div>
                 </div>
-                <div class="mat-card-footer">
+                <div class="mat-card-footer" style="display:flex;gap:8px;justify-content:flex-end;">
+                    <button class="btn btn-sm btn-secondary" onclick="editMaterial('${m.id}')">Edit</button>
                     <button class="btn btn-sm btn-danger" onclick="deleteMaterial('${m.id}')">Delete</button>
                 </div>
             </div>`;
@@ -423,6 +442,11 @@
         currentFileName = file.name;
         label.classList.add('has-file');
         labelText.textContent = `✓ ${file.name}`;
+        
+        removeCurrentFile = false;
+        const fileInfoDiv = document.getElementById('current-file-info');
+        if (fileInfoDiv) fileInfoDiv.style.display = 'none';
+
         const reader = new FileReader();
         reader.onload = e => { currentFileData = e.target.result; };
         reader.readAsDataURL(file);
@@ -439,50 +463,145 @@
         if (!chapterNo || !chapterName) {
             showToast('Chapter number and name are required', 'error'); return;
         }
-        if (!currentFileData && !youtubeUrl && !teacherName) {
+        const hasExistingFile = currentEditingId && currentMaterialsList.find(x => x.id === currentEditingId)?.file_url && !removeCurrentFile;
+        if (!currentFileData && !youtubeUrl && !teacherName && !hasExistingFile) {
             showToast('Please provide at least a document, teacher name, or video URL', 'error'); return;
         }
 
         const btn = document.getElementById('upload-btn');
-        btn.disabled = true; btn.textContent = 'Uploading…';
+        btn.disabled = true; btn.textContent = currentEditingId ? 'Updating…' : 'Uploading…';
 
         try {
-            await MaterialsAPI.create({
-                class_id:     selectedClassId,
-                subject_id:   selectedSubjectId,
-                chapter_no:   Number(chapterNo),
-                chapter_name: chapterName,
-                teacher_name: teacherName,
-                youtube_url:  youtubeUrl,
-                description,
-                file_data:    currentFileData || '',
-                file_name:    currentFileName,
-            });
-            showToast('Chapter added!');
-            resetForm();
+            if (currentEditingId) {
+                await MaterialsAPI.update(currentEditingId, {
+                    chapter_no:   Number(chapterNo),
+                    chapter_name: chapterName,
+                    teacher_name: teacherName,
+                    youtube_url:  youtubeUrl,
+                    description,
+                    file_data:    currentFileData || '',
+                    file_name:    currentFileName,
+                    remove_file:  removeCurrentFile
+                });
+                showToast('Chapter updated successfully!');
+                cancelEdit();
+            } else {
+                await MaterialsAPI.create({
+                    class_id:     selectedClassId,
+                    subject_id:   selectedSubjectId,
+                    chapter_no:   Number(chapterNo),
+                    chapter_name: chapterName,
+                    teacher_name: teacherName,
+                    youtube_url:  youtubeUrl,
+                    description,
+                    file_data:    currentFileData || '',
+                    file_name:    currentFileName,
+                });
+                showToast('Chapter added!');
+                resetForm();
+            }
             loadMaterials();
         } catch (err) {
             showToast(err.message, 'error');
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Chapter';
+            if (currentEditingId) {
+                btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Update Chapter`;
+            } else {
+                btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Chapter';
+            }
         }
     };
+
+    function editMaterial(id) {
+        const m = currentMaterialsList.find(item => item.id === id);
+        if (!m) return;
+
+        currentEditingId = m.id;
+        removeCurrentFile = false;
+
+        document.getElementById('form-title').textContent = 'Edit Chapter Material';
+        const submitBtn = document.getElementById('upload-btn');
+        submitBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Update Chapter`;
+
+        document.getElementById('inp-chapter-no').value = m.chapter_no;
+        document.getElementById('inp-chapter-name').value = m.chapter_name;
+        document.getElementById('inp-teacher-name').value = m.teacher_name;
+        document.getElementById('inp-yt-url').value = m.youtube_url;
+        document.getElementById('inp-description').value = m.description;
+
+        resetFileSelection();
+        const fileInfoDiv = document.getElementById('current-file-info');
+        if (m.file_url) {
+            fileInfoDiv.style.display = 'flex';
+            const fileNameLink = document.getElementById('current-file-name');
+            fileNameLink.textContent = m.file_name || 'Attached Document';
+            fileNameLink.href = m.file_url;
+        } else {
+            fileInfoDiv.style.display = 'none';
+        }
+
+        document.getElementById('cancel-edit-btn').style.display = 'inline-block';
+        document.getElementById('upload-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelEdit() {
+        currentEditingId = null;
+        removeCurrentFile = false;
+
+        document.getElementById('form-title').textContent = 'Add Chapter Material';
+        const submitBtn = document.getElementById('upload-btn');
+        submitBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Chapter`;
+
+        document.getElementById('cancel-edit-btn').style.display = 'none';
+        document.getElementById('current-file-info').style.display = 'none';
+
+        resetForm();
+    }
+
+    function handleRemoveCurrentFile() {
+        if (!confirm('Are you sure you want to remove the current document? It will be deleted from the database when you click "Update Chapter".')) return;
+        removeCurrentFile = true;
+        document.getElementById('current-file-info').style.display = 'none';
+        showToast('Document marked for removal on update.', 'info');
+    }
+
+    function resetFileSelection() {
+        currentFileData = null;
+        currentFileName = '';
+        const inpFile = document.getElementById('inp-file');
+        if (inpFile) inpFile.value = '';
+        document.getElementById('file-label').classList.remove('has-file');
+        document.getElementById('file-label-text').textContent = 'Tap to upload PDF, JPG, or ZIP';
+    }
 
     async function deleteMaterial(id) {
         if (!confirm('Delete this chapter? Cannot be undone.')) return;
         try {
             await MaterialsAPI.delete(id);
             showToast('Chapter deleted');
+            if (currentEditingId === id) {
+                cancelEdit();
+            }
             loadMaterials();
         } catch (err) { showToast(err.message, 'error'); }
     }
 
     function resetForm() {
         document.getElementById('upload-form').reset();
-        currentFileData = null; currentFileName = '';
-        document.getElementById('file-label').classList.remove('has-file');
-        document.getElementById('file-label-text').textContent = 'Tap to upload PDF, JPG, or ZIP';
+        resetFileSelection();
+        if (currentEditingId) {
+            const m = currentMaterialsList.find(item => item.id === currentEditingId);
+            const fileInfoDiv = document.getElementById('current-file-info');
+            if (m && m.file_url && !removeCurrentFile) {
+                fileInfoDiv.style.display = 'flex';
+            } else {
+                fileInfoDiv.style.display = 'none';
+            }
+        } else {
+            document.getElementById('current-file-info').style.display = 'none';
+            removeCurrentFile = false;
+        }
     }
 
     function esc(str) {
