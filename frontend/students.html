@@ -1,65 +1,138 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Students — AEVON</title>
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
     <div class="app-layout">
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <h2>AEVON</h2>
-                <div class="user-role" id="role-label">Panel</div>
-            </div>
-            <nav class="sidebar-nav" id="nav-links"></nav>
-            <div class="sidebar-footer">
-                <button class="btn btn-secondary" style="width:100%;" onclick="handleLogout()">Logout</button>
-            </div>
-        </aside>
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <h2>AEVON</h2>
+          <div class="user-role" id="role-label">Panel</div>
+        </div>
+        <nav class="sidebar-nav" id="nav-links"></nav>
+        <div class="sidebar-footer">
+          <button
+            class="btn btn-secondary"
+            style="width: 100%"
+            onclick="handleLogout()"
+          >
+            Logout
+          </button>
+        </div>
+      </aside>
 
-        <main class="main-content">
-            <div class="page-header">
-                <div>
-                    <h1>Student Management</h1>
-                    <p class="subtitle">View and manage student records</p>
-                </div>
-                <div class="flex gap-1">
-                    <select id="class-filter" class="form-control" style="width:180px;" onchange="loadStudents()">
-                        <option value="">All Classes</option>
-                    </select>
-                    <button class="btn btn-primary btn-sm" id="add-btn" onclick="showAddForm()" style="display:none;">+ Add Student</button>
-                </div>
+      <main class="main-content">
+        <div class="page-header">
+          <div>
+            <h1>Student Management</h1>
+            <p class="subtitle">View and manage student records</p>
+          </div>
+          <div class="flex gap-1">
+            <select
+              id="class-filter"
+              class="form-control"
+              style="width: 180px"
+              onchange="loadStudents()"
+            >
+              <option value="">All Classes</option>
+            </select>
+            <button
+              class="btn btn-primary btn-sm"
+              id="add-btn"
+              onclick="showAddForm()"
+              style="display: none"
+            >
+              + Add Student
+            </button>
+          </div>
+        </div>
+
+        <div id="loading" class="loading-overlay">
+          <div class="spinner"></div>
+          <p>Loading students...</p>
+        </div>
+
+        <!-- Add/Edit Form (hidden by default) -->
+        <div id="student-form" class="card mb-2 hidden">
+          <h3 id="form-title" class="mb-2">Add Student</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem">
+            <div class="form-group">
+              <label>Full Name</label
+              ><input
+                type="text"
+                id="f-name"
+                class="form-control"
+                placeholder="Student name"
+              />
             </div>
-
-            <div id="loading" class="loading-overlay"><div class="spinner"></div><p>Loading students...</p></div>
-
-            <!-- Add/Edit Form (hidden by default) -->
-            <div id="student-form" class="card mb-2 hidden">
-                <h3 id="form-title" class="mb-2">Add Student</h3>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
-                    <div class="form-group"><label>Full Name</label><input type="text" id="f-name" class="form-control" placeholder="Student name"></div>
-                    <div class="form-group"><label>Email</label><input type="email" id="f-email" class="form-control" placeholder="email@example.com"></div>
-                    <div class="form-group"><label>Enrollment No</label><input type="text" id="f-enrollment" class="form-control" placeholder="ENR2024001"></div>
-                    <div class="form-group"><label>Class</label><select id="f-class" class="form-control" onchange="loadSubjectFields()"></select></div>
-                </div>
-
-                <!-- Marks Entry (shown only when adding new student) -->
-                <div id="marks-section" class="hidden" style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border-color);">
-                    <h4 style="margin-bottom:0.75rem; color:var(--cream-700);">Enter Marks (optional)</h4>
-                    <div id="subject-marks-fields" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:0.75rem;"></div>
-                </div>
-                <div class="flex gap-1 mt-1">
-                    <button class="btn btn-success btn-sm" onclick="saveStudent()">Save</button>
-                    <button class="btn btn-secondary btn-sm" onclick="hideForm()">Cancel</button>
-                </div>
+            <div class="form-group">
+              <label>Email</label
+              ><input
+                type="email"
+                id="f-email"
+                class="form-control"
+                placeholder="email@example.com"
+              />
             </div>
-
-            <div class="card">
-                <div id="students-table"></div>
+            <div class="form-group">
+              <label>Enrollment No</label
+              ><input
+                type="text"
+                id="f-enrollment"
+                class="form-control"
+                placeholder="ENR2024001"
+              />
             </div>
-        </main>
+            <div class="form-group">
+              <label>Class</label
+              ><select
+                id="f-class"
+                class="form-control"
+                onchange="loadSubjectFields()"
+              ></select>
+            </div>
+          </div>
+
+          <!-- Marks Entry (shown only when adding new student) -->
+          <div
+            id="marks-section"
+            class="hidden"
+            style="
+              margin-top: 1rem;
+              padding-top: 1rem;
+              border-top: 1px solid var(--border-color);
+            "
+          >
+            <h4 style="margin-bottom: 0.75rem; color: var(--cream-700)">
+              Enter Marks (optional)
+            </h4>
+            <div
+              id="subject-marks-fields"
+              style="
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 0.75rem;
+              "
+            ></div>
+          </div>
+          <div class="flex gap-1 mt-1">
+            <button class="btn btn-success btn-sm" onclick="saveStudent()">
+              Save
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="hideForm()">
+              Cancel
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div id="students-table"></div>
+        </div>
+      </main>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -67,270 +140,316 @@
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        let currentUser = null;
-        let editingId = null;
-        let classSubjects = {}; // cache: classId -> subjects[]
+      let currentUser = null
+      let editingId = null
+      let classSubjects = {} // cache: classId -> subjects[]
 
-        async function init() {
-            currentUser = await requireAuth(['teacher', 'admin']);
-            if (!currentUser) return;
+      async function init() {
+        currentUser = await requireAuth(["teacher", "admin"])
+        if (!currentUser) return
 
-            renderSidebar('students.html');
-            const isAdmin = currentUser.role === 'admin';
+        renderSidebar("students.html")
+        const isAdmin = currentUser.role === "admin"
 
-            if (isAdmin) {
-                document.getElementById('add-btn').style.display = 'inline-flex';
-            }
-
-            const { classes } = await AnalyticsAPI.getClasses();
-            const filter = document.getElementById('class-filter');
-            const formClass = document.getElementById('f-class');
-            classes.forEach(c => {
-                filter.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-                formClass.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-            });
-
-            loadStudents();
+        if (isAdmin) {
+          document.getElementById("add-btn").style.display = "inline-flex"
         }
 
-        async function loadStudents() {
-            const classId = document.getElementById('class-filter').value;
-            document.getElementById('loading').classList.remove('hidden');
-            try {
-                const { students } = await StudentsAPI.getAll(classId ? { class_id: classId } : {});
-                renderTable(students);
-            } catch (err) {
-                showToast('Error: ' + err.message, 'error');
-            }
-            document.getElementById('loading').classList.add('hidden');
+        const { classes } = await AnalyticsAPI.getClasses()
+        const filter = document.getElementById("class-filter")
+        const formClass = document.getElementById("f-class")
+        classes.forEach((c) => {
+          filter.innerHTML += `<option value="${c.id}">${c.name}</option>`
+          formClass.innerHTML += `<option value="${c.id}">${c.name}</option>`
+        })
+
+        loadStudents()
+      }
+
+      async function loadStudents() {
+        const classId = document.getElementById("class-filter").value
+        document.getElementById("loading").classList.remove("hidden")
+        try {
+          const { students } = await StudentsAPI.getAll(
+            classId ? { class_id: classId } : {},
+          )
+          renderTable(students)
+        } catch (err) {
+          showToast("Error: " + err.message, "error")
+        }
+        document.getElementById("loading").classList.add("hidden")
+      }
+
+      function renderTable(students) {
+        if (!students.length) {
+          document.getElementById("students-table").innerHTML =
+            '<div class="empty-state"><div class="icon"></div><p>No students found</p></div>'
+          return
         }
 
-        function renderTable(students) {
-            if (!students.length) {
-                document.getElementById('students-table').innerHTML =
-                    '<div class="empty-state"><div class="icon"></div><p>No students found</p></div>';
-                return;
-            }
-
-            let html = '<table class="data-table"><thead><tr><th>#</th><th>Name</th><th>Enrollment</th><th>Class</th><th>Email</th><th>Actions</th></tr></thead><tbody>';
-            const isAdmin = currentUser.role === 'admin';
-            students.forEach((s, i) => {
-                html += `<tr>
+        let html =
+          '<table class="data-table"><thead><tr><th>#</th><th>Name</th><th>Enrollment</th><th>Class</th><th>Email</th><th>Actions</th></tr></thead><tbody>'
+        const isAdmin = currentUser.role === "admin"
+        students.forEach((s, i) => {
+          html += `<tr>
                     <td>${i + 1}</td><td>${s.name}</td><td>${s.enrollment_no}</td>
                     <td><span class="badge badge-info">${s.class_name}</span></td>
-                    <td>${s.email || '-'}</td>
+                    <td>${s.email || "-"}</td>
                     <td style="position:relative; overflow:visible;">
                         <button class="btn btn-sm btn-secondary" onclick="toggleActionMenu(event, 'action-menu-${s.id}')">Actions ▾</button>
                         <div id="action-menu-${s.id}" class="action-menu hidden" style="position:absolute; right:10px; top:100%; background:var(--surface); border:1px solid var(--border); z-index:100; border-radius:8px; padding:0.5rem; display:flex; flex-direction:column; gap:0.25rem; min-width:140px; box-shadow:0 4px 12px rgba(0,0,0,0.5);">
                             <button class="btn btn-sm btn-secondary" style="justify-content:flex-start;" onclick="window.location.href='student.html?id=${s.id}'">Analytics</button>
                             <button class="btn btn-sm btn-success" style="justify-content:flex-start;" onclick="manageMarks('${s.id}', '${s.name.replace(/'/g, "\\'")}', '${s.class_id}')">Marks</button>
                             <button class="btn btn-sm btn-primary" style="justify-content:flex-start;" onclick="ReportsAPI.downloadStudentReport('${s.id}')">Report</button>
-                            ${isAdmin ? `
+                            ${
+                              isAdmin
+                                ? `
                                 <div style="height:1px; background:var(--border); margin:4px 0;"></div>
                                 <button class="btn btn-sm btn-secondary" style="justify-content:flex-start;" onclick="editStudent('${s.id}')">Edit</button>
                                 <button class="btn btn-sm btn-secondary" style="justify-content:flex-start;" onclick="adminResetPassword('${s.user_id}', '${s.name.replace(/'/g, "\\'")}')">Password</button>
-                                <button class="btn btn-sm ${s.is_blocked ? 'btn-success' : 'btn-warning'}" style="justify-content:flex-start;" onclick="toggleStudentBlock('${s.user_id}')">${s.is_blocked ? 'Unblock' : 'Block'}</button>
+                                <button class="btn btn-sm ${s.is_blocked ? "btn-success" : "btn-warning"}" style="justify-content:flex-start;" onclick="toggleStudentBlock('${s.user_id}')">${s.is_blocked ? "Unblock" : "Block"}</button>
                                 <button class="btn btn-sm btn-danger" style="justify-content:flex-start;" onclick="deleteStudent('${s.id}')">Delete</button>
-                            ` : ''}
+                            `
+                                : ""
+                            }
                         </div>
                     </td>
-                </tr>`;
-            });
-            html += '</tbody></table>';
-            document.getElementById('students-table').innerHTML = html;
+                </tr>`
+        })
+        html += "</tbody></table>"
+        document.getElementById("students-table").innerHTML = html
+      }
+
+      function toggleActionMenu(event, menuId) {
+        event.stopPropagation()
+        document.querySelectorAll(".action-menu").forEach((m) => {
+          if (m.id !== menuId) m.classList.add("hidden")
+        })
+        document.getElementById(menuId).classList.toggle("hidden")
+      }
+
+      document.addEventListener("click", () => {
+        document
+          .querySelectorAll(".action-menu")
+          .forEach((m) => m.classList.add("hidden"))
+      })
+
+      function showAddForm() {
+        editingId = null
+        document.getElementById("form-title").textContent = "Add Student"
+        document.getElementById("f-name").value = ""
+        document.getElementById("f-email").value = ""
+        document.getElementById("f-enrollment").value = ""
+        document.getElementById("student-form").classList.remove("hidden")
+        document.getElementById("marks-section").classList.remove("hidden")
+        loadSubjectFields()
+      }
+
+      async function editStudent(id) {
+        editingId = id
+        document.getElementById("loading").classList.remove("hidden")
+        try {
+          const s = await StudentsAPI.getById(id)
+          document.getElementById("form-title").textContent = "Edit Student"
+          document.getElementById("f-name").value = s.name
+          document.getElementById("f-email").value = s.email
+          document.getElementById("f-enrollment").value = s.enrollment_no
+          document.getElementById("f-class").value = s.class_id
+
+          document.getElementById("student-form").classList.remove("hidden")
+          document.getElementById("marks-section").classList.add("hidden")
+        } catch (err) {
+          showToast("Error: " + err.message, "error")
+        }
+        document.getElementById("loading").classList.add("hidden")
+      }
+
+      async function loadSubjectFields() {
+        const classId = document.getElementById("f-class").value
+        if (!classId) return
+
+        // Fetch subjects for this class (cache them)
+        if (!classSubjects[classId]) {
+          const { subjects } = await AnalyticsAPI.getSubjects(classId)
+          classSubjects[classId] = subjects
         }
 
-        function toggleActionMenu(event, menuId) {
-            event.stopPropagation();
-            document.querySelectorAll('.action-menu').forEach(m => {
-                if (m.id !== menuId) m.classList.add('hidden');
-            });
-            document.getElementById(menuId).classList.toggle('hidden');
+        const subjects = classSubjects[classId]
+        const container = document.getElementById("subject-marks-fields")
+
+        if (!subjects.length) {
+          container.innerHTML =
+            '<p style="color:var(--text-muted); font-size:0.85rem;">No subjects for this class</p>'
+          return
         }
 
-        document.addEventListener('click', () => {
-            document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
-        });
-
-        function showAddForm() {
-            editingId = null;
-            document.getElementById('form-title').textContent = 'Add Student';
-            document.getElementById('f-name').value = '';
-            document.getElementById('f-email').value = '';
-            document.getElementById('f-enrollment').value = '';
-            document.getElementById('student-form').classList.remove('hidden');
-            document.getElementById('marks-section').classList.remove('hidden');
-            loadSubjectFields();
-        }
-
-        async function editStudent(id) {
-            editingId = id;
-            document.getElementById('loading').classList.remove('hidden');
-            try {
-                const s = await StudentsAPI.getById(id);
-                document.getElementById('form-title').textContent = 'Edit Student';
-                document.getElementById('f-name').value = s.name;
-                document.getElementById('f-email').value = s.email;
-                document.getElementById('f-enrollment').value = s.enrollment_no;
-                document.getElementById('f-class').value = s.class_id;
-
-                document.getElementById('student-form').classList.remove('hidden');
-                document.getElementById('marks-section').classList.add('hidden');
-            } catch (err) {
-                showToast('Error: ' + err.message, 'error');
-            }
-            document.getElementById('loading').classList.add('hidden');
-        }
-
-        async function loadSubjectFields() {
-            const classId = document.getElementById('f-class').value;
-            if (!classId) return;
-
-            // Fetch subjects for this class (cache them)
-            if (!classSubjects[classId]) {
-                const { subjects } = await AnalyticsAPI.getSubjects(classId);
-                classSubjects[classId] = subjects;
-            }
-
-            const subjects = classSubjects[classId];
-            const container = document.getElementById('subject-marks-fields');
-
-            if (!subjects.length) {
-                container.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem;">No subjects for this class</p>';
-                return;
-            }
-
-            container.innerHTML = subjects.map(s => `
+        container.innerHTML = subjects
+          .map(
+            (s) => `
                 <div class="form-group" style="margin:0;">
                     <label>${s.name}</label>
                     <input type="number" id="mark-${s.id}" class="form-control" min="0" max="100" placeholder="0-100" data-subject-id="${s.id}">
                 </div>
-            `).join('');
+            `,
+          )
+          .join("")
+      }
+
+      function hideForm() {
+        document.getElementById("student-form").classList.add("hidden")
+        document.getElementById("marks-section").classList.add("hidden")
+        editingId = null
+      }
+
+      async function saveStudent() {
+        const data = {
+          name: document.getElementById("f-name").value.trim(),
+          email: document.getElementById("f-email").value.trim(),
+          enrollment_no: document.getElementById("f-enrollment").value.trim(),
+          class_id: document.getElementById("f-class").value,
         }
 
-        function hideForm() {
-            document.getElementById('student-form').classList.add('hidden');
-            document.getElementById('marks-section').classList.add('hidden');
-            editingId = null;
+        if (!data.name || !data.enrollment_no || !data.class_id) {
+          showToast("Name, Enrollment No, and Class are required", "error")
+          return
         }
 
-        async function saveStudent() {
-            const data = {
-                name: document.getElementById('f-name').value.trim(),
-                email: document.getElementById('f-email').value.trim(),
-                enrollment_no: document.getElementById('f-enrollment').value.trim(),
-                class_id: document.getElementById('f-class').value,
-            };
+        try {
+          if (editingId) {
+            await StudentsAPI.update(editingId, data)
+            showToast("Student updated!")
+          } else {
+            // Create student
+            const result = await StudentsAPI.create(data)
+            const newStudentId = result.id
 
-            if (!data.name || !data.enrollment_no || !data.class_id) {
-                showToast('Name, Enrollment No, and Class are required', 'error');
-                return;
+            // Save marks if any were entered
+            const markInputs = document.querySelectorAll(
+              "#subject-marks-fields input[data-subject-id]",
+            )
+            const marksToSave = []
+            markInputs.forEach((input) => {
+              const val = parseInt(input.value)
+              if (!isNaN(val) && val >= 0) {
+                marksToSave.push({
+                  student_id: newStudentId,
+                  subject_id: input.dataset.subjectId,
+                  marks_obtained: val,
+                  max_marks: 100,
+                })
+              }
+            })
+
+            if (marksToSave.length > 0) {
+              await MarksAPI.addBulk(marksToSave)
             }
 
-            try {
-                if (editingId) {
-                    await StudentsAPI.update(editingId, data);
-                    showToast('Student updated!');
-                } else {
-                    // Create student
-                    const result = await StudentsAPI.create(data);
-                    const newStudentId = result.id;
+            showToast("Student added!")
+          }
+          hideForm()
+          loadStudents()
+        } catch (err) {
+          showToast("Error: " + err.message, "error")
+        }
+      }
 
-                    // Save marks if any were entered
-                    const markInputs = document.querySelectorAll('#subject-marks-fields input[data-subject-id]');
-                    const marksToSave = [];
-                    markInputs.forEach(input => {
-                        const val = parseInt(input.value);
-                        if (!isNaN(val) && val >= 0) {
-                            marksToSave.push({
-                                student_id: newStudentId,
-                                subject_id: input.dataset.subjectId,
-                                marks_obtained: val,
-                                max_marks: 100
-                            });
-                        }
-                    });
+      async function deleteStudent(id) {
+        const ok = await customConfirm(
+          "Delete Student",
+          "Are you sure you want to delete this student and all their marks?",
+          true,
+        )
+        if (!ok) return
+        try {
+          await StudentsAPI.delete(id)
+          loadStudents()
+        } catch (err) {
+          showToast(err.message, "error")
+        }
+      }
 
-                    if (marksToSave.length > 0) {
-                        await MarksAPI.addBulk(marksToSave);
-                    }
+      // ─── Quick Marks Management ───────────────────────────
+      let selectedStudentForMarks = null
 
-                    showToast('Student added!');
-                }
-                hideForm();
-                loadStudents();
-            } catch (err) {
-                showToast('Error: ' + err.message, 'error');
-            }
+      async function manageMarks(id, name, classId) {
+        console.log("Opening marks management for:", { id, name, classId })
+        if (!classId || classId === "undefined" || classId === "null") {
+          showToast(
+            "This student is not assigned to a class. Assign a class first.",
+            "error",
+          )
+          return
         }
 
-        async function deleteStudent(id) {
-            const ok = await customConfirm('Delete Student', 'Are you sure you want to delete this student and all their marks?', true);
-            if (!ok) return;
-            try {
-                await StudentsAPI.delete(id);
-                loadStudents();
-            } catch (err) { showToast(err.message, 'error'); }
+        try {
+          selectedStudentForMarks = { id, name, classId }
+          const modal = document.getElementById("marks-modal")
+          document.getElementById("marks-modal-title").textContent =
+            `Manage Marks: ${name}`
+
+          // Show loading state
+          document.getElementById("m-exam").innerHTML =
+            "<option>Loading...</option>"
+          document.getElementById("m-subject").innerHTML =
+            "<option>Loading...</option>"
+          document.getElementById("marks-tbody").innerHTML =
+            '<tr><td colspan="4" style="text-align:center;padding:2rem;">⌛ Loading marks...</td></tr>'
+
+          modal.classList.remove("hidden")
+
+          // Load Exams and Subjects
+          const [{ exams }, { subjects }] = await Promise.all([
+            AdminAPI.getExams(classId),
+            AnalyticsAPI.getSubjects(classId),
+          ])
+
+          console.log("Loaded for modal:", {
+            examsCount: exams.length,
+            subjectsCount: subjects.length,
+          })
+
+          const examSel = document.getElementById("m-exam")
+          examSel.innerHTML =
+            '<option value="">No Exam (Internal/Class Test)</option>' +
+            exams
+              .map(
+                (e) =>
+                  `<option value="${e.id}">${e.name} (${e.subject_name || "General"})</option>`,
+              )
+              .join("")
+
+          const subSel = document.getElementById("m-subject")
+          subSel.innerHTML =
+            subjects.length > 0
+              ? subjects
+                  .map((s) => `<option value="${s.id}">${s.name}</option>`)
+                  .join("")
+              : '<option value="">No subjects found</option>'
+
+          await loadQuickMarksTable()
+        } catch (err) {
+          console.error("Marks Modal Error:", err)
+          showToast("Failed to open marks management: " + err.message, "error")
+          document.getElementById("marks-modal").classList.add("hidden")
         }
+      }
 
-        // ─── Quick Marks Management ───────────────────────────
-        let selectedStudentForMarks = null;
+      async function loadQuickMarksTable() {
+        try {
+          const { marks } = await MarksAPI.getByStudent(
+            selectedStudentForMarks.id,
+          )
+          const tbody = document.getElementById("marks-tbody")
 
-        async function manageMarks(id, name, classId) {
-            console.log('Opening marks management for:', { id, name, classId });
-            if (!classId || classId === 'undefined' || classId === 'null') {
-                showToast('This student is not assigned to a class. Assign a class first.', 'error');
-                return;
-            }
-            
-            try {
-                selectedStudentForMarks = { id, name, classId };
-                const modal = document.getElementById('marks-modal');
-                document.getElementById('marks-modal-title').textContent = `Manage Marks: ${name}`;
-                
-                // Show loading state
-                document.getElementById('m-exam').innerHTML = '<option>Loading...</option>';
-                document.getElementById('m-subject').innerHTML = '<option>Loading...</option>';
-                document.getElementById('marks-tbody').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:2rem;">⌛ Loading marks...</td></tr>';
-                
-                modal.classList.remove('hidden');
-                
-                // Load Exams and Subjects
-                const [{ exams }, { subjects }] = await Promise.all([
-                    AdminAPI.getExams(classId),
-                    AnalyticsAPI.getSubjects(classId)
-                ]);
-                
-                console.log('Loaded for modal:', { examsCount: exams.length, subjectsCount: subjects.length });
+          if (!marks || marks.length === 0) {
+            tbody.innerHTML =
+              '<tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--text-muted);">No marks recorded for this student yet.</td></tr>'
+            return
+          }
 
-                const examSel = document.getElementById('m-exam');
-                examSel.innerHTML = '<option value="">No Exam (Internal/Class Test)</option>' + 
-                    exams.map(e => `<option value="${e.id}">${e.name} (${e.subject_name || 'General'})</option>`).join('');
-                    
-                const subSel = document.getElementById('m-subject');
-                subSel.innerHTML = (subjects.length > 0) 
-                    ? subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('')
-                    : '<option value="">No subjects found</option>';
-                
-                await loadQuickMarksTable();
-            } catch (err) {
-                console.error('Marks Modal Error:', err);
-                showToast('Failed to open marks management: ' + err.message, 'error');
-                document.getElementById('marks-modal').classList.add('hidden');
-            }
-        }
-
-        async function loadQuickMarksTable() {
-            try {
-                const { marks } = await MarksAPI.getByStudent(selectedStudentForMarks.id);
-                const tbody = document.getElementById('marks-tbody');
-                
-                if (!marks || marks.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--text-muted);">No marks recorded for this student yet.</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = marks.map(m => `
+          tbody.innerHTML = marks
+            .map(
+              (m) => `
                     <tr>
                         <td style="font-size:0.85rem;">${m.exam_name || '<span style="color:var(--text-muted)">N/A</span>'}</td>
                         <td style="font-weight:500;">${m.subject_name}</td>
@@ -344,180 +463,320 @@
                             </div>
                         </td>
                     </tr>
-                `).join('');
-            } catch (err) {
-                console.error('Load Marks Error:', err);
-                document.getElementById('marks-tbody').innerHTML = '<tr><td colspan="4" style="color:var(--danger);text-align:center;">Failed to load marks.</td></tr>';
-            }
+                `,
+            )
+            .join("")
+        } catch (err) {
+          console.error("Load Marks Error:", err)
+          document.getElementById("marks-tbody").innerHTML =
+            '<tr><td colspan="4" style="color:var(--danger);text-align:center;">Failed to load marks.</td></tr>'
+        }
+      }
+
+      async function updateQuickMark(markId) {
+        const val = parseInt(document.getElementById(`qm-${markId}`).value)
+        try {
+          await MarksAPI.update(markId, { marks_obtained: val, max_marks: 100 })
+          showToast("Mark updated")
+          loadQuickMarksTable()
+        } catch (err) {
+          showToast(err.message, "error")
+        }
+      }
+
+      async function addQuickMark() {
+        const examId = document.getElementById("m-exam").value
+        const subjectId = document.getElementById("m-subject").value
+        const marksValue = parseInt(document.getElementById("m-val").value)
+
+        if (!subjectId || isNaN(marksValue)) {
+          showToast("Please select a subject and enter a valid mark", "error")
+          return
         }
 
-        async function updateQuickMark(markId) {
-            const val = parseInt(document.getElementById(`qm-${markId}`).value);
-            try {
-                await MarksAPI.update(markId, { marks_obtained: val, max_marks: 100 });
-                showToast('Mark updated');
-                loadQuickMarksTable();
-            } catch (err) { showToast(err.message, 'error'); }
+        try {
+          await MarksAPI.add({
+            student_id: selectedStudentForMarks.id,
+            subject_id: subjectId,
+            exam_id: examId || null,
+            marks_obtained: marksValue,
+            max_marks: 100,
+          })
+          showToast("Mark added successfully")
+          document.getElementById("m-val").value = ""
+          loadQuickMarksTable()
+        } catch (err) {
+          showToast("Failed to add mark: " + err.message, "error")
         }
+      }
 
-        async function addQuickMark() {
-            const examId = document.getElementById('m-exam').value;
-            const subjectId = document.getElementById('m-subject').value;
-            const marksValue = parseInt(document.getElementById('m-val').value);
-            
-            if (!subjectId || isNaN(marksValue)) {
-                showToast('Please select a subject and enter a valid mark', 'error');
-                return;
-            }
-
-            try {
-                await MarksAPI.add({
-                    student_id: selectedStudentForMarks.id,
-                    subject_id: subjectId,
-                    exam_id: examId || null,
-                    marks_obtained: marksValue,
-                    max_marks: 100
-                });
-                showToast('Mark added successfully');
-                document.getElementById('m-val').value = '';
-                loadQuickMarksTable();
-            } catch (err) {
-                showToast('Failed to add mark: ' + err.message, 'error');
-            }
+      async function deleteQuickMark(id) {
+        const ok = await customConfirm(
+          "Delete Mark",
+          "Are you sure you want to delete this mark?",
+          true,
+        )
+        if (!ok) return
+        try {
+          await MarksAPI.delete(id)
+          loadQuickMarksTable()
+        } catch (err) {
+          showToast(err.message, "error")
         }
+      }
 
-        async function deleteQuickMark(id) {
-            const ok = await customConfirm('Delete Mark', 'Are you sure you want to delete this mark?', true);
-            if (!ok) return;
-            try {
-                await MarksAPI.delete(id);
-                loadQuickMarksTable();
-            } catch (err) { showToast(err.message, 'error'); }
+      async function adminResetPassword(userId, name) {
+        if (!userId || userId === "null") {
+          showToast("No linked user account found", "error")
+          return
         }
-
-        async function adminResetPassword(userId, name) {
-            if (!userId || userId === 'null') { showToast('No linked user account found', 'error'); return; }
-            const newPwd = await customPrompt('Reset Password', `Enter new password for ${name}:`);
-            if (!newPwd) return;
-            if (newPwd.length < 4) {
-                showToast('Password must be at least 4 characters', 'error');
-                return;
-            }
-            try {
-                await AdminAPI.resetPassword(userId, newPwd);
-                showToast(`Password reset for ${name}`);
-            } catch (err) { showToast(err.message, 'error'); }
+        const newPwd = await customPrompt(
+          "Reset Password",
+          `Enter new password for ${name}:`,
+        )
+        if (!newPwd) return
+        if (newPwd.length < 4) {
+          showToast("Password must be at least 4 characters", "error")
+          return
         }
-
-        async function toggleStudentBlock(userId) {
-            if (!userId || userId === 'null') { showToast('No linked user account found', 'error'); return; }
-            try {
-                const res = await AdminAPI.toggleBlock(userId);
-                showToast(res.message);
-                loadStudents();
-            } catch (err) { showToast(err.message, 'error'); }
+        try {
+          await AdminAPI.resetPassword(userId, newPwd)
+          showToast(`Password reset for ${name}`)
+        } catch (err) {
+          showToast(err.message, "error")
         }
+      }
 
-        init();
+      async function toggleStudentBlock(userId) {
+        if (!userId || userId === "null") {
+          showToast("No linked user account found", "error")
+          return
+        }
+        try {
+          const res = await AdminAPI.toggleBlock(userId)
+          showToast(res.message)
+          loadStudents()
+        } catch (err) {
+          showToast(err.message, "error")
+        }
+      }
+
+      init()
     </script>
 
     <!-- Quick Marks Modal -->
-    <div id="marks-modal" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; display:flex; align-items:center; justify-content:center;">
-        <div class="card" style="width:90%; max-width:700px; max-height:85vh; overflow-y:auto; border:1px solid var(--border);">
-            <div class="card-header flex justify-between">
-                <h3 id="marks-modal-title"></h3>
-                <button onclick="document.getElementById('marks-modal').classList.add('hidden')" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1.5rem;">&times;</button>
-            </div>
-            
-            <div class="p-2">
-                <!-- Add Form -->
-                <div class="grid grid-cols-4 gap-1 items-end mb-2 p-1" style="background:rgba(255,255,255,0.03); border-radius:8px;">
-                    <div class="form-group">
-                        <label>Exam</label>
-                        <select id="m-exam" class="form-control"></select>
-                    </div>
-                    <div class="form-group">
-                        <label>Subject</label>
-                        <select id="m-subject" class="form-control"></select>
-                    </div>
-                    <div class="form-group">
-                        <label>Marks</label>
-                        <input type="number" id="m-val" class="form-control" placeholder="0-100">
-                    </div>
-                    <button class="btn btn-primary" onclick="addQuickMark()">Add</button>
-                </div>
-
-                <table class="data-table">
-                    <thead><tr><th>Exam</th><th>Subject</th><th>Marks</th><th>Actions</th></tr></thead>
-                    <tbody id="marks-tbody"></tbody>
-                </table>
-            </div>
+    <div
+      id="marks-modal"
+      class="hidden"
+      style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      "
+    >
+      <div
+        class="card"
+        style="
+          width: 90%;
+          max-width: 700px;
+          max-height: 85vh;
+          overflow-y: auto;
+          border: 1px solid var(--border);
+        "
+      >
+        <div class="card-header flex justify-between">
+          <h3 id="marks-modal-title"></h3>
+          <button
+            onclick="
+              document.getElementById('marks-modal').classList.add('hidden')
+            "
+            style="
+              background: none;
+              border: none;
+              color: var(--text-secondary);
+              cursor: pointer;
+              font-size: 1.5rem;
+            "
+          >
+            &times;
+          </button>
         </div>
+
+        <div class="p-2">
+          <!-- Add Form -->
+          <div
+            class="grid grid-cols-4 gap-1 items-end mb-2 p-1"
+            style="background: rgba(255, 255, 255, 0.03); border-radius: 8px"
+          >
+            <div class="form-group">
+              <label>Exam</label>
+              <select id="m-exam" class="form-control"></select>
+            </div>
+            <div class="form-group">
+              <label>Subject</label>
+              <select id="m-subject" class="form-control"></select>
+            </div>
+            <div class="form-group">
+              <label>Marks</label>
+              <input
+                type="number"
+                id="m-val"
+                class="form-control"
+                placeholder="0-100"
+              />
+            </div>
+            <button class="btn btn-primary" onclick="addQuickMark()">
+              Add
+            </button>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Exam</th>
+                <th>Subject</th>
+                <th>Marks</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="marks-tbody"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- Custom Dialog Modal -->
-    <div id="custom-dialog" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:11000; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.2s; pointer-events:none;">
-        <div class="card" style="width:90%; max-width:400px; padding:2rem; text-align:center; transform:translateY(20px); transition:transform 0.2s; border:1px solid var(--border-active);">
-            <h3 id="dialog-title" style="margin-bottom:1rem; color:var(--text-primary);">Title</h3>
-            <p id="dialog-msg" style="margin-bottom:1.5rem; color:var(--text-secondary);"></p>
-            <input type="text" id="dialog-input" class="form-control hidden" style="margin-bottom:1.5rem;" autocomplete="off">
-            <div class="flex gap-1" style="justify-content:center;">
-                <button id="dialog-cancel" class="btn btn-secondary">Cancel</button>
-                <button id="dialog-confirm" class="btn btn-primary">Confirm</button>
-            </div>
+    <div
+      id="custom-dialog"
+      class="hidden"
+      style="
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 11000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s;
+        pointer-events: none;
+      "
+    >
+      <div
+        class="card"
+        style="
+          width: 90%;
+          max-width: 400px;
+          padding: 2rem;
+          text-align: center;
+          transform: translateY(20px);
+          transition: transform 0.2s;
+          border: 1px solid var(--border-active);
+        "
+      >
+        <h3
+          id="dialog-title"
+          style="margin-bottom: 1rem; color: var(--text-primary)"
+        >
+          Title
+        </h3>
+        <p
+          id="dialog-msg"
+          style="margin-bottom: 1.5rem; color: var(--text-secondary)"
+        ></p>
+        <input
+          type="text"
+          id="dialog-input"
+          class="form-control hidden"
+          style="margin-bottom: 1.5rem"
+          autocomplete="off"
+        />
+        <div class="flex gap-1" style="justify-content: center">
+          <button id="dialog-cancel" class="btn btn-secondary">Cancel</button>
+          <button id="dialog-confirm" class="btn btn-primary">Confirm</button>
         </div>
+      </div>
     </div>
 
     <script>
-        function showDialog({ title, msg, isPrompt, confirmText, isDanger }, callback) {
-            const dialog = document.getElementById('custom-dialog');
-            document.getElementById('dialog-title').textContent = title;
-            document.getElementById('dialog-msg').textContent = msg;
-            
-            const input = document.getElementById('dialog-input');
-            if (isPrompt) {
-                input.classList.remove('hidden');
-                input.value = '';
-                setTimeout(() => input.focus(), 100);
-            } else {
-                input.classList.add('hidden');
-            }
-            
-            const confirmBtn = document.getElementById('dialog-confirm');
-            confirmBtn.textContent = confirmText || 'Confirm';
-            confirmBtn.className = `btn ${isDanger ? 'btn-danger' : 'btn-primary'}`;
-            
-            dialog.classList.remove('hidden');
-            setTimeout(() => {
-                dialog.style.opacity = '1';
-                dialog.style.pointerEvents = 'auto';
-                dialog.querySelector('.card').style.transform = 'translateY(0)';
-            }, 10);
+      function showDialog(
+        { title, msg, isPrompt, confirmText, isDanger },
+        callback,
+      ) {
+        const dialog = document.getElementById("custom-dialog")
+        document.getElementById("dialog-title").textContent = title
+        document.getElementById("dialog-msg").textContent = msg
 
-            const cleanup = () => {
-                dialog.style.opacity = '0';
-                dialog.style.pointerEvents = 'none';
-                dialog.querySelector('.card').style.transform = 'translateY(20px)';
-                setTimeout(() => dialog.classList.add('hidden'), 200);
-                document.getElementById('dialog-cancel').onclick = null;
-                confirmBtn.onclick = null;
-            };
-
-            document.getElementById('dialog-cancel').onclick = () => { cleanup(); callback(null); };
-            confirmBtn.onclick = () => {
-                const val = isPrompt ? input.value : true;
-                cleanup();
-                callback(val);
-            };
+        const input = document.getElementById("dialog-input")
+        if (isPrompt) {
+          input.classList.remove("hidden")
+          input.value = ""
+          setTimeout(() => input.focus(), 100)
+        } else {
+          input.classList.add("hidden")
         }
 
-        function customPrompt(title, msg) {
-            return new Promise(resolve => showDialog({ title, msg, isPrompt: true, confirmText: 'Save' }, resolve));
+        const confirmBtn = document.getElementById("dialog-confirm")
+        confirmBtn.textContent = confirmText || "Confirm"
+        confirmBtn.className = `btn ${isDanger ? "btn-danger" : "btn-primary"}`
+
+        dialog.classList.remove("hidden")
+        setTimeout(() => {
+          dialog.style.opacity = "1"
+          dialog.style.pointerEvents = "auto"
+          dialog.querySelector(".card").style.transform = "translateY(0)"
+        }, 10)
+
+        const cleanup = () => {
+          dialog.style.opacity = "0"
+          dialog.style.pointerEvents = "none"
+          dialog.querySelector(".card").style.transform = "translateY(20px)"
+          setTimeout(() => dialog.classList.add("hidden"), 200)
+          document.getElementById("dialog-cancel").onclick = null
+          confirmBtn.onclick = null
         }
 
-        function customConfirm(title, msg, isDanger=false) {
-            return new Promise(resolve => showDialog({ title, msg, isPrompt: false, confirmText: isDanger ? 'Delete' : 'Yes', isDanger }, resolve));
+        document.getElementById("dialog-cancel").onclick = () => {
+          cleanup()
+          callback(null)
         }
+        confirmBtn.onclick = () => {
+          const val = isPrompt ? input.value : true
+          cleanup()
+          callback(val)
+        }
+      }
+
+      function customPrompt(title, msg) {
+        return new Promise((resolve) =>
+          showDialog(
+            { title, msg, isPrompt: true, confirmText: "Save" },
+            resolve,
+          ),
+        )
+      }
+
+      function customConfirm(title, msg, isDanger = false) {
+        return new Promise((resolve) =>
+          showDialog(
+            {
+              title,
+              msg,
+              isPrompt: false,
+              confirmText: isDanger ? "Delete" : "Yes",
+              isDanger,
+            },
+            resolve,
+          ),
+        )
+      }
     </script>
-</body>
+  </body>
 </html>

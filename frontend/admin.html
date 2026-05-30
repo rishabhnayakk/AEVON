@@ -1,233 +1,399 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Dashboard — AEVON</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css" />
     <style>
-        .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-top: 20px; }
-        .management-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; box-shadow: var(--shadow); }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; color: var(--text-secondary); font-size: 0.9rem; }
-        .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
-        .data-table th { color: var(--text-secondary); font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
-        .btn-danger { background: #ef4444; color: #fff; border: none; padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8rem; }
-        .btn-danger:hover { background: #dc2626; }
+      .admin-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+      }
+      .management-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 24px;
+        box-shadow: var(--shadow);
+      }
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 12px;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+      .data-table th,
+      .data-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
+      .data-table th {
+        color: var(--text-secondary);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+      }
+      .btn-danger {
+        background: #ef4444;
+        color: #fff;
+        border: none;
+        padding: 6px 12px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-size: 0.8rem;
+      }
+      .btn-danger:hover {
+        background: #dc2626;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="app-layout">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h2>AEVON</h2>
-                <div class="user-role">Administrator</div>
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <h2>AEVON</h2>
+          <div class="user-role">Administrator</div>
+        </div>
+        <nav class="sidebar-nav" id="nav-links"></nav>
+        <div class="sidebar-footer">
+          <button
+            class="btn btn-secondary"
+            style="width: 100%"
+            onclick="handleLogout()"
+          >
+            Logout
+          </button>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <div class="page-header">
+          <div>
+            <h1>Admin Control Panel</h1>
+            <p class="subtitle">
+              Manage teachers, students, and system structure
+            </p>
+          </div>
+        </div>
+
+        <div class="admin-grid">
+          <!-- Teacher Management -->
+          <section class="management-card">
+            <div class="card-header">
+              <h3 style="margin: 0">Teacher Management</h3>
             </div>
-            <nav class="sidebar-nav" id="nav-links">
-            </nav>
-            <div class="sidebar-footer">
-                <button class="btn btn-secondary" style="width:100%;" onclick="handleLogout()">Logout</button>
+            <form id="add-teacher-form">
+              <div class="form-group">
+                <label>Username</label>
+                <input
+                  type="text"
+                  id="t-username"
+                  class="form-control"
+                  placeholder="e.g. teacher_sharma"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Password</label>
+                <input
+                  type="password"
+                  id="t-password"
+                  class="form-control"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%">
+                Add Teacher
+              </button>
+            </form>
+            <div id="teacher-list-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Username</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="teacher-table-body"></tbody>
+              </table>
             </div>
-        </aside>
+          </section>
 
-        <main class="main-content">
-            <div class="page-header">
-                <div>
-                    <h1>Admin Control Panel</h1>
-                    <p class="subtitle">Manage teachers, students, and system structure</p>
-                </div>
+          <!-- Class Management -->
+          <section class="management-card">
+            <div class="card-header">
+              <h3 style="margin: 0">Class Management</h3>
             </div>
-
-            <div class="admin-grid">
-                <!-- Teacher Management -->
-                <section class="management-card">
-                    <div class="card-header">
-                        <h3 style="margin:0;">Teacher Management</h3>
-                    </div>
-                    <form id="add-teacher-form">
-                        <div class="form-group">
-                            <label>Username</label>
-                            <input type="text" id="t-username" class="form-control" placeholder="e.g. teacher_sharma" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Password</label>
-                            <input type="password" id="t-password" class="form-control" placeholder="••••••••" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="width:100%;">Add Teacher</button>
-                    </form>
-                    <div id="teacher-list-container">
-                        <table class="data-table">
-                            <thead><tr><th>Username</th><th>Action</th></tr></thead>
-                            <tbody id="teacher-table-body"></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Class Management -->
-                <section class="management-card">
-                    <div class="card-header">
-                        <h3 style="margin:0;">Class Management</h3>
-                    </div>
-                    <form id="add-class-form">
-                        <div class="form-group">
-                            <label>Class Name</label>
-                            <input type="text" id="c-name" class="form-control" placeholder="e.g. 10-A" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="width:100%;">Create Class</button>
-                    </form>
-                    <div id="class-list-container">
-                        <table class="data-table">
-                            <thead><tr><th>Class Name</th><th>Assigned Teacher</th><th>Action</th></tr></thead>
-                            <tbody id="class-table-body"></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Student Management -->
-                <section class="management-card" style="grid-column: span 2;">
-                    <div class="card-header">
-                        <h3 style="margin:0;">Student Management</h3>
-                    </div>
-                    <form id="add-student-form" class="grid grid-cols-2 gap-1">
-                        <div class="form-group">
-                            <label>Full Name</label>
-                            <input type="text" id="s-name" class="form-control" placeholder="e.g. Rahul Verma" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Email (Username)</label>
-                            <input type="email" id="s-email" class="form-control" placeholder="rahul@edu.com" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Enrollment No</label>
-                            <input type="text" id="s-enrollment" class="form-control" placeholder="ENR001" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Class</label>
-                            <select id="s-class" class="form-control" required>
-                                <option value="">Select Class</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="grid-column: span 2;">Add Student</button>
-                    </form>
-                    <div id="student-list-container">
-                        <table class="data-table">
-                            <thead><tr><th>Name</th><th>Email</th><th>Enrollment</th><th>Class</th><th>Action</th></tr></thead>
-                            <tbody id="student-table-body"></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Broadcast Notification -->
-                <section class="management-card" style="grid-column: span 2;">
-                    <div class="card-header">
-                        <h3 style="margin:0;">Broadcast Notification</h3>
-                    </div>
-                    <form id="broadcast-notification-form">
-                        <div class="form-group">
-                            <label>Notification Message</label>
-                            <textarea id="notif-message" class="form-control" placeholder="Type notification message here..." rows="3" required style="resize: vertical;"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Target Audience</label>
-                            <select id="notif-target-type" class="form-control" onchange="toggleTargetFields(this.value, 'admin')">
-                                <option value="all">Every Student</option>
-                                <option value="class">Whole Class</option>
-                                <option value="student">Specific Student</option>
-                            </select>
-                        </div>
-                        <div class="form-group hidden" id="class-target-group">
-                            <label>Select Class</label>
-                            <select id="notif-target-class" class="form-control">
-                                <option value="">Select Class...</option>
-                            </select>
-                        </div>
-                        <div class="form-group hidden" id="student-target-group">
-                            <label>Select Student</label>
-                            <select id="notif-target-student" class="form-control">
-                                <option value="">Select Student...</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="width:100%;">Send Notification</button>
-                    </form>
-                    <div id="notification-list-container" style="margin-top: 20px;">
-                        <h4 style="margin-bottom: 10px; color: var(--text-primary);">Sent Notifications</h4>
-                        <div id="sent-notifications-list" style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
-                            <!-- Will be loaded dynamically -->
-                        </div>
-                    </div>
-                </section>
-
-                <section class="management-card" style="grid-column: span 2;">
-                    <div class="card-header">
-                        <h3 style="margin:0;">Change Your Password</h3>
-                    </div>
-                    <form id="change-password-form">
-                        <div class="form-group">
-                            <label>Current Password</label>
-                            <input type="password" id="current-password" class="form-control" placeholder="Enter current password" required>
-                        </div>
-                        <div class="form-group">
-                            <label>New Password</label>
-                            <input type="password" id="new-password" class="form-control" placeholder="Enter new password" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="width:100%;">Update Password</button>
-                    </form>
-                </section>
-
+            <form id="add-class-form">
+              <div class="form-group">
+                <label>Class Name</label>
+                <input
+                  type="text"
+                  id="c-name"
+                  class="form-control"
+                  placeholder="e.g. 10-A"
+                  required
+                />
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%">
+                Create Class
+              </button>
+            </form>
+            <div id="class-list-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Class Name</th>
+                    <th>Assigned Teacher</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="class-table-body"></tbody>
+              </table>
             </div>
-        </main>
+          </section>
+
+          <!-- Student Management -->
+          <section class="management-card" style="grid-column: span 2">
+            <div class="card-header">
+              <h3 style="margin: 0">Student Management</h3>
+            </div>
+            <form id="add-student-form" class="grid grid-cols-2 gap-1">
+              <div class="form-group">
+                <label>Full Name</label>
+                <input
+                  type="text"
+                  id="s-name"
+                  class="form-control"
+                  placeholder="e.g. Rahul Verma"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Email (Username)</label>
+                <input
+                  type="email"
+                  id="s-email"
+                  class="form-control"
+                  placeholder="rahul@edu.com"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Enrollment No</label>
+                <input
+                  type="text"
+                  id="s-enrollment"
+                  class="form-control"
+                  placeholder="ENR001"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Class</label>
+                <select id="s-class" class="form-control" required>
+                  <option value="">Select Class</option>
+                </select>
+              </div>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                style="grid-column: span 2"
+              >
+                Add Student
+              </button>
+            </form>
+            <div id="student-list-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Enrollment</th>
+                    <th>Class</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="student-table-body"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Broadcast Notification -->
+          <section class="management-card" style="grid-column: span 2">
+            <div class="card-header">
+              <h3 style="margin: 0">Broadcast Notification</h3>
+            </div>
+            <form id="broadcast-notification-form">
+              <div class="form-group">
+                <label>Notification Message</label>
+                <textarea
+                  id="notif-message"
+                  class="form-control"
+                  placeholder="Type notification message here..."
+                  rows="3"
+                  required
+                  style="resize: vertical"
+                ></textarea>
+              </div>
+              <div class="form-group">
+                <label>Target Audience</label>
+                <select
+                  id="notif-target-type"
+                  class="form-control"
+                  onchange="toggleTargetFields(this.value, 'admin')"
+                >
+                  <option value="all">Every Student</option>
+                  <option value="class">Whole Class</option>
+                  <option value="student">Specific Student</option>
+                </select>
+              </div>
+              <div class="form-group hidden" id="class-target-group">
+                <label>Select Class</label>
+                <select id="notif-target-class" class="form-control">
+                  <option value="">Select Class...</option>
+                </select>
+              </div>
+              <div class="form-group hidden" id="student-target-group">
+                <label>Select Student</label>
+                <select id="notif-target-student" class="form-control">
+                  <option value="">Select Student...</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%">
+                Send Notification
+              </button>
+            </form>
+            <div id="notification-list-container" style="margin-top: 20px">
+              <h4 style="margin-bottom: 10px; color: var(--text-primary)">
+                Sent Notifications
+              </h4>
+              <div
+                id="sent-notifications-list"
+                style="
+                  max-height: 200px;
+                  overflow-y: auto;
+                  display: flex;
+                  flex-direction: column;
+                  gap: 8px;
+                "
+              >
+                <!-- Will be loaded dynamically -->
+              </div>
+            </div>
+          </section>
+
+          <section class="management-card" style="grid-column: span 2">
+            <div class="card-header">
+              <h3 style="margin: 0">Change Your Password</h3>
+            </div>
+            <form id="change-password-form">
+              <div class="form-group">
+                <label>Current Password</label>
+                <input
+                  type="password"
+                  id="current-password"
+                  class="form-control"
+                  placeholder="Enter current password"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>New Password</label>
+                <input
+                  type="password"
+                  id="new-password"
+                  class="form-control"
+                  placeholder="Enter new password"
+                  required
+                />
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%">
+                Update Password
+              </button>
+            </form>
+          </section>
+        </div>
+      </main>
     </div>
 
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        // State
-        let teachers = [];
-        let classes = [];
-        let students = [];
-        let subjectsList = [];
-        let exams = [];
+      // State
+      let teachers = []
+      let classes = []
+      let students = []
+      let subjectsList = []
+      let exams = []
 
-        async function init() {
-            const user = await requireAuth(['admin']);
-            if (!user) return;
-            renderSidebar('admin.html');
-            // Load teachers first so they are available when rendering classes
-            await loadTeachers();
-            await Promise.all([loadClasses(), loadStudents(), loadNotifications()]);
+      async function init() {
+        const user = await requireAuth(["admin"])
+        if (!user) return
+        renderSidebar("admin.html")
+        // Load teachers first so they are available when rendering classes
+        await loadTeachers()
+        await Promise.all([loadClasses(), loadStudents(), loadNotifications()])
+      }
+
+      async function loadTeachers() {
+        try {
+          const res = await AdminAPI.getTeachers()
+          teachers = res.teachers
+          renderTeachers()
+        } catch (err) {
+          showToast(err.message, "error")
         }
+      }
 
-        async function loadTeachers() {
-            try {
-                const res = await AdminAPI.getTeachers();
-                teachers = res.teachers;
-                renderTeachers();
-            } catch (err) { showToast(err.message, 'error'); }
+      async function loadClasses() {
+        try {
+          const res = await AnalyticsAPI.getClasses()
+          classes = res.classes
+          renderClasses()
+          updateClassDropdown()
+        } catch (err) {
+          showToast(err.message, "error")
         }
+      }
 
-        async function loadClasses() {
-            try {
-                const res = await AnalyticsAPI.getClasses();
-                classes = res.classes;
-                renderClasses();
-                updateClassDropdown();
-            } catch (err) { showToast(err.message, 'error'); }
+      async function loadStudents() {
+        try {
+          const res = await StudentsAPI.getAll()
+          students = res.students
+          renderStudents()
+        } catch (err) {
+          showToast(err.message, "error")
         }
+      }
 
-        async function loadStudents() {
-            try {
-                const res = await StudentsAPI.getAll();
-                students = res.students;
-                renderStudents();
-            } catch (err) { showToast(err.message, 'error'); }
-        }
-
-
-        function renderTeachers() {
-            const tbody = document.getElementById('teacher-table-body');
-            tbody.innerHTML = teachers.map(t => `
+      function renderTeachers() {
+        const tbody = document.getElementById("teacher-table-body")
+        tbody.innerHTML = teachers
+          .map(
+            (t) => `
                 <tr>
                     <td>${t.username}</td>
                     <td>
@@ -235,36 +401,59 @@
                         <button class="btn btn-sm btn-secondary" onclick="adminResetPassword('${t.id}', '${t.username}')" style="margin-left:0.5rem;">Reset Pwd</button>
                     </td>
                 </tr>
-            `).join('');
-        }
+            `,
+          )
+          .join("")
+      }
 
-        function renderClasses() {
-            const tbody = document.getElementById('class-table-body');
-            tbody.innerHTML = classes.map(c => `
+      function renderClasses() {
+        const tbody = document.getElementById("class-table-body")
+        tbody.innerHTML = classes
+          .map(
+            (c) => `
                 <tr>
                     <td>${c.name}</td>
                     <td>
                         <div class="flex flex-wrap gap-0-5 mb-0-5" id="assigned-teachers-${c.id}">
-                            ${(c.teacher_ids || []).map(tid => {
-                                const t = teachers.find(x => String(x.id) === String(tid));
-                                return t 
-                                    ? `<span class="badge badge-info" style="display:flex;align-items:center;gap:4px;">${t.username} <span style="cursor:pointer;font-weight:bold;" onclick="removeTeacherFromClass('${c.id}', '${tid}')">×</span></span>`
-                                    : `<span class="badge" style="background:#eee;color:#666;">ID: ${String(tid).substring(0,5)}... <span style="cursor:pointer;" onclick="removeTeacherFromClass('${c.id}', '${tid}')">×</span></span>`;
-                            }).join('')}
+                            ${(c.teacher_ids || [])
+                              .map((tid) => {
+                                const t = teachers.find(
+                                  (x) => String(x.id) === String(tid),
+                                )
+                                return t
+                                  ? `<span class="badge badge-info" style="display:flex;align-items:center;gap:4px;">${t.username} <span style="cursor:pointer;font-weight:bold;" onclick="removeTeacherFromClass('${c.id}', '${tid}')">×</span></span>`
+                                  : `<span class="badge" style="background:#eee;color:#666;">ID: ${String(tid).substring(0, 5)}... <span style="cursor:pointer;" onclick="removeTeacherFromClass('${c.id}', '${tid}')">×</span></span>`
+                              })
+                              .join("")}
                         </div>
                         <select onchange="addTeacherToClass('${c.id}', this.value); this.value='';" class="form-control" style="font-size:0.8rem; padding: 4px; height: 30px;">
                             <option value="">+ Add Teacher</option>
-                            ${teachers.filter(t => !(c.teacher_ids || []).some(tid => String(tid) === String(t.id))).map(t => `<option value="${t.id}">${t.username}</option>`).join('')}
+                            ${teachers
+                              .filter(
+                                (t) =>
+                                  !(c.teacher_ids || []).some(
+                                    (tid) => String(tid) === String(t.id),
+                                  ),
+                              )
+                              .map(
+                                (t) =>
+                                  `<option value="${t.id}">${t.username}</option>`,
+                              )
+                              .join("")}
                         </select>
                     </td>
                     <td><button class="btn-danger" onclick="deleteClass('${c.id}')">Delete</button></td>
                 </tr>
-            `).join('');
-        }
+            `,
+          )
+          .join("")
+      }
 
-        function renderStudents() {
-            const tbody = document.getElementById('student-table-body');
-            tbody.innerHTML = students.map(s => `
+      function renderStudents() {
+        const tbody = document.getElementById("student-table-body")
+        tbody.innerHTML = students
+          .map(
+            (s) => `
                 <tr>
                     <td>${s.name}</td>
                     <td>${s.email}</td>
@@ -272,168 +461,205 @@
                     <td>
                         <div class="flex flex-col gap-0-5">
                             <span class="badge badge-info">${s.class_name}</span>
-                            <span class="badge ${s.is_blocked ? 'badge-danger' : 'badge-success'}" style="font-size:0.7rem;">${s.is_blocked ? 'Blocked' : 'Active'}</span>
+                            <span class="badge ${s.is_blocked ? "badge-danger" : "badge-success"}" style="font-size:0.7rem;">${s.is_blocked ? "Blocked" : "Active"}</span>
                         </div>
                     </td>
                     <td>
                         <div class="flex gap-1">
                             <button class="btn-danger" onclick="deleteStudent('${s.id}')">Delete</button>
                             <button class="btn btn-sm btn-secondary" title="Reset Password" onclick="adminResetPassword('${s.user_id}', '${s.name.replace(/'/g, "\\'")}')">Reset Pwd</button>
-                            <button class="btn btn-sm ${s.is_blocked ? 'btn-success' : 'btn-warning'}" onclick="toggleStudentBlock('${s.user_id}')">
-                                ${s.is_blocked ? 'Unblock' : 'Block'}
+                            <button class="btn btn-sm ${s.is_blocked ? "btn-success" : "btn-warning"}" onclick="toggleStudentBlock('${s.user_id}')">
+                                ${s.is_blocked ? "Unblock" : "Block"}
                             </button>
                         </div>
                     </td>
                 </tr>
-            `).join('');
+            `,
+          )
+          .join("")
+      }
+
+      function updateClassDropdown() {
+        const selectS = document.getElementById("s-class")
+        const valS = selectS.value
+
+        const optionsHtml =
+          '<option value="">Select Class</option>' +
+          classes
+            .map((c) => `<option value="${c.id}">${c.name}</option>`)
+            .join("")
+
+        selectS.innerHTML = optionsHtml
+        selectS.value = valS
+      }
+
+      // Handlers
+      document.getElementById("add-teacher-form").onsubmit = async (e) => {
+        e.preventDefault()
+        const username = document.getElementById("t-username").value
+        const password = document.getElementById("t-password").value
+        try {
+          await AdminAPI.createTeacher(username, password)
+          showToast("Teacher added")
+          e.target.reset()
+          loadTeachers()
+        } catch (err) {
+          showToast(err.message, "error")
         }
+      }
 
-
-        function updateClassDropdown() {
-            const selectS = document.getElementById('s-class');
-            const valS = selectS.value;
-            
-            const optionsHtml = '<option value="">Select Class</option>' + 
-                classes.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-                
-            selectS.innerHTML = optionsHtml;
-            selectS.value = valS;
+      document.getElementById("add-class-form").onsubmit = async (e) => {
+        e.preventDefault()
+        const name = document.getElementById("c-name").value
+        try {
+          await apiFetch("/classes", { method: "POST", body: { name } })
+          showToast("Class created")
+          e.target.reset()
+          loadClasses()
+        } catch (err) {
+          showToast(err.message, "error")
         }
+      }
 
-
-        // Handlers
-        document.getElementById('add-teacher-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('t-username').value;
-            const password = document.getElementById('t-password').value;
-            try {
-                await AdminAPI.createTeacher(username, password);
-                showToast('Teacher added');
-                e.target.reset();
-                loadTeachers();
-            } catch (err) { showToast(err.message, 'error'); }
-        };
-
-        document.getElementById('add-class-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('c-name').value;
-            try {
-                await apiFetch('/classes', { method: 'POST', body: { name } });
-                showToast('Class created');
-                e.target.reset();
-                loadClasses();
-            } catch (err) { showToast(err.message, 'error'); }
-        };
-
-        document.getElementById('add-student-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const data = {
-                name: document.getElementById('s-name').value,
-                email: document.getElementById('s-email').value,
-                enrollment_no: document.getElementById('s-enrollment').value,
-                class_id: document.getElementById('s-class').value,
-            };
-            try {
-                await StudentsAPI.create(data);
-                showToast('Student added');
-                e.target.reset();
-                loadStudents();
-            } catch (err) { showToast(err.message, 'error'); }
-        };
-
-
-        async function deleteTeacher(id) {
-            if (!confirm('Are you sure?')) return;
-            try {
-                await AdminAPI.deleteTeacher(id);
-                loadTeachers();
-            } catch (err) { showToast(err.message, 'error'); }
+      document.getElementById("add-student-form").onsubmit = async (e) => {
+        e.preventDefault()
+        const data = {
+          name: document.getElementById("s-name").value,
+          email: document.getElementById("s-email").value,
+          enrollment_no: document.getElementById("s-enrollment").value,
+          class_id: document.getElementById("s-class").value,
         }
-
-        async function updateClassTeachers(classId, teacherIds) {
-            try {
-                await AdminAPI.assignTeachers(classId, teacherIds);
-                showToast('Teachers updated');
-                loadClasses();
-            } catch (err) { showToast(err.message, 'error'); }
+        try {
+          await StudentsAPI.create(data)
+          showToast("Student added")
+          e.target.reset()
+          loadStudents()
+        } catch (err) {
+          showToast(err.message, "error")
         }
+      }
 
-        async function addTeacherToClass(classId, teacherId) {
-            if (!teacherId) return;
-            const cls = classes.find(c => String(c.id) === String(classId));
-            const currentIds = cls.teacher_ids || [];
-            if (currentIds.some(tid => String(tid) === String(teacherId))) return;
-            await updateClassTeachers(classId, [...currentIds, teacherId]);
+      async function deleteTeacher(id) {
+        if (!confirm("Are you sure?")) return
+        try {
+          await AdminAPI.deleteTeacher(id)
+          loadTeachers()
+        } catch (err) {
+          showToast(err.message, "error")
         }
+      }
 
-        async function removeTeacherFromClass(classId, teacherId) {
-            const cls = classes.find(c => String(c.id) === String(classId));
-            const currentIds = cls.teacher_ids || [];
-            await updateClassTeachers(classId, currentIds.filter(id => String(id) !== String(teacherId)));
+      async function updateClassTeachers(classId, teacherIds) {
+        try {
+          await AdminAPI.assignTeachers(classId, teacherIds)
+          showToast("Teachers updated")
+          loadClasses()
+        } catch (err) {
+          showToast(err.message, "error")
         }
+      }
 
-        async function deleteClass(id) {
-            if (!confirm('Are you sure? This will not delete students in the class but they will have no class reference.')) return;
-            try {
-                await apiFetch(`/classes/${id}`, { method: 'DELETE' });
-                loadClasses();
-            } catch (err) { showToast(err.message, 'error'); }
+      async function addTeacherToClass(classId, teacherId) {
+        if (!teacherId) return
+        const cls = classes.find((c) => String(c.id) === String(classId))
+        const currentIds = cls.teacher_ids || []
+        if (currentIds.some((tid) => String(tid) === String(teacherId))) return
+        await updateClassTeachers(classId, [...currentIds, teacherId])
+      }
+
+      async function removeTeacherFromClass(classId, teacherId) {
+        const cls = classes.find((c) => String(c.id) === String(classId))
+        const currentIds = cls.teacher_ids || []
+        await updateClassTeachers(
+          classId,
+          currentIds.filter((id) => String(id) !== String(teacherId)),
+        )
+      }
+
+      async function deleteClass(id) {
+        if (
+          !confirm(
+            "Are you sure? This will not delete students in the class but they will have no class reference.",
+          )
+        )
+          return
+        try {
+          await apiFetch(`/classes/${id}`, { method: "DELETE" })
+          loadClasses()
+        } catch (err) {
+          showToast(err.message, "error")
         }
+      }
 
-        async function deleteStudent(id) {
-            if (!confirm('Are you sure?')) return;
-            try {
-                await StudentsAPI.delete(id);
-                loadStudents();
-            } catch (err) { showToast(err.message, 'error'); }
+      async function deleteStudent(id) {
+        if (!confirm("Are you sure?")) return
+        try {
+          await StudentsAPI.delete(id)
+          loadStudents()
+        } catch (err) {
+          showToast(err.message, "error")
         }
+      }
 
+      async function adminResetPassword(userId, username) {
+        if (!userId) {
+          showToast("No linked account found", "error")
+          return
+        }
+        const newPwd = prompt(`Enter new password for ${username}:`)
+        if (!newPwd) return
+        if (newPwd.length < 4) {
+          showToast("Password must be at least 4 characters", "error")
+          return
+        }
+        try {
+          await AdminAPI.resetPassword(userId, newPwd)
+          showToast(`Password reset for ${username}`)
+        } catch (err) {
+          showToast(err.message, "error")
+        }
+      }
 
-        async function adminResetPassword(userId, username) {
-            if (!userId) { showToast('No linked account found', 'error'); return; }
-            const newPwd = prompt(`Enter new password for ${username}:`);
-            if (!newPwd) return;
-            if (newPwd.length < 4) {
-                showToast('Password must be at least 4 characters', 'error');
-                return;
+      async function toggleStudentBlock(userId) {
+        if (!userId || userId === "null") {
+          showToast("No linked user account found", "error")
+          return
+        }
+        try {
+          const res = await AdminAPI.toggleBlock(userId)
+          showToast(res.message)
+          loadStudents()
+        } catch (err) {
+          showToast(err.message, "error")
+        }
+      }
+
+      async function loadNotifications() {
+        try {
+          const res = await NotificationsAPI.getAll()
+          renderNotifications(res.notifications)
+        } catch (err) {
+          showToast(err.message, "error")
+        }
+      }
+
+      function renderNotifications(list) {
+        const container = document.getElementById("sent-notifications-list")
+        if (!list || !list.length) {
+          container.innerHTML =
+            '<p style="color: var(--text-secondary); font-size: 0.9rem;">No notifications sent yet.</p>'
+          return
+        }
+        container.innerHTML = list
+          .map((n) => {
+            let targetDisplay = "Every Student"
+            if (n.targetType === "class") {
+              targetDisplay = `Class: ${n.targetClassId?.name || "Unknown"}`
+            } else if (n.targetType === "student") {
+              targetDisplay = `Student: ${n.targetStudentId?.name || "Unknown"}`
             }
-            try {
-                await AdminAPI.resetPassword(userId, newPwd);
-                showToast(`Password reset for ${username}`);
-            } catch (err) { showToast(err.message, 'error'); }
-        }
 
-        async function toggleStudentBlock(userId) {
-            if (!userId || userId === 'null') { showToast('No linked user account found', 'error'); return; }
-            try {
-                const res = await AdminAPI.toggleBlock(userId);
-                showToast(res.message);
-                loadStudents();
-            } catch (err) { showToast(err.message, 'error'); }
-        }
-
-        async function loadNotifications() {
-            try {
-                const res = await NotificationsAPI.getAll();
-                renderNotifications(res.notifications);
-            } catch (err) { showToast(err.message, 'error'); }
-        }
-
-        function renderNotifications(list) {
-            const container = document.getElementById('sent-notifications-list');
-            if (!list || !list.length) {
-                container.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.9rem;">No notifications sent yet.</p>';
-                return;
-            }
-            container.innerHTML = list.map(n => {
-                let targetDisplay = 'Every Student';
-                if (n.targetType === 'class') {
-                    targetDisplay = `Class: ${n.targetClassId?.name || 'Unknown'}`;
-                } else if (n.targetType === 'student') {
-                    targetDisplay = `Student: ${n.targetStudentId?.name || 'Unknown'}`;
-                }
-
-                return `
+            return `
                 <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
                     <div>
                         <div style="font-size: 0.95rem; font-weight: 500; color: #fff; white-space: pre-line;">${n.message}</div>
@@ -443,104 +669,121 @@
                     </div>
                     <button class="btn-danger" onclick="deleteNotification('${n._id}')" style="padding: 4px 8px; font-size: 0.75rem; flex-shrink: 0;">Delete</button>
                 </div>
-                `;
-            }).join('');
+                `
+          })
+          .join("")
+      }
+
+      async function deleteNotification(id) {
+        try {
+          await NotificationsAPI.delete(id)
+          showToast("Notification deleted successfully")
+          loadNotifications()
+        } catch (err) {
+          showToast("Failed to delete: " + err.message, "error")
+        }
+      }
+
+      function toggleTargetFields(value, role) {
+        const classGroup = document.getElementById("class-target-group")
+        const studentGroup = document.getElementById("student-target-group")
+
+        classGroup.classList.add("hidden")
+        studentGroup.classList.add("hidden")
+
+        if (value === "class") {
+          classGroup.classList.remove("hidden")
+          populateTargetClassesDropdown(role)
+        } else if (value === "student") {
+          studentGroup.classList.remove("hidden")
+          populateTargetStudentsDropdown(role)
+        }
+      }
+
+      function populateTargetClassesDropdown(role) {
+        const select = document.getElementById("notif-target-class")
+        select.innerHTML = '<option value="">Select Class...</option>'
+        classes.forEach((c) => {
+          const opt = document.createElement("option")
+          opt.value = c.id
+          opt.textContent = c.name
+          select.appendChild(opt)
+        })
+      }
+
+      function populateTargetStudentsDropdown(role) {
+        const select = document.getElementById("notif-target-student")
+        select.innerHTML = '<option value="">Select Student...</option>'
+        students.forEach((s) => {
+          const opt = document.createElement("option")
+          opt.value = s.id
+          opt.textContent = `${s.name} (${s.class_name})`
+          select.appendChild(opt)
+        })
+      }
+
+      document.getElementById("broadcast-notification-form").onsubmit = async (
+        e,
+      ) => {
+        e.preventDefault()
+        const msgInput = document.getElementById("notif-message")
+        const targetType = document.getElementById("notif-target-type").value
+        const targetClassId =
+          document.getElementById("notif-target-class").value
+        const targetStudentId = document.getElementById(
+          "notif-target-student",
+        ).value
+
+        const message = msgInput.value.trim()
+        if (!message) return
+
+        if (targetType === "class" && !targetClassId) {
+          showToast("Please select a target class", "error")
+          return
+        }
+        if (targetType === "student" && !targetStudentId) {
+          showToast("Please select a target student", "error")
+          return
         }
 
-        async function deleteNotification(id) {
-            try {
-                await NotificationsAPI.delete(id);
-                showToast('Notification deleted successfully');
-                loadNotifications();
-            } catch (err) { showToast('Failed to delete: ' + err.message, 'error'); }
+        try {
+          await NotificationsAPI.create(
+            message,
+            targetType,
+            targetClassId,
+            targetStudentId,
+          )
+          showToast("Notification sent successfully!")
+          msgInput.value = ""
+          document.getElementById("notif-target-type").value = "all"
+          toggleTargetFields("all", "admin")
+          loadNotifications()
+        } catch (err) {
+          showToast(err.message, "error")
         }
+      }
 
-        function toggleTargetFields(value, role) {
-            const classGroup = document.getElementById('class-target-group');
-            const studentGroup = document.getElementById('student-target-group');
-            
-            classGroup.classList.add('hidden');
-            studentGroup.classList.add('hidden');
-            
-            if (value === 'class') {
-                classGroup.classList.remove('hidden');
-                populateTargetClassesDropdown(role);
-            } else if (value === 'student') {
-                studentGroup.classList.remove('hidden');
-                populateTargetStudentsDropdown(role);
-            }
+      document.getElementById("change-password-form").onsubmit = async (e) => {
+        e.preventDefault()
+        const currentPassword = document
+          .getElementById("current-password")
+          .value.trim()
+        const newPassword = document.getElementById("new-password").value.trim()
+
+        if (!currentPassword || !newPassword) {
+          showToast("Please fill in both password fields", "error")
+          return
         }
-
-        function populateTargetClassesDropdown(role) {
-            const select = document.getElementById('notif-target-class');
-            select.innerHTML = '<option value="">Select Class...</option>';
-            classes.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c.id;
-                opt.textContent = c.name;
-                select.appendChild(opt);
-            });
+        try {
+          await AuthAPI.changePassword(currentPassword, newPassword)
+          showToast("Password updated successfully")
+          e.target.reset()
+        } catch (err) {
+          showToast(err.message, "error")
         }
+      }
 
-        function populateTargetStudentsDropdown(role) {
-            const select = document.getElementById('notif-target-student');
-            select.innerHTML = '<option value="">Select Student...</option>';
-            students.forEach(s => {
-                const opt = document.createElement('option');
-                opt.value = s.id;
-                opt.textContent = `${s.name} (${s.class_name})`;
-                select.appendChild(opt);
-            });
-        }
-
-        document.getElementById('broadcast-notification-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const msgInput = document.getElementById('notif-message');
-            const targetType = document.getElementById('notif-target-type').value;
-            const targetClassId = document.getElementById('notif-target-class').value;
-            const targetStudentId = document.getElementById('notif-target-student').value;
-            
-            const message = msgInput.value.trim();
-            if (!message) return;
-
-            if (targetType === 'class' && !targetClassId) {
-                showToast('Please select a target class', 'error');
-                return;
-            }
-            if (targetType === 'student' && !targetStudentId) {
-                showToast('Please select a target student', 'error');
-                return;
-            }
-
-            try {
-                await NotificationsAPI.create(message, targetType, targetClassId, targetStudentId);
-                showToast('Notification sent successfully!');
-                msgInput.value = '';
-                document.getElementById('notif-target-type').value = 'all';
-                toggleTargetFields('all', 'admin');
-                loadNotifications();
-            } catch (err) { showToast(err.message, 'error'); }
-        };
-
-        document.getElementById('change-password-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const currentPassword = document.getElementById('current-password').value.trim();
-            const newPassword = document.getElementById('new-password').value.trim();
-
-            if (!currentPassword || !newPassword) {
-                showToast('Please fill in both password fields', 'error');
-                return;
-            }
-            try {
-                await AuthAPI.changePassword(currentPassword, newPassword);
-                showToast('Password updated successfully');
-                e.target.reset();
-            } catch (err) {
-                showToast(err.message, 'error');
-            }
-        };
-
-        init();
+      init()
     </script>
-</body>
+  </body>
 </html>

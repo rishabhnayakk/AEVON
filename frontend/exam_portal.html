@@ -1,584 +1,936 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Exam Portal | AEVON</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css" />
     <style>
-        .exam-tile { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 1.4rem 1.6rem; transition: all 0.2s; margin-bottom: 0.85rem; }
-        .exam-tile.open { border-color: var(--primary); cursor: pointer; }
-        .exam-tile.open:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59, 130, 246, 0.08); }
-        .pill { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.73rem; font-weight: 700; padding: 3px 11px; border-radius: 999px; }
-        .pill-open { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid #10b981; }
-        .pill-closed { background: rgba(107,114,128,0.1); color: #9ca3af; border: 1px solid #6b7280; }
-        .pill-done { background: rgba(99,102,241,0.15); color: #a5b4fc; border: 1px solid #6366f1; }
-        .timer-bar { position: sticky; top: 0; z-index: 100; background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 0.75rem 1.2rem; display: flex; align-items: center; justify-content: space-between; border-radius: 10px 10px 0 0; margin-bottom: 1rem; }
-        .timer-display { font-family: 'Courier New', monospace; font-size: 1.5rem; font-weight: 700; color: var(--primary); letter-spacing: 2px; }
-        .timer-display.warning { color: #f87171; animation: pulse 1s infinite; }
-        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .progress-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 1rem; }
-        .q-chip { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 700; cursor: pointer; border: 1px solid var(--border); background: rgba(255,255,255,0.04); }
-        .q-chip.answered { background: rgba(16,185,129,0.2); border-color: #10b981; color: #34d399; }
-        .q-chip.current { background: rgba(59, 130, 246, 0.15); border-color: var(--primary); color: var(--primary); }
-        .option-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.9rem 1.1rem; border-radius: 10px; border: 1.5px solid var(--border); cursor: pointer; transition: all 0.18s; background: rgba(255,255,255,0.06); margin-bottom: 0.6rem; }
-        .option-row.selected { border-color: var(--primary); background: rgba(59, 130, 246, 0.1); }
-        .opt-bullet { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; background: rgba(255,255,255,0.12); border: 1.5px solid var(--border); }
-        .exam-layout { display: grid; grid-template-columns: 1fr 220px; gap: 1.2rem; align-items: start; }
-        .result-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        .result-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 3rem 2.5rem; max-width: 420px; width: 95%; text-align: center; }
+      .exam-tile {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1.4rem 1.6rem;
+        transition: all 0.2s;
+        margin-bottom: 0.85rem;
+      }
+      .exam-tile.open {
+        border-color: var(--primary);
+        cursor: pointer;
+      }
+      .exam-tile.open:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(59, 130, 246, 0.08);
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.73rem;
+        font-weight: 700;
+        padding: 3px 11px;
+        border-radius: 999px;
+      }
+      .pill-open {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border: 1px solid #10b981;
+      }
+      .pill-closed {
+        background: rgba(107, 114, 128, 0.1);
+        color: #9ca3af;
+        border: 1px solid #6b7280;
+      }
+      .pill-done {
+        background: rgba(99, 102, 241, 0.15);
+        color: #a5b4fc;
+        border: 1px solid #6366f1;
+      }
+      .timer-bar {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: var(--bg-card);
+        border-bottom: 1px solid var(--border);
+        padding: 0.75rem 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-radius: 10px 10px 0 0;
+        margin-bottom: 1rem;
+      }
+      .timer-display {
+        font-family: "Courier New", monospace;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        letter-spacing: 2px;
+      }
+      .timer-display.warning {
+        color: #f87171;
+        animation: pulse 1s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+      .progress-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        margin-bottom: 1rem;
+      }
+      .q-chip {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+      }
+      .q-chip.answered {
+        background: rgba(16, 185, 129, 0.2);
+        border-color: #10b981;
+        color: #34d399;
+      }
+      .q-chip.current {
+        background: rgba(59, 130, 246, 0.15);
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+      .option-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.9rem 1.1rem;
+        border-radius: 10px;
+        border: 1.5px solid var(--border);
+        cursor: pointer;
+        transition: all 0.18s;
+        background: rgba(255, 255, 255, 0.06);
+        margin-bottom: 0.6rem;
+      }
+      .option-row.selected {
+        border-color: var(--primary);
+        background: rgba(59, 130, 246, 0.1);
+      }
+      .opt-bullet {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1.5px solid var(--border);
+      }
+      .exam-layout {
+        display: grid;
+        grid-template-columns: 1fr 220px;
+        gap: 1.2rem;
+        align-items: start;
+      }
+      .result-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .result-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 3rem 2.5rem;
+        max-width: 420px;
+        width: 95%;
+        text-align: center;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="app-layout">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h2>AEVON</h2>
-                <div class="user-role" id="role-label">Student Panel</div>
-            </div>
-            <nav class="sidebar-nav" id="nav-links"></nav>
-            <div class="sidebar-footer">
-                <button class="btn btn-secondary" style="width:100%;" onclick="handleLogout()">Logout</button>
-            </div>
-        </aside>
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <h2>AEVON</h2>
+          <div class="user-role" id="role-label">Student Panel</div>
+        </div>
+        <nav class="sidebar-nav" id="nav-links"></nav>
+        <div class="sidebar-footer">
+          <button
+            class="btn btn-secondary"
+            style="width: 100%"
+            onclick="handleLogout()"
+          >
+            Logout
+          </button>
+        </div>
+      </aside>
 
-        <main class="main-content">
-            <div id="list-view">
-                <div class="page-header">
-                    <div>
-                        <h1>Exam Portal</h1>
-                        <p class="subtitle">View and sit your scheduled online examinations</p>
-                    </div>
-                </div>
-                <div id="exams-container">
-                    <div class="loading-overlay"><div class="spinner"></div><p>Loading exams…</p></div>
-                </div>
+      <main class="main-content">
+        <div id="list-view">
+          <div class="page-header">
+            <div>
+              <h1>Exam Portal</h1>
+              <p class="subtitle">
+                View and sit your scheduled online examinations
+              </p>
             </div>
+          </div>
+          <div id="exams-container">
+            <div class="loading-overlay">
+              <div class="spinner"></div>
+              <p>Loading exams…</p>
+            </div>
+          </div>
+        </div>
 
-            <div id="exam-view" class="hidden">
-                <div class="card" style="padding:0;overflow:hidden;">
-                    <div class="timer-bar">
-                        <div>
-                            <div style="font-size:0.8rem;color:var(--text-secondary);"><span id="exam-name-display"></span></div>
-                            <div style="font-size:0.75rem;color:var(--text-secondary);" id="exam-progress-label"></div>
-                        </div>
-                        <div class="timer-display" id="timer-display">00:00</div>
-                        <button class="btn btn-danger btn-sm" onclick="confirmSubmit()">Submit Exam</button>
-                    </div>
-                    <div style="padding:1.2rem;">
-                        <div class="exam-layout">
-                            <div>
-                                <div class="question-block" id="question-block" style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.8rem;">
-                                    <div class="q-header" id="q-header" style="color:var(--gold);font-weight:700;margin-bottom:0.5rem;">Question 1</div>
-                                    <img id="q-image" src="" alt="" style="max-width:320px; display:none; margin-bottom:12px; border:1px solid var(--border); padding:6px; border-radius:8px;" />
-                                    <div class="q-text" id="q-text" style="font-size:1.1rem;font-weight:600;margin-bottom:1.5rem;"></div>
-                                    <div class="options-list" id="options-list"></div>
-                                    <div class="q-nav" style="display:flex;justify-content:space-between;margin-top:1.5rem;">
-                                        <button class="btn btn-secondary btn-sm" id="prev-btn" onclick="goTo(currentQ - 1)">← Previous</button>
-                                        <button class="btn btn-primary btn-sm" id="next-btn" onclick="goTo(currentQ + 1)">Next →</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="sidebar-panel" style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.2rem;position:sticky;top:20px;">
-                                <div style="font-size:0.8rem;font-weight:700;margin-bottom:0.75rem;">QUESTION MAP</div>
-                                <div class="progress-chips" id="q-chips"></div>
-                                <button class="btn btn-success btn-sm mt-1" style="width:100%;" onclick="confirmSubmit()">Submit</button>
-                            </div>
-                        </div>
-                    </div>
+        <div id="exam-view" class="hidden">
+          <div class="card" style="padding: 0; overflow: hidden">
+            <div class="timer-bar">
+              <div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary)">
+                  <span id="exam-name-display"></span>
                 </div>
+                <div
+                  style="font-size: 0.75rem; color: var(--text-secondary)"
+                  id="exam-progress-label"
+                ></div>
+              </div>
+              <div class="timer-display" id="timer-display">00:00</div>
+              <button class="btn btn-danger btn-sm" onclick="confirmSubmit()">
+                Submit Exam
+              </button>
             </div>
-        </main>
+            <div style="padding: 1.2rem">
+              <div class="exam-layout">
+                <div>
+                  <div
+                    class="question-block"
+                    id="question-block"
+                    style="
+                      background: var(--bg-card);
+                      border: 1px solid var(--border);
+                      border-radius: 12px;
+                      padding: 1.8rem;
+                    "
+                  >
+                    <div
+                      class="q-header"
+                      id="q-header"
+                      style="
+                        color: var(--gold);
+                        font-weight: 700;
+                        margin-bottom: 0.5rem;
+                      "
+                    >
+                      Question 1
+                    </div>
+                    <img
+                      id="q-image"
+                      src=""
+                      alt=""
+                      style="
+                        max-width: 320px;
+                        display: none;
+                        margin-bottom: 12px;
+                        border: 1px solid var(--border);
+                        padding: 6px;
+                        border-radius: 8px;
+                      "
+                    />
+                    <div
+                      class="q-text"
+                      id="q-text"
+                      style="
+                        font-size: 1.1rem;
+                        font-weight: 600;
+                        margin-bottom: 1.5rem;
+                      "
+                    ></div>
+                    <div class="options-list" id="options-list"></div>
+                    <div
+                      class="q-nav"
+                      style="
+                        display: flex;
+                        justify-content: space-between;
+                        margin-top: 1.5rem;
+                      "
+                    >
+                      <button
+                        class="btn btn-secondary btn-sm"
+                        id="prev-btn"
+                        onclick="goTo(currentQ - 1)"
+                      >
+                        ← Previous
+                      </button>
+                      <button
+                        class="btn btn-primary btn-sm"
+                        id="next-btn"
+                        onclick="goTo(currentQ + 1)"
+                      >
+                        Next →
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="sidebar-panel"
+                  style="
+                    background: var(--bg-card);
+                    border: 1px solid var(--border);
+                    border-radius: 12px;
+                    padding: 1.2rem;
+                    position: sticky;
+                    top: 20px;
+                  "
+                >
+                  <div
+                    style="
+                      font-size: 0.8rem;
+                      font-weight: 700;
+                      margin-bottom: 0.75rem;
+                    "
+                  >
+                    QUESTION MAP
+                  </div>
+                  <div class="progress-chips" id="q-chips"></div>
+                  <button
+                    class="btn btn-success btn-sm mt-1"
+                    style="width: 100%"
+                    onclick="confirmSubmit()"
+                  >
+                    Submit
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
 
     <!-- Analysis Detail Modal -->
-    <div id="detail-modal" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:10000; display:flex; align-items:center; justify-content:center; padding:2rem;">
-        <div class="card" style="width:100%; max-width:900px; max-height:90vh; overflow-y:auto; padding:2rem; position:relative;">
-            <div class="flex justify-between align-center mb-2" style="flex-wrap: wrap; gap: 1rem;">
-                <h2 id="detail-title" style="font-size: 1.3rem; margin: 0;">Attempt Analysis</h2>
-                <div class="flex gap-1 align-center">
-                    <select id="analysis-subject-filter" class="form-control" style="width: 180px; padding: 4px 8px; height: auto;" onchange="renderFilteredDetails()">
-                        <option value="all">All Subjects</option>
-                    </select>
-                    <button class="btn btn-secondary btn-sm" onclick="closeDetails()">Close</button>
-                </div>
-            </div>
-            <div id="detail-content"></div>
+    <div
+      id="detail-modal"
+      class="hidden"
+      style="
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+      "
+    >
+      <div
+        class="card"
+        style="
+          width: 100%;
+          max-width: 900px;
+          max-height: 90vh;
+          overflow-y: auto;
+          padding: 2rem;
+          position: relative;
+        "
+      >
+        <div
+          class="flex justify-between align-center mb-2"
+          style="flex-wrap: wrap; gap: 1rem"
+        >
+          <h2 id="detail-title" style="font-size: 1.3rem; margin: 0">
+            Attempt Analysis
+          </h2>
+          <div class="flex gap-1 align-center">
+            <select
+              id="analysis-subject-filter"
+              class="form-control"
+              style="width: 180px; padding: 4px 8px; height: auto"
+              onchange="renderFilteredDetails()"
+            >
+              <option value="all">All Subjects</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" onclick="closeDetails()">
+              Close
+            </button>
+          </div>
         </div>
+        <div id="detail-content"></div>
+      </div>
     </div>
 
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        let questions = [];
-        let userAnswers = {};
-        let currentQ = 0;
-        let timerInterval = null;
-        let secondsLeft = 0;
-        let examStartTime = null;
-        let activeExamId = null;
-        let tabSwitches = 0;
-        let cheatListenersAdded = false;
-        let isStrictForward = false;
-        let timePerQuestion = 0;
-        let qTimerInterval = null;
-        let qSecondsLeft = 0;
-        let examSubjects = [];
+      let questions = []
+      let userAnswers = {}
+      let currentQ = 0
+      let timerInterval = null
+      let secondsLeft = 0
+      let examStartTime = null
+      let activeExamId = null
+      let tabSwitches = 0
+      let cheatListenersAdded = false
+      let isStrictForward = false
+      let timePerQuestion = 0
+      let qTimerInterval = null
+      let qSecondsLeft = 0
+      let examSubjects = []
 
-        function enterFullScreen() {
-            const elem = document.documentElement;
-            if (elem.requestFullscreen) elem.requestFullscreen().catch(()=>{});
-            else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
-            else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+      function enterFullScreen() {
+        const elem = document.documentElement
+        if (elem.requestFullscreen) elem.requestFullscreen().catch(() => {})
+        else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen()
+        else if (elem.msRequestFullscreen) elem.msRequestFullscreen()
+      }
+
+      function exitFullScreen() {
+        if (document.fullscreenElement) {
+          if (document.exitFullscreen) document.exitFullscreen()
+          else if (document.webkitExitFullscreen)
+            document.webkitExitFullscreen()
+          else if (document.msExitFullscreen) document.msExitFullscreen()
         }
+      }
 
-        function exitFullScreen() {
-            if (document.fullscreenElement) {
-                if (document.exitFullscreen) document.exitFullscreen();
-                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-                else if (document.msExitFullscreen) document.msExitFullscreen();
+      function setupAntiCheat() {
+        if (cheatListenersAdded) return
+
+        document.addEventListener("visibilitychange", async () => {
+          if (document.hidden && activeExamId) {
+            tabSwitches++
+            if (tabSwitches >= 3) {
+              await customAlert(
+                "EXAM TERMINATED",
+                "You have violated the exam rules by switching windows multiple times. Your exam is being submitted automatically.",
+              )
+              submitExam(true)
+            } else {
+              customAlert(
+                "WARNING",
+                `Window switching is prohibited during the exam. (Warning ${tabSwitches} of 2). Further violations will result in automatic submission.`,
+              )
             }
-        }
+          }
+        })
 
-        function setupAntiCheat() {
-            if (cheatListenersAdded) return;
-            
-            document.addEventListener('visibilitychange', async () => {
-                if (document.hidden && activeExamId) {
-                    tabSwitches++;
-                    if (tabSwitches >= 3) {
-                        await customAlert('EXAM TERMINATED', 'You have violated the exam rules by switching windows multiple times. Your exam is being submitted automatically.');
-                        submitExam(true);
-                    } else {
-                        customAlert('WARNING', `Window switching is prohibited during the exam. (Warning ${tabSwitches} of 2). Further violations will result in automatic submission.`);
-                    }
-                }
-            });
-            
-            document.addEventListener('fullscreenchange', async () => {
-                if (!document.fullscreenElement && activeExamId) {
-                    await customAlert('WARNING', 'You have exited full screen mode. The exam requires full screen.');
-                    enterFullScreen();
-                }
-            });
+        document.addEventListener("fullscreenchange", async () => {
+          if (!document.fullscreenElement && activeExamId) {
+            await customAlert(
+              "WARNING",
+              "You have exited full screen mode. The exam requires full screen.",
+            )
+            enterFullScreen()
+          }
+        })
 
-            // Prevent Copy, Paste, Select All and Context Menu (Right Click)
-            document.addEventListener('copy', (e) => {
-                if (activeExamId) {
-                    e.preventDefault();
-                    showToast('Copying is disabled during the exam!', 'error');
-                }
-            });
+        // Prevent Copy, Paste, Select All and Context Menu (Right Click)
+        document.addEventListener("copy", (e) => {
+          if (activeExamId) {
+            e.preventDefault()
+            showToast("Copying is disabled during the exam!", "error")
+          }
+        })
 
-            document.addEventListener('paste', (e) => {
-                if (activeExamId) {
-                    e.preventDefault();
-                    showToast('Pasting is disabled during the exam!', 'error');
-                }
-            });
+        document.addEventListener("paste", (e) => {
+          if (activeExamId) {
+            e.preventDefault()
+            showToast("Pasting is disabled during the exam!", "error")
+          }
+        })
 
-            document.addEventListener('contextmenu', (e) => {
-                if (activeExamId) {
-                    e.preventDefault();
-                    showToast('Right-click is disabled during the exam!', 'error');
-                }
-            });
+        document.addEventListener("contextmenu", (e) => {
+          if (activeExamId) {
+            e.preventDefault()
+            showToast("Right-click is disabled during the exam!", "error")
+          }
+        })
 
-            document.addEventListener('keydown', (e) => {
-                if (activeExamId) {
-                    const isCopy = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c';
-                    const isPaste = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v';
-                    const isSelectAll = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a';
-                    if (isCopy || isPaste || isSelectAll) {
-                        e.preventDefault();
-                        showToast('Shortcut disabled during the exam!', 'error');
-                    }
-                }
-            });
-            
-            cheatListenersAdded = true;
-        }
+        document.addEventListener("keydown", (e) => {
+          if (activeExamId) {
+            const isCopy =
+              (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c"
+            const isPaste =
+              (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v"
+            const isSelectAll =
+              (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a"
+            if (isCopy || isPaste || isSelectAll) {
+              e.preventDefault()
+              showToast("Shortcut disabled during the exam!", "error")
+            }
+          }
+        })
 
-        async function init() {
-            const user = await requireAuth(['student']);
-            if (!user) return;
-            renderSidebar('exam_portal.html');
-            loadExams();
-        }
+        cheatListenersAdded = true
+      }
 
-        async function loadExams() {
-            const container = document.getElementById('exams-container');
-            try {
-                const { exams } = await apiFetch('/exam-portal/available');
-                if (!exams.length) {
-                    container.innerHTML = '<div class="empty-state"><p>No exams scheduled.</p></div>';
-                    return;
-                }
-                container.innerHTML = exams.map(e => {
-                    const dateObj = new Date(e.date);
-                    const dateStr = dateObj.toLocaleDateString('en-IN', { weekday:'short', day:'2-digit', month:'short' }) + ' at ' + dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-                    if (e.already_attempted) {
-                        const pct = e.max_score ? Math.round((e.score / e.max_score) * 100) : 0;
-                        return `<div class="exam-tile">
+      async function init() {
+        const user = await requireAuth(["student"])
+        if (!user) return
+        renderSidebar("exam_portal.html")
+        loadExams()
+      }
+
+      async function loadExams() {
+        const container = document.getElementById("exams-container")
+        try {
+          const { exams } = await apiFetch("/exam-portal/available")
+          if (!exams.length) {
+            container.innerHTML =
+              '<div class="empty-state"><p>No exams scheduled.</p></div>'
+            return
+          }
+          container.innerHTML = exams
+            .map((e) => {
+              const dateObj = new Date(e.date)
+              const dateStr =
+                dateObj.toLocaleDateString("en-IN", {
+                  weekday: "short",
+                  day: "2-digit",
+                  month: "short",
+                }) +
+                " at " +
+                dateObj.toLocaleTimeString("en-IN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              if (e.already_attempted) {
+                const pct = e.max_score
+                  ? Math.round((e.score / e.max_score) * 100)
+                  : 0
+                return `<div class="exam-tile">
                             <div class="exam-tile-header">
                                 <div><strong>${e.name}</strong><br><small>${dateStr}</small></div>
                                 <div class="flex flex-col align-end gap-05">
-                                    <span class="pill pill-done">${e.results_visible ? `Score: ${pct}%` : 'Submitted'}</span>
-                                    ${e.results_visible ? `<button class="btn btn-sm btn-secondary" style="font-size:0.65rem;" onclick="viewMyDetails('${e.id}')">View Analysis</button>` : ''}
+                                    <span class="pill pill-done">${e.results_visible ? `Score: ${pct}%` : "Submitted"}</span>
+                                    ${e.results_visible ? `<button class="btn btn-sm btn-secondary" style="font-size:0.65rem;" onclick="viewMyDetails('${e.id}')">View Analysis</button>` : ""}
                                 </div>
                             </div>
-                        </div>`;
-                    }
-                    if (e.is_active) {
-                        let statusHtml = '<span class="pill pill-open">🟢 OPEN</span>';
-                        let canStart = true;
-                        let timeMsg = '';
-                        
-                        if (e.starts_at) {
-                            const now = new Date();
-                            const startsAt = new Date(e.starts_at);
-                            const deadline = new Date(startsAt.getTime() + (e.login_window_minutes || 15) * 60000);
-                            
-                            if (now < startsAt) {
-                                canStart = false;
-                                statusHtml = `<span class="pill" style="background:rgba(255,165,0,0.15);color:orange;border:1px solid orange;">Opens at ${startsAt.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'})}</span>`;
-                            } else if (now > deadline) {
-                                canStart = false;
-                                statusHtml = `<span class="pill pill-closed">Deadline Passed</span>`;
-                            } else {
-                                timeMsg = `<br><small style="color:#10b981">Entry closes at ${deadline.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'})}</small>`;
-                            }
-                        }
-                        
-                        if (canStart) {
-                            return `<div class="exam-tile open" onclick="startExam('${e.id}', '${e.name.replace(/'/g,"\\'")}', ${e.duration_minutes})">
+                        </div>`
+              }
+              if (e.is_active) {
+                let statusHtml = '<span class="pill pill-open">OPEN</span>'
+                let canStart = true
+                let timeMsg = ""
+
+                if (e.starts_at) {
+                  const now = new Date()
+                  const startsAt = new Date(e.starts_at)
+                  const deadline = new Date(
+                    startsAt.getTime() + (e.login_window_minutes || 15) * 60000,
+                  )
+
+                  if (now < startsAt) {
+                    canStart = false
+                    statusHtml = `<span class="pill" style="background:rgba(255,165,0,0.15);color:orange;border:1px solid orange;">Opens at ${startsAt.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</span>`
+                  } else if (now > deadline) {
+                    canStart = false
+                    statusHtml = `<span class="pill pill-closed">Deadline Passed</span>`
+                  } else {
+                    timeMsg = `<br><small style="color:#10b981">Entry closes at ${deadline.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</small>`
+                  }
+                }
+
+                if (canStart) {
+                  return `<div class="exam-tile open" onclick="startExam('${e.id}', '${e.name.replace(/'/g, "\\'")}', ${e.duration_minutes})">
                                 <div class="exam-tile-header">
                                     <div><strong>${e.name}</strong><br><small>${dateStr} | ${e.duration_minutes} min</small>${timeMsg}</div>
                                     ${statusHtml}
                                 </div>
-                            </div>`;
-                        } else {
-                            return `<div class="exam-tile" style="opacity:0.8;" onclick="customAlert('Not Accessible', 'This exam is currently not accessible.')">
+                            </div>`
+                } else {
+                  return `<div class="exam-tile" style="opacity:0.8;" onclick="customAlert('Not Accessible', 'This exam is currently not accessible.')">
                                 <div class="exam-tile-header">
                                     <div><strong>${e.name}</strong><br><small>${dateStr} | ${e.duration_minutes} min</small></div>
                                     ${statusHtml}
                                 </div>
-                            </div>`;
-                        }
-                    }
-                    return `<div class="exam-tile" style="opacity:0.6;">
+                            </div>`
+                }
+              }
+              return `<div class="exam-tile" style="opacity:0.6;">
                         <div class="exam-tile-header">
                             <div><strong>${e.name}</strong><br><small>${dateStr}</small></div>
                             <span class="pill pill-closed">Closed</span>
                         </div>
-                    </div>`;
-                }).join('');
-            } catch(e) { container.innerHTML = `<p class="p-2">Error loading exams.</p>`; }
+                    </div>`
+            })
+            .join("")
+        } catch (e) {
+          container.innerHTML = `<p class="p-2">Error loading exams.</p>`
+        }
+      }
+
+      async function startExam(examId, examName, durationMinutes) {
+        const ok = await customConfirm(
+          "Start Exam",
+          `Are you sure you want to start "${examName}"?`,
+        )
+        if (!ok) return
+
+        // Fullscreen must be triggered synchronously with the user click
+        enterFullScreen()
+
+        try {
+          const data = await apiFetch(`/exam-portal/start/${examId}`)
+          questions = data.questions
+          activeExamId = examId
+          userAnswers = {}
+          currentQ = 0
+          secondsLeft = data.duration_minutes * 60
+          examStartTime = Date.now()
+          isStrictForward = data.strict_forward_only || false
+          timePerQuestion = data.time_per_question_seconds || 0
+          examSubjects = data.subjects || []
+
+          document.getElementById("exam-name-display").textContent = examName
+          document.getElementById("list-view").classList.add("hidden")
+          document.getElementById("exam-view").classList.remove("hidden")
+
+          // Hide sidebar to maximize screen real estate
+          document.querySelector(".sidebar").style.display = "none"
+          document.querySelector(".main-content").style.marginLeft = "0"
+          document.querySelector(".main-content").style.padding = "0"
+
+          tabSwitches = 0
+          setupAntiCheat()
+
+          renderQuestion()
+          startTimer()
+        } catch (err) {
+          exitFullScreen()
+          // Restore sidebar if start failed
+          document.querySelector(".sidebar").style.display = "flex"
+          document.querySelector(".main-content").style.marginLeft = "260px"
+          document.querySelector(".main-content").style.padding = "2rem"
+          document.getElementById("list-view").classList.remove("hidden")
+          document.getElementById("exam-view").classList.add("hidden")
+          showToast(err.message, "error")
+        }
+      }
+
+      function startTimer() {
+        clearInterval(timerInterval)
+        const update = () => {
+          const m = Math.floor(secondsLeft / 60)
+            .toString()
+            .padStart(2, "0")
+          const s = (secondsLeft % 60).toString().padStart(2, "0")
+          const el = document.getElementById("timer-display")
+          if (el) {
+            el.textContent = `${m}:${s}`
+            el.classList.toggle("warning", secondsLeft <= 120)
+          }
+        }
+        update()
+        timerInterval = setInterval(() => {
+          secondsLeft--
+          update()
+          if (secondsLeft <= 0) {
+            clearInterval(timerInterval)
+            submitExam(true)
+          }
+        }, 1000)
+      }
+
+      function renderQuestion() {
+        if (qTimerInterval) clearInterval(qTimerInterval)
+
+        const q = questions[currentQ]
+        const letters = ["A", "B", "C", "D"]
+
+        const currentSub = examSubjects.find(
+          (s) => s.subject_id === q.subject_id,
+        )
+        const subName = currentSub ? currentSub.subject_name : "General"
+
+        document.getElementById("q-header").innerHTML =
+          `<span style="background:rgba(67, 97, 238, 0.1); color:var(--primary); font-size:0.75rem; font-weight:800; text-transform:uppercase; border:1px solid var(--primary); border-radius:6px; padding:3px 8px; margin-right:8px; vertical-align:middle;">${subName}</span> <span style="vertical-align:middle;">Question ${currentQ + 1} of ${questions.length}</span>`
+        document.getElementById("exam-progress-label").textContent =
+          `${Object.keys(userAnswers).length} answered`
+        // Render question image if present
+        const qImage = document.getElementById("q-image")
+        if (q.image_url) {
+          qImage.src = q.image_url
+          qImage.style.display = "block"
+        } else {
+          qImage.src = ""
+          qImage.style.display = "none"
+        }
+        document.getElementById("q-text").textContent = q.question_text
+
+        if (isStrictForward) {
+          document.getElementById("prev-btn").style.display = "none"
+        } else {
+          document.getElementById("prev-btn").style.display = "inline-block"
+          document.getElementById("prev-btn").disabled = currentQ === 0
         }
 
-        async function startExam(examId, examName, durationMinutes) {
-            const ok = await customConfirm('Start Exam', `Are you sure you want to start "${examName}"?`);
-            if (!ok) return;
-            
-            // Fullscreen must be triggered synchronously with the user click
-            enterFullScreen();
-            
-            try {
-                const data = await apiFetch(`/exam-portal/start/${examId}`);
-                questions = data.questions;
-                activeExamId = examId;
-                userAnswers = {};
-                currentQ = 0;
-                secondsLeft = data.duration_minutes * 60;
-                examStartTime = Date.now();
-                isStrictForward = data.strict_forward_only || false;
-                timePerQuestion = data.time_per_question_seconds || 0;
-                examSubjects = data.subjects || [];
+        document.getElementById("next-btn").textContent =
+          currentQ === questions.length - 1 ? "Finish" : "Next →"
 
-                document.getElementById('exam-name-display').textContent = examName;
-                document.getElementById('list-view').classList.add('hidden');
-                document.getElementById('exam-view').classList.remove('hidden');
-
-                // Hide sidebar to maximize screen real estate
-                document.querySelector('.sidebar').style.display = 'none';
-                document.querySelector('.main-content').style.marginLeft = '0';
-                document.querySelector('.main-content').style.padding = '0';
-
-                tabSwitches = 0;
-                setupAntiCheat();
-
-                renderQuestion();
-                startTimer();
-            } catch (err) { 
-                exitFullScreen();
-                // Restore sidebar if start failed
-                document.querySelector('.sidebar').style.display = 'flex';
-                document.querySelector('.main-content').style.marginLeft = '260px';
-                document.querySelector('.main-content').style.padding = '2rem';
-                document.getElementById('list-view').classList.remove('hidden');
-                document.getElementById('exam-view').classList.add('hidden');
-                showToast(err.message, 'error'); 
-            }
-        }
-
-        function startTimer() {
-            clearInterval(timerInterval);
-            const update = () => {
-                const m = Math.floor(secondsLeft / 60).toString().padStart(2,'0');
-                const s = (secondsLeft % 60).toString().padStart(2,'0');
-                const el = document.getElementById('timer-display');
-                if (el) {
-                    el.textContent = `${m}:${s}`;
-                    el.classList.toggle('warning', secondsLeft <= 120);
-                }
-            };
-            update();
-            timerInterval = setInterval(() => {
-                secondsLeft--;
-                update();
-                if (secondsLeft <= 0) {
-                    clearInterval(timerInterval);
-                    submitExam(true);
-                }
-            }, 1000);
-        }
-
-        function renderQuestion() {
-            if (qTimerInterval) clearInterval(qTimerInterval);
-            
-            const q = questions[currentQ];
-            const letters = ['A','B','C','D'];
-            
-            const currentSub = examSubjects.find(s => s.subject_id === q.subject_id);
-            const subName = currentSub ? currentSub.subject_name : 'General';
-            
-            document.getElementById('q-header').innerHTML = `<span style="background:rgba(67, 97, 238, 0.1); color:var(--primary); font-size:0.75rem; font-weight:800; text-transform:uppercase; border:1px solid var(--primary); border-radius:6px; padding:3px 8px; margin-right:8px; vertical-align:middle;">${subName}</span> <span style="vertical-align:middle;">Question ${currentQ+1} of ${questions.length}</span>`;
-            document.getElementById('exam-progress-label').textContent = `${Object.keys(userAnswers).length} answered`;
-            // Render question image if present
-            const qImage = document.getElementById('q-image');
-            if (q.image_url) {
-                qImage.src = q.image_url;
-                qImage.style.display = 'block';
+        const selected = userAnswers[currentQ]
+        document.getElementById("options-list").innerHTML = q.options
+          .map((opt, idx) => {
+            let isSel = false
+            if (q.is_multiple_choice) {
+              isSel = Array.isArray(selected) && selected.includes(idx)
             } else {
-                qImage.src = '';
-                qImage.style.display = 'none';
+              isSel = selected === idx
             }
-            document.getElementById('q-text').textContent = q.question_text;
-            
-            if (isStrictForward) {
-                document.getElementById('prev-btn').style.display = 'none';
-            } else {
-                document.getElementById('prev-btn').style.display = 'inline-block';
-                document.getElementById('prev-btn').disabled = currentQ === 0;
-            }
-            
-            document.getElementById('next-btn').textContent = currentQ === questions.length - 1 ? 'Finish' : 'Next →';
 
-            const selected = userAnswers[currentQ];
-            document.getElementById('options-list').innerHTML = q.options.map((opt, idx) => {
-                let isSel = false;
-                if (q.is_multiple_choice) {
-                    isSel = Array.isArray(selected) && selected.includes(idx);
-                } else {
-                    isSel = selected === idx;
-                }
-                
-                const bulletHtml = q.is_multiple_choice 
-                    ? `<div class="opt-bullet" style="border-radius:4px;"><input type="checkbox" style="pointer-events:none; margin:0;" ${isSel ? 'checked' : ''}></div>`
-                    : `<div class="opt-bullet">${letters[idx]}</div>`;
+            const bulletHtml = q.is_multiple_choice
+              ? `<div class="opt-bullet" style="border-radius:4px;"><input type="checkbox" style="pointer-events:none; margin:0;" ${isSel ? "checked" : ""}></div>`
+              : `<div class="opt-bullet">${letters[idx]}</div>`
 
-                return `
-                    <div class="option-row ${isSel ? 'selected' : ''}" onclick="selectOption(${idx})">
+            return `
+                    <div class="option-row ${isSel ? "selected" : ""}" onclick="selectOption(${idx})">
                         ${bulletHtml}
                         <div style="flex:1;">${opt}</div>
                     </div>
-                `;
-            }).join('');
+                `
+          })
+          .join("")
 
-            const groupedQuestions = {};
-            questions.forEach((qObj, i) => {
-                if (!groupedQuestions[qObj.subject_id]) groupedQuestions[qObj.subject_id] = [];
-                groupedQuestions[qObj.subject_id].push({ q: qObj, index: i });
-            });
+        const groupedQuestions = {}
+        questions.forEach((qObj, i) => {
+          if (!groupedQuestions[qObj.subject_id])
+            groupedQuestions[qObj.subject_id] = []
+          groupedQuestions[qObj.subject_id].push({ q: qObj, index: i })
+        })
 
-            let chipsHtml = '';
-            examSubjects.forEach(sub => {
-                const qs = groupedQuestions[sub.subject_id];
-                if (!qs) return;
-                const safeSubName = sub.subject_name || 'Subject';
-                chipsHtml += `<div style="margin-top:0.75rem; margin-bottom:0.4rem; font-size:0.7rem; font-weight:800; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em;">${safeSubName}</div>`;
-                chipsHtml += `<div class="progress-chips" style="margin-bottom:0;">`;
-                chipsHtml += qs.map(item => {
-                    const i = item.index;
-                    const qObj = item.q;
-                    const clickable = isStrictForward ? (i >= currentQ) : true;
-                    const isAnswered = qObj.is_multiple_choice 
-                        ? (Array.isArray(userAnswers[i]) && userAnswers[i].length > 0) 
-                        : (userAnswers[i] !== undefined && userAnswers[i] !== -1);
-                    return `<div class="q-chip ${isAnswered ? 'answered' : ''} ${i === currentQ ? 'current' : ''}" ${clickable ? `onclick="goTo(${i})"` : 'style="opacity:0.3;cursor:not-allowed;"'}>${i+1}</div>`;
-                }).join('');
-                chipsHtml += `</div>`;
-            });
+        let chipsHtml = ""
+        examSubjects.forEach((sub) => {
+          const qs = groupedQuestions[sub.subject_id]
+          if (!qs) return
+          const safeSubName = sub.subject_name || "Subject"
+          chipsHtml += `<div style="margin-top:0.75rem; margin-bottom:0.4rem; font-size:0.7rem; font-weight:800; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em;">${safeSubName}</div>`
+          chipsHtml += `<div class="progress-chips" style="margin-bottom:0;">`
+          chipsHtml += qs
+            .map((item) => {
+              const i = item.index
+              const qObj = item.q
+              const clickable = isStrictForward ? i >= currentQ : true
+              const isAnswered = qObj.is_multiple_choice
+                ? Array.isArray(userAnswers[i]) && userAnswers[i].length > 0
+                : userAnswers[i] !== undefined && userAnswers[i] !== -1
+              return `<div class="q-chip ${isAnswered ? "answered" : ""} ${i === currentQ ? "current" : ""}" ${clickable ? `onclick="goTo(${i})"` : 'style="opacity:0.3;cursor:not-allowed;"'}>${i + 1}</div>`
+            })
+            .join("")
+          chipsHtml += `</div>`
+        })
 
-            const chipsContainer = document.getElementById('q-chips');
-            chipsContainer.innerHTML = chipsHtml;
-            
-            if (timePerQuestion > 0) {
-                qSecondsLeft = timePerQuestion;
-                let qTimerEl = document.getElementById('q-timer-display');
-                if (!qTimerEl) {
-                    qTimerEl = document.createElement('div');
-                    qTimerEl.id = 'q-timer-display';
-                    qTimerEl.style.color = '#ef4444';
-                    qTimerEl.style.fontWeight = 'bold';
-                    qTimerEl.style.marginBottom = '1rem';
-                    document.getElementById('q-header').after(qTimerEl);
-                }
-                const updateQTimer = () => { qTimerEl.textContent = `Time remaining for this question: ${qSecondsLeft}s`; };
-                updateQTimer();
-                qTimerInterval = setInterval(() => {
-                    qSecondsLeft--;
-                    updateQTimer();
-                    if (qSecondsLeft <= 0) {
-                        clearInterval(qTimerInterval);
-                        if (currentQ < questions.length - 1) goTo(currentQ + 1);
-                        else submitExam(true);
-                    }
-                }, 1000);
+        const chipsContainer = document.getElementById("q-chips")
+        chipsContainer.innerHTML = chipsHtml
+
+        if (timePerQuestion > 0) {
+          qSecondsLeft = timePerQuestion
+          let qTimerEl = document.getElementById("q-timer-display")
+          if (!qTimerEl) {
+            qTimerEl = document.createElement("div")
+            qTimerEl.id = "q-timer-display"
+            qTimerEl.style.color = "#ef4444"
+            qTimerEl.style.fontWeight = "bold"
+            qTimerEl.style.marginBottom = "1rem"
+            document.getElementById("q-header").after(qTimerEl)
+          }
+          const updateQTimer = () => {
+            qTimerEl.textContent = `Time remaining for this question: ${qSecondsLeft}s`
+          }
+          updateQTimer()
+          qTimerInterval = setInterval(() => {
+            qSecondsLeft--
+            updateQTimer()
+            if (qSecondsLeft <= 0) {
+              clearInterval(qTimerInterval)
+              if (currentQ < questions.length - 1) goTo(currentQ + 1)
+              else submitExam(true)
             }
+          }, 1000)
         }
+      }
 
-        function selectOption(idx) {
-            const q = questions[currentQ];
-            if (q.is_multiple_choice) {
-                if (!Array.isArray(userAnswers[currentQ])) {
-                    const prev = userAnswers[currentQ];
-                    userAnswers[currentQ] = (prev !== undefined && prev !== -1) ? [prev] : [];
-                }
-                const arr = userAnswers[currentQ];
-                const index = arr.indexOf(idx);
-                if (index > -1) {
-                    arr.splice(index, 1);
-                } else {
-                    arr.push(idx);
-                }
-            } else {
-                userAnswers[currentQ] = idx;
+      function selectOption(idx) {
+        const q = questions[currentQ]
+        if (q.is_multiple_choice) {
+          if (!Array.isArray(userAnswers[currentQ])) {
+            const prev = userAnswers[currentQ]
+            userAnswers[currentQ] =
+              prev !== undefined && prev !== -1 ? [prev] : []
+          }
+          const arr = userAnswers[currentQ]
+          const index = arr.indexOf(idx)
+          if (index > -1) {
+            arr.splice(index, 1)
+          } else {
+            arr.push(idx)
+          }
+        } else {
+          userAnswers[currentQ] = idx
+        }
+        renderQuestion()
+      }
+      function goTo(idx) {
+        if (isStrictForward && idx < currentQ) return
+        if (idx === questions.length) {
+          confirmSubmit()
+          return
+        }
+        if (idx >= 0 && idx < questions.length) {
+          currentQ = idx
+          renderQuestion()
+        }
+      }
+
+      async function confirmSubmit() {
+        const ok = await customConfirm(
+          "Submit Exam",
+          "Are you sure you want to submit your exam?",
+          true,
+        )
+        if (ok) submitExam(false)
+      }
+
+      async function submitExam(auto) {
+        clearInterval(timerInterval)
+        if (qTimerInterval) clearInterval(qTimerInterval)
+        const timeTaken = Math.round((Date.now() - examStartTime) / 1000)
+        const answers = questions.map((q, i) => {
+          const ans = userAnswers[i]
+          if (q.is_multiple_choice) {
+            const arr = Array.isArray(ans)
+              ? ans
+              : ans !== undefined && ans !== -1
+                ? [ans]
+                : []
+            return {
+              questionId: q.id,
+              selectedOption: arr.length === 1 ? arr[0] : -1,
+              selectedOptions: arr,
             }
-            renderQuestion();
-        }
-        function goTo(idx) { 
-            if (isStrictForward && idx < currentQ) return;
-            if (idx === questions.length) { confirmSubmit(); return; }
-            if (idx >= 0 && idx < questions.length) { currentQ = idx; renderQuestion(); } 
-        }
+          } else {
+            return {
+              questionId: q.id,
+              selectedOption: ans ?? -1,
+              selectedOptions: ans !== undefined && ans !== -1 ? [ans] : [],
+            }
+          }
+        })
+        try {
+          const res = await apiFetch(`/exam-portal/submit/${activeExamId}`, {
+            method: "POST",
+            body: { answers, time_taken_seconds: timeTaken },
+          })
+          activeExamId = null // Disables anti-cheat triggers
+          exitFullScreen()
 
-        async function confirmSubmit() { 
-            const ok = await customConfirm('Submit Exam', 'Are you sure you want to submit your exam?', true);
-            if (ok) submitExam(false); 
+          // Restore sidebar
+          document.querySelector(".sidebar").style.display = "flex"
+          document.querySelector(".main-content").style.marginLeft = "260px"
+          document.querySelector(".main-content").style.padding = "2rem"
+
+          showResult(res)
+        } catch (e) {
+          showToast(e.message, "error")
+          if (!auto) startTimer()
         }
+      }
 
-        async function submitExam(auto) {
-            clearInterval(timerInterval);
-            if (qTimerInterval) clearInterval(qTimerInterval);
-            const timeTaken = Math.round((Date.now() - examStartTime) / 1000);
-            const answers = questions.map((q, i) => {
-                const ans = userAnswers[i];
-                if (q.is_multiple_choice) {
-                    const arr = Array.isArray(ans) ? ans : (ans !== undefined && ans !== -1 ? [ans] : []);
-                    return { 
-                        questionId: q.id, 
-                        selectedOption: arr.length === 1 ? arr[0] : -1,
-                        selectedOptions: arr 
-                    };
-                } else {
-                    return { 
-                        questionId: q.id, 
-                        selectedOption: ans ?? -1,
-                        selectedOptions: ans !== undefined && ans !== -1 ? [ans] : []
-                    };
-                }
-            });
-            try {
-                const res = await apiFetch(`/exam-portal/submit/${activeExamId}`, { method:'POST', body:{ answers, time_taken_seconds: timeTaken } });
-                activeExamId = null; // Disables anti-cheat triggers
-                exitFullScreen();
-                
-                // Restore sidebar
-                document.querySelector('.sidebar').style.display = 'flex';
-                document.querySelector('.main-content').style.marginLeft = '260px';
-                document.querySelector('.main-content').style.padding = '2rem';
-                
-                showResult(res);
-            } catch(e) { showToast(e.message, 'error'); if(!auto) startTimer(); }
+      function showResult(res) {
+        document.getElementById("exam-view").classList.add("hidden")
+        document.getElementById("list-view").classList.remove("hidden")
+        const overlay = document.createElement("div")
+        overlay.className = "result-overlay"
+        overlay.innerHTML = `<div class="result-card"><h2>Exam Submitted!</h2><p>${res.message}</p><button class="btn btn-primary" onclick="this.closest('.result-overlay').remove(); loadExams();">Close</button></div>`
+        document.body.appendChild(overlay)
+      }
+
+      async function viewMyDetails(examId) {
+        // First we need the attempt ID for this exam
+        try {
+          const { exams } = await apiFetch("/exam-portal/available")
+          const exam = exams.find((e) => e.id === examId)
+          // We need to fetch the attempt details using the attempt ID
+          // But the 'available' endpoint doesn't return the attempt ID.
+          // I should update the backend to return attempt_id in 'available' or add an endpoint.
+          // For now, I'll update the backend 'available' endpoint to include attemptId.
+          if (!exam || !exam.results_visible) return
+
+          // I will update server.js in the next step.
+          // Assuming it's there:
+          openDetailModal(exam.attempt_id)
+        } catch (e) {
+          showToast(e.message, "error")
         }
+      }
 
-        function showResult(res) {
-            document.getElementById('exam-view').classList.add('hidden');
-            document.getElementById('list-view').classList.remove('hidden');
-            const overlay = document.createElement('div');
-            overlay.className = 'result-overlay';
-            overlay.innerHTML = `<div class="result-card"><h2>Exam Submitted!</h2><p>${res.message}</p><button class="btn btn-primary" onclick="this.closest('.result-overlay').remove(); loadExams();">Close</button></div>`;
-            document.body.appendChild(overlay);
-        }
+      let currentAttemptDetails = []
 
-        async function viewMyDetails(examId) {
-            // First we need the attempt ID for this exam
-            try {
-                const { exams } = await apiFetch('/exam-portal/available');
-                const exam = exams.find(e => e.id === examId);
-                // We need to fetch the attempt details using the attempt ID
-                // But the 'available' endpoint doesn't return the attempt ID.
-                // I should update the backend to return attempt_id in 'available' or add an endpoint.
-                // For now, I'll update the backend 'available' endpoint to include attemptId.
-                if (!exam || !exam.results_visible) return;
-                
-                // I will update server.js in the next step.
-                // Assuming it's there:
-                openDetailModal(exam.attempt_id);
-            } catch(e) { showToast(e.message, 'error'); }
-        }
+      async function openDetailModal(attemptId) {
+        if (!attemptId) return showToast("Analysis not available", "error")
+        const modal = document.getElementById("detail-modal")
+        const content = document.getElementById("detail-content")
+        modal.classList.remove("hidden")
+        content.innerHTML = '<div class="spinner"></div>'
 
-        let currentAttemptDetails = [];
+        try {
+          const data = await apiFetch(
+            `/exam-portal/attempt-details/${attemptId}`,
+          )
+          document.getElementById("detail-title").textContent =
+            `Analysis: ${data.student_name}`
 
-        async function openDetailModal(attemptId) {
-            if (!attemptId) return showToast('Analysis not available', 'error');
-            const modal = document.getElementById('detail-modal');
-            const content = document.getElementById('detail-content');
-            modal.classList.remove('hidden');
-            content.innerHTML = '<div class="spinner"></div>';
-            
-            try {
-                const data = await apiFetch(`/exam-portal/attempt-details/${attemptId}`);
-                document.getElementById('detail-title').textContent = `Analysis: ${data.student_name}`;
-                
-                currentAttemptDetails = data.details || [];
-                
-                // Populate subject filter
-                const selectFilter = document.getElementById('analysis-subject-filter');
-                selectFilter.innerHTML = '<option value="all">All Subjects</option>';
-                const subjects = [...new Set(currentAttemptDetails.map(q => q.subject_name))].filter(Boolean);
-                subjects.forEach(sub => {
-                    const opt = document.createElement('option');
-                    opt.value = sub;
-                    opt.textContent = sub;
-                    selectFilter.appendChild(opt);
-                });
-                
-                const totalQs = data.details.length;
-                const correctCount = data.details.filter(q => q.is_correct).length;
-                const incorrectCount = data.details.filter(q => !q.is_correct && q.selected_option !== -1).length;
-                const unansweredCount = data.details.filter(q => q.selected_option === -1).length;
-                const pct = data.max_score ? Math.round((data.score / data.max_score) * 100) : 0;
-                
-                let html = `
+          currentAttemptDetails = data.details || []
+
+          // Populate subject filter
+          const selectFilter = document.getElementById(
+            "analysis-subject-filter",
+          )
+          selectFilter.innerHTML = '<option value="all">All Subjects</option>'
+          const subjects = [
+            ...new Set(currentAttemptDetails.map((q) => q.subject_name)),
+          ].filter(Boolean)
+          subjects.forEach((sub) => {
+            const opt = document.createElement("option")
+            opt.value = sub
+            opt.textContent = sub
+            selectFilter.appendChild(opt)
+          })
+
+          const totalQs = data.details.length
+          const correctCount = data.details.filter((q) => q.is_correct).length
+          const incorrectCount = data.details.filter(
+            (q) => !q.is_correct && q.selected_option !== -1,
+          ).length
+          const unansweredCount = data.details.filter(
+            (q) => q.selected_option === -1,
+          ).length
+          const pct = data.max_score
+            ? Math.round((data.score / data.max_score) * 100)
+            : 0
+
+          let html = `
                     <div class="analysis-summary-grid">
                         <div class="analysis-summary-card" style="padding: 0.75rem 1rem;">
                             <span class="analysis-summary-value" style="font-size: 1.3rem;">${data.score} / ${data.max_score}</span>
                             <span class="analysis-summary-label" style="font-size: 0.75rem;">Total Score</span>
                         </div>
                         <div class="analysis-summary-card" style="padding: 0.75rem 1rem;">
-                            <span class="analysis-summary-value" style="font-size: 1.3rem; color: ${pct >= 40 ? '#10b981' : '#ef4444'}">${pct}%</span>
+                            <span class="analysis-summary-value" style="font-size: 1.3rem; color: ${pct >= 40 ? "#10b981" : "#ef4444"}">${pct}%</span>
                             <span class="analysis-summary-label" style="font-size: 0.75rem;">Percentage</span>
                         </div>
                         <div class="analysis-summary-card" style="padding: 0.75rem 1rem;">
@@ -591,71 +943,95 @@
                         </div>
                     </div>
                     <div id="detail-questions-list"></div>
-                `;
-                content.innerHTML = html;
-                renderFilteredDetails();
-            } catch(e) { content.innerHTML = `<p class="p-2 text-danger">Error: ${e.message}</p>`; }
+                `
+          content.innerHTML = html
+          renderFilteredDetails()
+        } catch (e) {
+          content.innerHTML = `<p class="p-2 text-danger">Error: ${e.message}</p>`
+        }
+      }
+
+      function renderFilteredDetails() {
+        const subject = document.getElementById("analysis-subject-filter").value
+        const container = document.getElementById("detail-questions-list")
+        if (!container) return
+
+        const filtered =
+          subject === "all"
+            ? currentAttemptDetails
+            : currentAttemptDetails.filter((q) => q.subject_name === subject)
+
+        if (!filtered.length) {
+          container.innerHTML =
+            '<p class="p-2 text-muted">No questions found for this subject.</p>'
+          return
         }
 
-        function renderFilteredDetails() {
-            const subject = document.getElementById('analysis-subject-filter').value;
-            const container = document.getElementById('detail-questions-list');
-            if (!container) return;
-            
-            const filtered = subject === 'all' 
-                ? currentAttemptDetails 
-                : currentAttemptDetails.filter(q => q.subject_name === subject);
-                
-            if (!filtered.length) {
-                container.innerHTML = '<p class="p-2 text-muted">No questions found for this subject.</p>';
-                return;
-            }
-            
-            let html = '';
-            filtered.forEach((q, i) => {
-                const letters = ['A','B','C','D'];
-                const isUnanswered = q.selected_options ? q.selected_options.length === 0 : (q.selected_option === -1);
-                const borderCol = isUnanswered ? 'var(--border)' : (q.marks_earned > 0 ? '#10b981' : '#ef4444');
-                
-                const originalIndex = currentAttemptDetails.indexOf(q) + 1;
-                
-                html += `
+        let html = ""
+        filtered.forEach((q, i) => {
+          const letters = ["A", "B", "C", "D"]
+          const isUnanswered = q.selected_options
+            ? q.selected_options.length === 0
+            : q.selected_option === -1
+          const borderCol = isUnanswered
+            ? "var(--border)"
+            : q.marks_earned > 0
+              ? "#10b981"
+              : "#ef4444"
+
+          const originalIndex = currentAttemptDetails.indexOf(q) + 1
+
+          html += `
                     <div class="analysis-q-card" style="border-left: 3px solid ${borderCol}; border-radius: 6px; padding: 1rem 1.25rem; margin-bottom: 1rem; background: var(--bg-card); border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);">
                         <div class="analysis-q-header" style="margin-bottom: 0.5rem; font-size: 0.8rem;">
                             <div>
                                 <span class="badge" style="background:var(--bg-primary); color:var(--text-secondary); font-size:0.7rem; border: 1px solid var(--border); padding: 2px 6px; border-radius: 4px; font-weight:600;">${q.subject_name}</span>
                             </div>
-                            <div style="font-weight:600; color: ${q.marks_earned > 0 ? '#10b981' : (q.marks_earned < 0 ? '#ef4444' : 'var(--text-muted)')}">
-                                ${q.marks_earned > 0 ? '+' : ''}${q.marks_earned} Marks
+                            <div style="font-weight:600; color: ${q.marks_earned > 0 ? "#10b981" : q.marks_earned < 0 ? "#ef4444" : "var(--text-muted)"}">
+                                ${q.marks_earned > 0 ? "+" : ""}${q.marks_earned} Marks
                             </div>
                         </div>
                         <div class="analysis-q-text" style="font-size: 0.95rem; margin-bottom: 0.75rem; line-height: 1.4;">
                             <span style="color: var(--text-muted); font-weight:600; margin-right: 0.5rem;">Q${originalIndex}.</span>${q.question_text}
                         </div>
-                        ${q.image_url ? `<img src="${q.image_url}" style="max-width:320px; display:block; margin-bottom:12px; border:1px solid var(--border); padding:6px; border-radius:8px;" />` : ''}
+                        ${q.image_url ? `<img src="${q.image_url}" style="max-width:320px; display:block; margin-bottom:12px; border:1px solid var(--border); padding:6px; border-radius:8px;" />` : ""}
                         <div class="analysis-options-list" style="display:flex; flex-direction:column; gap: 0.4rem;">
-                            ${q.options.map((opt, idx) => {
-                                let rowClass = 'analysis-option-row';
-                                let tagHtml = '';
-                                
-                                const correctList = q.correct_options || (q.correct_option !== undefined && q.correct_option !== -1 ? [q.correct_option] : []);
-                                const selectedList = q.selected_options || (q.selected_option !== undefined && q.selected_option !== -1 ? [q.selected_option] : []);
-                                
-                                const isCorrectOpt = correctList.includes(idx);
-                                const isSelOpt = selectedList.includes(idx);
-                                
+                            ${q.options
+                              .map((opt, idx) => {
+                                let rowClass = "analysis-option-row"
+                                let tagHtml = ""
+
+                                const correctList =
+                                  q.correct_options ||
+                                  (q.correct_option !== undefined &&
+                                  q.correct_option !== -1
+                                    ? [q.correct_option]
+                                    : [])
+                                const selectedList =
+                                  q.selected_options ||
+                                  (q.selected_option !== undefined &&
+                                  q.selected_option !== -1
+                                    ? [q.selected_option]
+                                    : [])
+
+                                const isCorrectOpt = correctList.includes(idx)
+                                const isSelOpt = selectedList.includes(idx)
+
                                 if (isCorrectOpt) {
-                                    rowClass += ' correct';
-                                    if (isSelOpt) {
-                                        tagHtml = '<span class="analysis-tag analysis-tag-correct">Correct & Selected</span>';
-                                    } else {
-                                        tagHtml = '<span class="analysis-tag analysis-tag-answer">Correct Answer</span>';
-                                    }
+                                  rowClass += " correct"
+                                  if (isSelOpt) {
+                                    tagHtml =
+                                      '<span class="analysis-tag analysis-tag-correct">Correct & Selected</span>'
+                                  } else {
+                                    tagHtml =
+                                      '<span class="analysis-tag analysis-tag-answer">Correct Answer</span>'
+                                  }
                                 } else if (isSelOpt) {
-                                    rowClass += ' wrong-selected';
-                                    tagHtml = '<span class="analysis-tag analysis-tag-wrong">Your Answer (Incorrect)</span>';
+                                  rowClass += " wrong-selected"
+                                  tagHtml =
+                                    '<span class="analysis-tag analysis-tag-wrong">Your Answer (Incorrect)</span>'
                                 }
-                                
+
                                 return `
                                     <div class="${rowClass}" style="padding: 0.6rem 0.8rem;">
                                         <div class="analysis-option-content" style="gap: 0.5rem;">
@@ -664,79 +1040,130 @@
                                         </div>
                                         ${tagHtml}
                                     </div>
-                                `;
-                            }).join('')}
+                                `
+                              })
+                              .join("")}
                         </div>
                     </div>
-                `;
-            });
-            container.innerHTML = html;
+                `
+        })
+        container.innerHTML = html
+      }
+
+      function closeDetails() {
+        document.getElementById("detail-modal").classList.add("hidden")
+      }
+
+      init()
+
+      // Custom Dialog Modal Logic
+      function showDialog(
+        { title, msg, isAlert, confirmText, isDanger },
+        callback,
+      ) {
+        const dialog = document.getElementById("custom-dialog")
+        document.getElementById("dialog-title").textContent = title
+        document.getElementById("dialog-msg").textContent = msg
+
+        const cancelBtn = document.getElementById("dialog-cancel")
+        const confirmBtn = document.getElementById("dialog-confirm")
+
+        if (isAlert) {
+          cancelBtn.classList.add("hidden")
+          confirmBtn.textContent = "OK"
+          confirmBtn.className = "btn btn-primary"
+        } else {
+          cancelBtn.classList.remove("hidden")
+          confirmBtn.textContent = confirmText || "Confirm"
+          confirmBtn.className = `btn ${isDanger ? "btn-danger" : "btn-primary"}`
         }
 
-        function closeDetails() {
-            document.getElementById('detail-modal').classList.add('hidden');
+        dialog.classList.remove("hidden")
+        setTimeout(() => {
+          dialog.style.opacity = "1"
+          dialog.style.pointerEvents = "auto"
+          dialog.querySelector(".card").style.transform = "translateY(0)"
+        }, 10)
+
+        const cleanup = () => {
+          dialog.style.opacity = "0"
+          dialog.style.pointerEvents = "none"
+          dialog.querySelector(".card").style.transform = "translateY(20px)"
+          setTimeout(() => dialog.classList.add("hidden"), 200)
+          cancelBtn.onclick = null
+          confirmBtn.onclick = null
         }
 
-        init();
-
-        // Custom Dialog Modal Logic
-        function showDialog({ title, msg, isAlert, confirmText, isDanger }, callback) {
-            const dialog = document.getElementById('custom-dialog');
-            document.getElementById('dialog-title').textContent = title;
-            document.getElementById('dialog-msg').textContent = msg;
-            
-            const cancelBtn = document.getElementById('dialog-cancel');
-            const confirmBtn = document.getElementById('dialog-confirm');
-            
-            if (isAlert) {
-                cancelBtn.classList.add('hidden');
-                confirmBtn.textContent = 'OK';
-                confirmBtn.className = 'btn btn-primary';
-            } else {
-                cancelBtn.classList.remove('hidden');
-                confirmBtn.textContent = confirmText || 'Confirm';
-                confirmBtn.className = `btn ${isDanger ? 'btn-danger' : 'btn-primary'}`;
-            }
-            
-            dialog.classList.remove('hidden');
-            setTimeout(() => {
-                dialog.style.opacity = '1';
-                dialog.style.pointerEvents = 'auto';
-                dialog.querySelector('.card').style.transform = 'translateY(0)';
-            }, 10);
-
-            const cleanup = () => {
-                dialog.style.opacity = '0';
-                dialog.style.pointerEvents = 'none';
-                dialog.querySelector('.card').style.transform = 'translateY(20px)';
-                setTimeout(() => dialog.classList.add('hidden'), 200);
-                cancelBtn.onclick = null;
-                confirmBtn.onclick = null;
-            };
-
-            cancelBtn.onclick = () => { cleanup(); callback(false); };
-            confirmBtn.onclick = () => { cleanup(); callback(true); };
+        cancelBtn.onclick = () => {
+          cleanup()
+          callback(false)
         }
-
-        function customAlert(title, msg) {
-            return new Promise(resolve => showDialog({ title, msg, isAlert: true }, resolve));
+        confirmBtn.onclick = () => {
+          cleanup()
+          callback(true)
         }
+      }
 
-        function customConfirm(title, msg, isDanger=false) {
-            return new Promise(resolve => showDialog({ title, msg, isAlert: false, confirmText: 'Yes', isDanger }, resolve));
-        }
+      function customAlert(title, msg) {
+        return new Promise((resolve) =>
+          showDialog({ title, msg, isAlert: true }, resolve),
+        )
+      }
+
+      function customConfirm(title, msg, isDanger = false) {
+        return new Promise((resolve) =>
+          showDialog(
+            { title, msg, isAlert: false, confirmText: "Yes", isDanger },
+            resolve,
+          ),
+        )
+      }
     </script>
 
     <!-- Custom Dialog Modal -->
-    <div id="custom-dialog" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:11000; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.2s; pointer-events:none;">
-        <div class="card" style="width:90%; max-width:400px; padding:2rem; text-align:center; transform:translateY(20px); transition:transform 0.2s; border:1px solid var(--border-active);">
-            <h3 id="dialog-title" style="margin-bottom:1rem; color:var(--text-primary);">Title</h3>
-            <p id="dialog-msg" style="margin-bottom:1.5rem; color:var(--text-secondary);"></p>
-            <div class="flex gap-1" style="justify-content:center;">
-                <button id="dialog-cancel" class="btn btn-secondary">Cancel</button>
-                <button id="dialog-confirm" class="btn btn-primary">Confirm</button>
-            </div>
+    <div
+      id="custom-dialog"
+      class="hidden"
+      style="
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 11000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s;
+        pointer-events: none;
+      "
+    >
+      <div
+        class="card"
+        style="
+          width: 90%;
+          max-width: 400px;
+          padding: 2rem;
+          text-align: center;
+          transform: translateY(20px);
+          transition: transform 0.2s;
+          border: 1px solid var(--border-active);
+        "
+      >
+        <h3
+          id="dialog-title"
+          style="margin-bottom: 1rem; color: var(--text-primary)"
+        >
+          Title
+        </h3>
+        <p
+          id="dialog-msg"
+          style="margin-bottom: 1.5rem; color: var(--text-secondary)"
+        ></p>
+        <div class="flex gap-1" style="justify-content: center">
+          <button id="dialog-cancel" class="btn btn-secondary">Cancel</button>
+          <button id="dialog-confirm" class="btn btn-primary">Confirm</button>
         </div>
+      </div>
     </div>
-</body>
+  </body>
 </html>

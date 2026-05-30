@@ -1,146 +1,319 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Exam Portal — Admin | AEVON</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css" />
     <style>
-        .exam-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1rem; }
-        .exam-card.active-exam { border-color: var(--primary); box-shadow: 0 0 16px rgba(59, 130, 246, 0.1); }
-        .status-pill { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: 999px; }
-        .status-open { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid #10b981; }
-        .status-closed { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid #ef4444; }
-        .status-draft { background: rgba(107,114,128,0.15); color: #9ca3af; border: 1px solid #6b7280; }
-        .q-card { background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1.2rem; margin-bottom: 0.75rem; position: relative; }
-        .radio-btn { background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.35rem 0.85rem; cursor: pointer; transition: all 0.2s; }
-        .radio-btn.selected { background: rgba(59, 130, 246, 0.15); border-color: var(--primary); color: var(--primary); }
-        .tab-header { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 1.5rem; }
-        .tab-btn { padding: 0.65rem 1.4rem; cursor: pointer; font-weight: 600; color: var(--text-secondary); border-bottom: 3px solid transparent; background: none; }
-        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
-        .split-layout { display: grid; grid-template-columns: 340px 1fr; gap: 1.5rem; }
+      .exam-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      .exam-card.active-exam {
+        border-color: var(--primary);
+        box-shadow: 0 0 16px rgba(59, 130, 246, 0.1);
+      }
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 999px;
+      }
+      .status-open {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border: 1px solid #10b981;
+      }
+      .status-closed {
+        background: rgba(239, 68, 68, 0.12);
+        color: #f87171;
+        border: 1px solid #ef4444;
+      }
+      .status-draft {
+        background: rgba(107, 114, 128, 0.15);
+        color: #9ca3af;
+        border: 1px solid #6b7280;
+      }
+      .q-card {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 1.2rem;
+        margin-bottom: 0.75rem;
+        position: relative;
+      }
+      .radio-btn {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.35rem 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .radio-btn.selected {
+        background: rgba(59, 130, 246, 0.15);
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+      .tab-header {
+        display: flex;
+        border-bottom: 2px solid var(--border);
+        margin-bottom: 1.5rem;
+      }
+      .tab-btn {
+        padding: 0.65rem 1.4rem;
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--text-secondary);
+        border-bottom: 3px solid transparent;
+        background: none;
+      }
+      .tab-btn.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+      }
+      .split-layout {
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 1.5rem;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="app-layout">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h2>AEVON</h2>
-                <div class="user-role" id="role-label">Administrator</div>
-            </div>
-            <nav class="sidebar-nav" id="nav-links"></nav>
-            <div class="sidebar-footer">
-                <button class="btn btn-secondary" style="width:100%;" onclick="handleLogout()">Logout</button>
-            </div>
-        </aside>
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <h2>AEVON</h2>
+          <div class="user-role" id="role-label">Administrator</div>
+        </div>
+        <nav class="sidebar-nav" id="nav-links"></nav>
+        <div class="sidebar-footer">
+          <button
+            class="btn btn-secondary"
+            style="width: 100%"
+            onclick="handleLogout()"
+          >
+            Logout
+          </button>
+        </div>
+      </aside>
 
-        <main class="main-content">
-            <div class="page-header">
-                <div>
-                    <h1>Exam Portal — Admin</h1>
-                    <p class="subtitle">Configure exams, manage questions, and view results</p>
-                </div>
-            </div>
+      <main class="main-content">
+        <div class="page-header">
+          <div>
+            <h1>Exam Portal — Admin</h1>
+            <p class="subtitle">
+              Configure exams, manage questions, and view results
+            </p>
+          </div>
+        </div>
 
-            <div class="tab-header">
-                <button class="tab-btn active" id="tab-exams" onclick="showTab('exams')">Exams</button>
-                <button class="tab-btn" id="tab-questions" onclick="showTab('questions')">Questions</button>
-                <button class="tab-btn" id="tab-results" onclick="showTab('results')">Results</button>
-            </div>
+        <div class="tab-header">
+          <button
+            class="tab-btn active"
+            id="tab-exams"
+            onclick="showTab('exams')"
+          >
+            Exams
+          </button>
+          <button
+            class="tab-btn"
+            id="tab-questions"
+            onclick="showTab('questions')"
+          >
+            Questions
+          </button>
+          <button class="tab-btn" id="tab-results" onclick="showTab('results')">
+            Results
+          </button>
+        </div>
 
-            <div id="pane-exams">
-                <div id="exam-list-container">
-                    <div class="loading-overlay"><div class="spinner"></div><p>Loading…</p></div>
-                </div>
+        <div id="pane-exams">
+          <div id="exam-list-container">
+            <div class="loading-overlay">
+              <div class="spinner"></div>
+              <p>Loading…</p>
             </div>
+          </div>
+        </div>
 
-            <div id="pane-questions" class="hidden">
-                <div class="card mb-2">
-                    <div class="card-header"><span class="card-title">Select Exam</span></div>
-                    <select id="q-exam-select" class="form-control" onchange="loadQuestions()">
-                        <option value="">— Select Exam —</option>
-                    </select>
-                </div>
-                <div id="q-pane" class="hidden">
-                        <div id="questions-list"></div>
-                </div>
+        <div id="pane-questions" class="hidden">
+          <div class="card mb-2">
+            <div class="card-header">
+              <span class="card-title">Select Exam</span>
             </div>
+            <select
+              id="q-exam-select"
+              class="form-control"
+              onchange="loadQuestions()"
+            >
+              <option value="">— Select Exam —</option>
+            </select>
+          </div>
+          <div id="q-pane" class="hidden">
+            <div id="questions-list"></div>
+          </div>
+        </div>
 
-            <div id="pane-results" class="hidden">
-                <div class="card mb-2">
-                    <div class="card-header"><span class="card-title">Select Exam</span></div>
-                    <select id="r-exam-select" class="form-control" onchange="loadResults()">
-                        <option value="">— Select Exam —</option>
-                    </select>
-                </div>
-                <div id="results-container"></div>
+        <div id="pane-results" class="hidden">
+          <div class="card mb-2">
+            <div class="card-header">
+              <span class="card-title">Select Exam</span>
             </div>
-        </main>
+            <select
+              id="r-exam-select"
+              class="form-control"
+              onchange="loadResults()"
+            >
+              <option value="">— Select Exam —</option>
+            </select>
+          </div>
+          <div id="results-container"></div>
+        </div>
+      </main>
     </div>
 
     <!-- Results Detail Modal -->
-    <div id="detail-modal" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:10000; display:flex; align-items:center; justify-content:center; padding:2rem;">
-        <div class="card" style="width:100%; max-width:900px; max-height:90vh; overflow-y:auto; padding:2rem; position:relative;">
-            <div class="flex justify-between align-center mb-2" style="flex-wrap: wrap; gap: 1rem;">
-                <h2 id="detail-title" style="font-size: 1.3rem; margin: 0;">Attempt Analysis</h2>
-                <div class="flex gap-1 align-center">
-                    <select id="analysis-subject-filter" class="form-control" style="width: 180px; padding: 4px 8px; height: auto;" onchange="renderFilteredDetails()">
-                        <option value="all">All Subjects</option>
-                    </select>
-                    <button class="btn btn-secondary btn-sm" onclick="closeDetails()">Close</button>
-                </div>
-            </div>
-            <div id="detail-content"></div>
+    <div
+      id="detail-modal"
+      class="hidden"
+      style="
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+      "
+    >
+      <div
+        class="card"
+        style="
+          width: 100%;
+          max-width: 900px;
+          max-height: 90vh;
+          overflow-y: auto;
+          padding: 2rem;
+          position: relative;
+        "
+      >
+        <div
+          class="flex justify-between align-center mb-2"
+          style="flex-wrap: wrap; gap: 1rem"
+        >
+          <h2 id="detail-title" style="font-size: 1.3rem; margin: 0">
+            Attempt Analysis
+          </h2>
+          <div class="flex gap-1 align-center">
+            <select
+              id="analysis-subject-filter"
+              class="form-control"
+              style="width: 180px; padding: 4px 8px; height: auto"
+              onchange="renderFilteredDetails()"
+            >
+              <option value="all">All Subjects</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" onclick="closeDetails()">
+              Close
+            </button>
+          </div>
         </div>
+        <div id="detail-content"></div>
+      </div>
     </div>
 
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        let allExams = [];
-        let selectedCorrect = -1;
-        let currentQExamId = null;
-        let currentAttemptDetails = [];
+      let allExams = []
+      let selectedCorrect = -1
+      let currentQExamId = null
+      let currentAttemptDetails = []
 
-        async function init() {
-            const user = await requireAuth(['admin', 'teacher']);
-            if (!user) return;
-            renderSidebar('exam_admin.html');
-            loadExams();
+      function formatLocalDateTime(dateVal) {
+        if (!dateVal) return ""
+        const d = new Date(dateVal)
+        if (isNaN(d.getTime())) return ""
+        const pad = (num) => String(num).padStart(2, "0")
+        const Y = d.getFullYear()
+        const M = pad(d.getMonth() + 1)
+        const D = pad(d.getDate())
+        const H = pad(d.getHours())
+        const Min = pad(d.getMinutes())
+        return `${Y}-${M}-${D}T${H}:${Min}`
+      }
+
+      async function init() {
+        const user = await requireAuth(["admin", "teacher"])
+        if (!user) return
+        renderSidebar("exam_admin.html")
+        loadExams()
+      }
+
+      function showTab(tab) {
+        ;["exams", "questions", "results"].forEach((t) => {
+          document
+            .getElementById(`tab-${t}`)
+            .classList.toggle("active", t === tab)
+          document
+            .getElementById(`pane-${t}`)
+            .classList.toggle("hidden", t !== tab)
+        })
+        if (tab === "exams") loadExams()
+        else if (tab === "questions") {
+          loadExamsForQuestions()
+          loadQuestions()
+        } else if (tab === "results") {
+          loadExamsForResults()
         }
+      }
 
-        function showTab(tab) {
-            ['exams','questions','results'].forEach(t => {
-                document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
-                document.getElementById(`pane-${t}`).classList.toggle('hidden', t !== tab);
-            });
-            if (tab === 'exams') loadExams();
-            else if (tab === 'questions') { loadExamsForQuestions(); loadQuestions(); }
-            else if (tab === 'results') { loadExamsForResults(); }
-        }
+      async function loadExams() {
+        const container = document.getElementById("exam-list-container")
+        try {
+          const { exams } = await apiFetch("/exam-portal/available")
+          allExams = exams
+          const opts = exams
+            .map(
+              (e) =>
+                `<option value="${e.id}">${e.name} — ${e.class_name}</option>`,
+            )
+            .join("")
+          document.getElementById("q-exam-select").innerHTML =
+            '<option value="">— Select —</option>' + opts
+          document.getElementById("r-exam-select").innerHTML =
+            '<option value="">— Select —</option>' + opts
 
-        async function loadExams() {
-            const container = document.getElementById('exam-list-container');
-            try {
-                const { exams } = await apiFetch('/exam-portal/available');
-                allExams = exams;
-                const opts = exams.map(e => `<option value="${e.id}">${e.name} — ${e.class_name}</option>`).join('');
-                document.getElementById('q-exam-select').innerHTML = '<option value="">— Select —</option>' + opts;
-                document.getElementById('r-exam-select').innerHTML = '<option value="">— Select —</option>' + opts;
+          if (!exams.length) {
+            container.innerHTML = '<p class="p-2">No exams found.</p>'
+            return
+          }
 
-                if (!exams.length) { container.innerHTML = '<p class="p-2">No exams found.</p>'; return; }
-                
-                // Fetch subjects for each class to populate the Add Subject dropdown
-                const classSubjects = {};
-                for (const e of exams) {
-                    if (!classSubjects[e.class_id]) {
-                        const { subjects } = await apiFetch(`/analytics/subjects?class_id=${e.class_id}`);
-                        classSubjects[e.class_id] = subjects;
-                    }
-                }
+          // Fetch subjects for each class to populate the Add Subject dropdown
+          const classSubjects = {}
+          for (const e of exams) {
+            if (!classSubjects[e.class_id]) {
+              const { subjects } = await apiFetch(
+                `/analytics/subjects?class_id=${e.class_id}`,
+              )
+              classSubjects[e.class_id] = subjects
+            }
+          }
 
-                container.innerHTML = exams.map(e => {
-                    const subjectsHtml = (e.subjects || []).map(s => `
+          container.innerHTML = exams
+            .map((e) => {
+              const subjectsHtml = (e.subjects || [])
+                .map(
+                  (s) => `
                         <div class="flex gap-1 mb-1 subject-row-${e.id} align-center">
                             <input type="hidden" class="sub-id" value="${s.subject_id}">
                             <input type="text" class="form-control sub-name" style="width:120px" value="${s.subject_name}" readonly>
@@ -148,38 +321,42 @@
                             <input type="number" class="form-control sub-qs" placeholder="Total Qs" value="${s.total_questions}">
                             <button class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">X</button>
                         </div>
-                    `).join('');
-                    
-                    const availableSubjectsHtml = classSubjects[e.class_id].map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+                    `,
+                )
+                .join("")
 
-                    return `
-                    <div class="exam-card ${e.status === 'completed' ? 'completed-exam' : ''}">
-                        <div style="display:flex;justify-content:space-between">
-                            <div>
-                                <strong>${e.name}</strong><br>
-                                <small>${e.class_name} | Total Marks: ${e.total_marks || 100}</small>
-                            </div>
-                            <span class="status-pill ${e.status === 'completed' ? 'status-open' : e.status === 'ongoing' ? 'badge-warning' : 'status-draft'}">${e.status?.toUpperCase() || 'SCHEDULED'}</span>
+              const availableSubjectsHtml = classSubjects[e.class_id]
+                .map((s) => `<option value="${s.id}">${s.name}</option>`)
+                .join("")
+
+              const optionsHtml = e.results_visible
+                ? `
+                        <span class="status-pill status-open" style="font-weight:700;">Results Published — Locked</span>
+                        <button class="btn btn-danger btn-sm" onclick="toggleResults('${e.id}')">Hide Results</button>
+                    `
+                : `
+                        <button class="btn btn-sm btn-secondary" onclick="showConfig('${e.id}')">Config</button>
+                        <button class="btn btn-sm btn-primary" onclick="goToQuestions('${e.id}')">Questions</button>
+                        <div class="flex gap-05">
+                            <select onchange="updateStatus('${e.id}', this.value)" class="form-control form-control-sm" style="width:120px;">
+                                <option value="scheduled" ${e.status === "scheduled" ? "selected" : ""}>Scheduled</option>
+                                <option value="ongoing" ${e.status === "ongoing" ? "selected" : ""}>Ongoing</option>
+                                <option value="completed" ${e.status === "completed" ? "selected" : ""}>Completed</option>
+                            </select>
                         </div>
-                        <div class="flex gap-1 mt-1">
-                            <button class="btn btn-sm btn-secondary" onclick="showConfig('${e.id}')">Config</button>
-                            <button class="btn btn-sm btn-primary" onclick="goToQuestions('${e.id}')">Questions</button>
-                            <div class="flex gap-05">
-                                <select onchange="updateStatus('${e.id}', this.value)" class="form-control form-control-sm" style="width:120px;">
-                                    <option value="scheduled" ${e.status === 'scheduled' ? 'selected' : ''}>Scheduled</option>
-                                    <option value="ongoing" ${e.status === 'ongoing' ? 'selected' : ''}>Ongoing</option>
-                                    <option value="completed" ${e.status === 'completed' ? 'selected' : ''}>Completed</option>
-                                </select>
-                            </div>
-                        </div>
+                    `
+
+              const configPanelHtml = e.results_visible
+                ? ""
+                : `
                         <div id="cfg-${e.id}" class="hidden mt-1 p-1" style="background:rgba(0,0,0,0.05);border-radius:var(--radius-sm);">
                             <div class="grid grid-cols-2 gap-1 mb-1">
                                 <div><label>Duration (mins)</label><input type="number" id="cfg-dur-${e.id}" class="form-control" value="${e.duration_minutes || 60}"></div>
-                                <div><label>Start Time</label><input type="datetime-local" id="cfg-start-${e.id}" class="form-control" value="${e.starts_at ? new Date(e.starts_at).toISOString().slice(0,16) : ''}"></div>
+                                <div><label>Start Time</label><input type="datetime-local" id="cfg-start-${e.id}" class="form-control" value="${formatLocalDateTime(e.starts_at)}"></div>
                                 <div><label>Max Time Per Q (secs, 0=None)</label><input type="number" id="cfg-time-per-q-${e.id}" class="form-control" value="${e.time_per_question_seconds || 0}"></div>
                                 <div><label>Minus Marks (Wrong Ans)</label><input type="number" id="cfg-neg-${e.id}" class="form-control" step="0.5" value="${e.negative_marks || 0}"></div>
                                 <div class="flex align-center gap-05" style="margin-top:20px;">
-                                    <input type="checkbox" id="cfg-strict-${e.id}" ${e.strict_forward_only ? 'checked' : ''}>
+                                    <input type="checkbox" id="cfg-strict-${e.id}" ${e.strict_forward_only ? "checked" : ""}>
                                     <label for="cfg-strict-${e.id}">No Returning to Previous Qs</label>
                                 </div>
                             </div>
@@ -194,26 +371,48 @@
                             </div>
 
                             <div class="flex gap-1 mt-1" style="border-top:1px solid var(--border); padding-top:10px;">
-                                <button class="btn btn-primary btn-sm" onclick="saveConfig('${e.id}')">${e.is_configured ? 'Update Config' : 'Save Config'}</button>
-                                <button class="btn ${e.is_active ? 'btn-danger' : 'btn-secondary'} btn-sm" onclick="toggleExam('${e.id}')">${e.is_active ? 'Close Exam' : 'Activate Exam'}</button>
-                                <button class="btn ${e.results_visible ? 'btn-danger' : 'btn-secondary'} btn-sm" onclick="toggleResults('${e.id}')">${e.results_visible ? 'Hide Results' : 'Publish Results'}</button>
+                                <button class="btn btn-primary btn-sm" onclick="saveConfig('${e.id}')">${e.is_configured ? "Update Config" : "Save Config"}</button>
+                                <button class="btn ${e.is_active ? "btn-danger" : "btn-secondary"} btn-sm" onclick="toggleExam('${e.id}')">${e.is_active ? "Close Exam" : "Activate Exam"}</button>
+                                <button class="btn ${e.results_visible ? "btn-danger" : "btn-secondary"} btn-sm" onclick="toggleResults('${e.id}')">${e.results_visible ? "Hide Results" : "Publish Results"}</button>
                             </div>
                         </div>
-                    </div>`;
-                }).join('');
-            } catch(e) { container.innerHTML = '<p class="p-2">Error.</p>'; }
+                    `
+
+              return `
+                    <div class="exam-card ${e.status === "completed" ? "completed-exam" : ""}">
+                        <div style="display:flex;justify-content:space-between">
+                            <div>
+                                <strong>${e.name}</strong><br>
+                                <small>${e.class_name} | Total Marks: ${e.total_marks || 100}</small>
+                            </div>
+                            <span class="status-pill ${e.status === "completed" ? "status-open" : e.status === "ongoing" ? "badge-warning" : "status-draft"}">${e.status?.toUpperCase() || "SCHEDULED"}</span>
+                        </div>
+                        <div class="flex gap-1 mt-1 align-center">
+                            ${optionsHtml}
+                        </div>
+                        ${configPanelHtml}
+                    </div>`
+            })
+            .join("")
+        } catch (e) {
+          container.innerHTML = '<p class="p-2">Error.</p>'
+        }
+      }
+
+      function addSubjectRow(examId) {
+        const select = document.getElementById(`cfg-add-sub-select-${examId}`)
+        const subId = select.value
+        const subName = select.options[select.selectedIndex].text
+
+        // Check if already added
+        const existing = document.querySelectorAll(
+          `.subject-row-${examId} .sub-id`,
+        )
+        for (let el of existing) {
+          if (el.value === subId) return alert("Subject already added")
         }
 
-        function addSubjectRow(examId) {
-            const select = document.getElementById(`cfg-add-sub-select-${examId}`);
-            const subId = select.value;
-            const subName = select.options[select.selectedIndex].text;
-            
-            // Check if already added
-            const existing = document.querySelectorAll(`.subject-row-${examId} .sub-id`);
-            for (let el of existing) { if (el.value === subId) return alert('Subject already added'); }
-            
-            const html = `
+        const html = `
                 <div class="flex gap-1 mb-1 subject-row-${examId} align-center">
                     <input type="hidden" class="sub-id" value="${subId}">
                     <input type="text" class="form-control sub-name" style="width:120px" value="${subName}" readonly>
@@ -221,268 +420,368 @@
                     <input type="number" class="form-control sub-qs" placeholder="Total Qs">
                     <button class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">X</button>
                 </div>
-            `;
-            document.getElementById(`cfg-subjects-list-${examId}`).insertAdjacentHTML('beforeend', html);
+            `
+        document
+          .getElementById(`cfg-subjects-list-${examId}`)
+          .insertAdjacentHTML("beforeend", html)
+      }
+
+      function showConfig(id) {
+        document.getElementById(`cfg-${id}`).classList.toggle("hidden")
+      }
+
+      async function saveConfig(id) {
+        const exam = allExams.find((e) => e.id === id)
+        if (exam && exam.is_configured) {
+          if (
+            !confirm(
+              "This exam is already configured. Are you sure you want to update its settings and time?",
+            )
+          ) {
+            return
+          }
         }
 
-        function showConfig(id) { document.getElementById(`cfg-${id}`).classList.toggle('hidden'); }
-        
-        async function saveConfig(id) {
-            const exam = allExams.find(e => e.id === id);
-            if (exam && exam.is_configured) {
-                if (!confirm("This exam is already configured. Are you sure you want to update its settings and time?")) {
-                    return;
-                }
-            }
+        const subjectRows = document.querySelectorAll(`.subject-row-${id}`)
+        const subjects = Array.from(subjectRows).map((row) => ({
+          subject_id: row.querySelector(".sub-id").value,
+          total_marks: Number(row.querySelector(".sub-marks").value),
+          total_questions: Number(row.querySelector(".sub-qs").value),
+        }))
 
-            const subjectRows = document.querySelectorAll(`.subject-row-${id}`);
-            const subjects = Array.from(subjectRows).map(row => ({
-                subject_id: row.querySelector('.sub-id').value,
-                total_marks: Number(row.querySelector('.sub-marks').value),
-                total_questions: Number(row.querySelector('.sub-qs').value)
-            }));
-
-            if (!subjects.length) return alert('Add at least one subject');
-            for (const s of subjects) {
-                if (!s.total_marks || !s.total_questions) return alert('Please fill marks and questions for all subjects');
-            }
-
-            const data = {
-                exam_id: id,
-                subjects: subjects,
-                duration_minutes: +document.getElementById(`cfg-dur-${id}`).value,
-                starts_at: document.getElementById(`cfg-start-${id}`).value || null,
-                login_window_minutes: 15,
-                strict_forward_only: document.getElementById(`cfg-strict-${id}`).checked,
-                time_per_question_seconds: +document.getElementById(`cfg-time-per-q-${id}`).value,
-                negative_marks: parseFloat(document.getElementById(`cfg-neg-${id}`).value) || 0
-            };
-            try {
-                await apiFetch('/exam-portal/config', { method: 'POST', body: data });
-                showToast('Config Saved'); loadExams();
-            } catch(e) { showToast(e.message, 'error'); }
+        if (!subjects.length) return alert("Add at least one subject")
+        for (const s of subjects) {
+          if (!s.total_marks || !s.total_questions)
+            return alert("Please fill marks and questions for all subjects")
         }
 
-        async function updateStatus(id, status) {
-            try {
-                await AdminAPI.updateExamStatus(id, status);
-                showToast(`Exam marked as ${status}`);
-                loadExams();
-            } catch (err) { showToast(err.message, 'error'); }
+        const data = {
+          exam_id: id,
+          subjects: subjects,
+          duration_minutes: +document.getElementById(`cfg-dur-${id}`).value,
+          starts_at: (() => {
+            const val = document.getElementById(`cfg-start-${id}`).value
+            return val ? new Date(val).toISOString() : null
+          })(),
+          login_window_minutes: 15,
+          strict_forward_only: document.getElementById(`cfg-strict-${id}`)
+            .checked,
+          time_per_question_seconds: +document.getElementById(
+            `cfg-time-per-q-${id}`,
+          ).value,
+          negative_marks:
+            parseFloat(document.getElementById(`cfg-neg-${id}`).value) || 0,
         }
+        try {
+          await apiFetch("/exam-portal/config", { method: "POST", body: data })
+          showToast("Config Saved")
+          loadExams()
+        } catch (e) {
+          showToast(e.message, "error")
+        }
+      }
 
-        async function toggleExam(id) {
-            try { 
-                const res = await apiFetch(`/exam-portal/config/${id}/toggle`, { method:'POST' }); 
-                showToast(res.message);
-                loadExams(); 
-            } catch(e) { showToast(e.message, 'error'); }
+      async function updateStatus(id, status) {
+        try {
+          await AdminAPI.updateExamStatus(id, status)
+          showToast(`Exam marked as ${status}`)
+          loadExams()
+        } catch (err) {
+          showToast(err.message, "error")
         }
-        
-        async function toggleResults(id) {
-            try { 
-                const res = await apiFetch(`/exam-portal/config/${id}/toggle-results`, { method:'POST' }); 
-                showToast(res.message);
-                loadExams(); 
-            } catch(e) { showToast(e.message, 'error'); }
-        }
+      }
 
-        function goToQuestions(id) { 
-            const exam = allExams.find(e => e.id === id);
-            if (!exam || !exam.is_configured) {
-                return showToast('Please save Exam Configuration first', 'error');
-            }
-            document.getElementById('q-exam-select').value = id; 
-            showTab('questions'); 
-            loadQuestions(); 
+      async function toggleExam(id) {
+        try {
+          const res = await apiFetch(`/exam-portal/config/${id}/toggle`, {
+            method: "POST",
+          })
+          showToast(res.message)
+          loadExams()
+        } catch (e) {
+          showToast(e.message, "error")
         }
+      }
 
-        async function loadQuestions() {
-            const id = document.getElementById('q-exam-select').value;
-            currentQExamId = id;
-            if (!id) { document.getElementById('q-pane').classList.add('hidden'); return; }
-            document.getElementById('q-pane').classList.remove('hidden');
-            
-            const exam = allExams.find(e => e.id === id);
-            
-            try {
-                const { questions } = await apiFetch(`/exam-portal/questions/${id}`);
-                const container = document.getElementById('questions-list');
-                
-                let html = '';
-                
-                (exam.subjects || []).forEach(sub => {
-                    html += `<div class="card mb-2" style="background: rgba(255,255,255,0.02);"><div class="card-header"><span class="card-title">${sub.subject_name} (${sub.total_questions} Questions Required)</span></div><div class="grid grid-cols-1 gap-1">`;
-                    
-                    const subQs = questions.filter(q => q.subject_id === sub.subject_id);
-                    
-                    for (let i = 0; i < sub.total_questions; i++) {
-                        const q = subQs[i] || { question_text: '', options: ['','','',''], correct_option: -1, correct_options: [], id: null };
-                        const correctList = q.correct_options || (q.correct_option !== undefined && q.correct_option !== -1 ? [q.correct_option] : []);
-                        
-                        html += `
+      async function toggleResults(id) {
+        try {
+          const res = await apiFetch(
+            `/exam-portal/config/${id}/toggle-results`,
+            { method: "POST" },
+          )
+          showToast(res.message)
+          loadExams()
+        } catch (e) {
+          showToast(e.message, "error")
+        }
+      }
+
+      function goToQuestions(id) {
+        const exam = allExams.find((e) => e.id === id)
+        if (!exam || !exam.is_configured) {
+          return showToast("Please save Exam Configuration first", "error")
+        }
+        document.getElementById("q-exam-select").value = id
+        showTab("questions")
+        loadQuestions()
+      }
+
+      async function loadQuestions() {
+        const id = document.getElementById("q-exam-select").value
+        currentQExamId = id
+        if (!id) {
+          document.getElementById("q-pane").classList.add("hidden")
+          return
+        }
+        document.getElementById("q-pane").classList.remove("hidden")
+
+        const exam = allExams.find((e) => e.id === id)
+
+        try {
+          const { questions } = await apiFetch(`/exam-portal/questions/${id}`)
+          const container = document.getElementById("questions-list")
+
+          let html = ""
+
+          ;(exam.subjects || []).forEach((sub) => {
+            html += `<div class="card mb-2" style="background: rgba(255,255,255,0.02);"><div class="card-header"><span class="card-title">${sub.subject_name} (${sub.total_questions} Questions Required)</span></div><div class="grid grid-cols-1 gap-1">`
+
+            const subQs = questions.filter(
+              (q) => q.subject_id === sub.subject_id,
+            )
+
+            for (let i = 0; i < sub.total_questions; i++) {
+              const q = subQs[i] || {
+                question_text: "",
+                options: ["", "", "", ""],
+                correct_option: -1,
+                correct_options: [],
+                id: null,
+              }
+              const correctList =
+                q.correct_options ||
+                (q.correct_option !== undefined && q.correct_option !== -1
+                  ? [q.correct_option]
+                  : [])
+
+              html += `
                         <div class="q-card mb-1" id="q-form-${sub.subject_id}-${i}">
                             <div class="flex justify-between align-center mb-1">
-                                <strong>Question ${i+1}</strong>
+                                <strong>Question ${i + 1}</strong>
                                 ${q.id ? `<span class="status-pill status-open">Saved</span>` : `<span class="status-pill status-draft">Pending</span>`}
                             </div>
-                            <input type="hidden" id="q-id-${sub.subject_id}-${i}" value="${q.id || ''}">
+                            <input type="hidden" id="q-id-${sub.subject_id}-${i}" value="${q.id || ""}">
                             <textarea id="q-text-${sub.subject_id}-${i}" class="form-control mb-1" placeholder="Question Text">${q.question_text}</textarea>
                             <div style="margin-bottom:8px;">
                                 <label style="font-size:0.85rem;color:var(--text-secondary);">Optional Image</label>
                                 <input type="file" id="q-image-${sub.subject_id}-${i}" accept="image/*" class="form-control" style="padding:6px;">
-                                <img id="q-image-preview-${sub.subject_id}-${i}" src="${q.image_url || ''}" style="max-width:180px; display:${q.image_url ? 'block' : 'none'}; margin-top:8px; border:1px solid var(--border); padding:6px; border-radius:6px;" />
+                                <img id="q-image-preview-${sub.subject_id}-${i}" src="${q.image_url || ""}" style="max-width:180px; display:${q.image_url ? "block" : "none"}; margin-top:8px; border:1px solid var(--border); padding:6px; border-radius:6px;" />
                             </div>
                             <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px;">Select all correct answers (multiple selection is supported):</div>
                             <div class="grid grid-cols-2 gap-1 mb-1">
                                 <div class="flex align-center gap-05">
-                                    <input type="checkbox" name="correct-${sub.subject_id}-${i}" value="0" ${correctList.includes(0) ? 'checked' : ''}> 
-                                    <input type="text" id="opt-0-${sub.subject_id}-${i}" class="form-control" placeholder="Option A" value="${q.options[0] || ''}">
+                                    <input type="checkbox" name="correct-${sub.subject_id}-${i}" value="0" ${correctList.includes(0) ? "checked" : ""}> 
+                                    <input type="text" id="opt-0-${sub.subject_id}-${i}" class="form-control" placeholder="Option A" value="${q.options[0] || ""}">
                                 </div>
                                 <div class="flex align-center gap-05">
-                                    <input type="checkbox" name="correct-${sub.subject_id}-${i}" value="1" ${correctList.includes(1) ? 'checked' : ''}> 
-                                    <input type="text" id="opt-1-${sub.subject_id}-${i}" class="form-control" placeholder="Option B" value="${q.options[1] || ''}">
+                                    <input type="checkbox" name="correct-${sub.subject_id}-${i}" value="1" ${correctList.includes(1) ? "checked" : ""}> 
+                                    <input type="text" id="opt-1-${sub.subject_id}-${i}" class="form-control" placeholder="Option B" value="${q.options[1] || ""}">
                                 </div>
                                 <div class="flex align-center gap-05">
-                                    <input type="checkbox" name="correct-${sub.subject_id}-${i}" value="2" ${correctList.includes(2) ? 'checked' : ''}> 
-                                    <input type="text" id="opt-2-${sub.subject_id}-${i}" class="form-control" placeholder="Option C" value="${q.options[2] || ''}">
+                                    <input type="checkbox" name="correct-${sub.subject_id}-${i}" value="2" ${correctList.includes(2) ? "checked" : ""}> 
+                                    <input type="text" id="opt-2-${sub.subject_id}-${i}" class="form-control" placeholder="Option C" value="${q.options[2] || ""}">
                                 </div>
                                 <div class="flex align-center gap-05">
-                                    <input type="checkbox" name="correct-${sub.subject_id}-${i}" value="3" ${correctList.includes(3) ? 'checked' : ''}> 
-                                    <input type="text" id="opt-3-${sub.subject_id}-${i}" class="form-control" placeholder="Option D" value="${q.options[3] || ''}">
+                                    <input type="checkbox" name="correct-${sub.subject_id}-${i}" value="3" ${correctList.includes(3) ? "checked" : ""}> 
+                                    <input type="text" id="opt-3-${sub.subject_id}-${i}" class="form-control" placeholder="Option D" value="${q.options[3] || ""}">
                                 </div>
                             </div>
                             <div class="flex gap-1">
-                                <button class="btn btn-primary btn-sm" onclick="saveSingleQuestion('${sub.subject_id}', ${i})">${q.id ? 'Update' : 'Save'} Question</button>
-                                ${q.id ? `<button class="btn btn-danger btn-sm" onclick="deleteQuestion('${q.id}')">Delete</button>` : ''}
+                                <button class="btn btn-primary btn-sm" onclick="saveSingleQuestion('${sub.subject_id}', ${i})">${q.id ? "Update" : "Save"} Question</button>
+                                ${q.id ? `<button class="btn btn-danger btn-sm" onclick="deleteQuestion('${q.id}')">Delete</button>` : ""}
                             </div>
-                        </div>`;
-                    }
-                    html += `</div></div>`;
-                });
-                
-                if((exam.subjects || []).length === 0) {
-                    html = '<p class="p-2">Please configure subjects for this exam first.</p>';
-                }
-                
-                container.innerHTML = html;
-            } catch(e) { container.innerHTML = '<p class="p-2">Error loading questions.</p>'; }
-        }
-
-        async function saveSingleQuestion(subId, idx) {
-            const qId = document.getElementById(`q-id-${subId}-${idx}`).value;
-            const text = document.getElementById(`q-text-${subId}-${idx}`).value;
-            const imageInput = document.getElementById(`q-image-${subId}-${idx}`);
-            const options = [
-                document.getElementById(`opt-0-${subId}-${idx}`).value,
-                document.getElementById(`opt-1-${subId}-${idx}`).value,
-                document.getElementById(`opt-2-${subId}-${idx}`).value,
-                document.getElementById(`opt-3-${subId}-${idx}`).value
-            ];
-            
-            const checkedBoxes = document.querySelectorAll(`input[name="correct-${subId}-${idx}"]:checked`);
-            const checkedValues = Array.from(checkedBoxes).map(cb => Number(cb.value));
-            
-            const previewImg = document.getElementById(`q-image-preview-${subId}-${idx}`);
-            const hasExistingImage = previewImg && previewImg.src && !previewImg.src.endsWith('/') && previewImg.style.display !== 'none';
-            const hasNewImage = imageInput && imageInput.files && imageInput.files.length > 0;
-            const hasImage = hasNewImage || hasExistingImage;
-
-            if ((!text && !hasImage) || options.some(o => !o) || checkedValues.length === 0) {
-                return showToast('Please fill question text (or upload an image), all 4 options, and select at least one correct answer. (If the options are in the image, you can type "A", "B", "C", "D" as option texts)', 'error');
+                        </div>`
             }
-            
-            const data = {
-                exam_id: currentQExamId, subject_id: subId,
-                question_text: text,
-                options: options,
-                correct_options: checkedValues
-            };
+            html += `</div></div>`
+          })
 
-            // If an image file is selected, read as data URL and include
-            if (imageInput && imageInput.files && imageInput.files.length > 0) {
-                const file = imageInput.files[0];
-                data.image_data = await (new Promise((resolve, reject) => {
-                    const fr = new FileReader();
-                    fr.onload = () => resolve(fr.result);
-                    fr.onerror = () => reject(new Error('Failed to read image'));
-                    fr.readAsDataURL(file);
-                }));
-            }
-            
-            try {
-                if (qId) {
-                    await apiFetch(`/exam-portal/questions/${qId}`, { method: 'PUT', body: data });
-                    showToast('Question updated');
-                } else {
-                    await apiFetch('/exam-portal/questions', { method: 'POST', body: data });
-                    showToast('Question saved');
-                }
-                loadQuestions();
-            } catch(e) { showToast(e.message, 'error'); }
+          if ((exam.subjects || []).length === 0) {
+            html =
+              '<p class="p-2">Please configure subjects for this exam first.</p>'
+          }
+
+          container.innerHTML = html
+        } catch (e) {
+          container.innerHTML = '<p class="p-2">Error loading questions.</p>'
+        }
+      }
+
+      async function saveSingleQuestion(subId, idx) {
+        const qId = document.getElementById(`q-id-${subId}-${idx}`).value
+        const text = document.getElementById(`q-text-${subId}-${idx}`).value
+        const imageInput = document.getElementById(`q-image-${subId}-${idx}`)
+        const options = [
+          document.getElementById(`opt-0-${subId}-${idx}`).value,
+          document.getElementById(`opt-1-${subId}-${idx}`).value,
+          document.getElementById(`opt-2-${subId}-${idx}`).value,
+          document.getElementById(`opt-3-${subId}-${idx}`).value,
+        ]
+
+        const checkedBoxes = document.querySelectorAll(
+          `input[name="correct-${subId}-${idx}"]:checked`,
+        )
+        const checkedValues = Array.from(checkedBoxes).map((cb) =>
+          Number(cb.value),
+        )
+
+        const previewImg = document.getElementById(
+          `q-image-preview-${subId}-${idx}`,
+        )
+        const hasExistingImage =
+          previewImg &&
+          previewImg.src &&
+          !previewImg.src.endsWith("/") &&
+          previewImg.style.display !== "none"
+        const hasNewImage =
+          imageInput && imageInput.files && imageInput.files.length > 0
+        const hasImage = hasNewImage || hasExistingImage
+
+        if (
+          (!text && !hasImage) ||
+          options.some((o) => !o) ||
+          checkedValues.length === 0
+        ) {
+          return showToast(
+            'Please fill question text (or upload an image), all 4 options, and select at least one correct answer. (If the options are in the image, you can type "A", "B", "C", "D" as option texts)',
+            "error",
+          )
         }
 
-        async function deleteQuestion(id) {
-            if (confirm('Delete?')) { await apiFetch(`/exam-portal/questions/${id}`, { method:'DELETE' }); loadQuestions(); }
+        const data = {
+          exam_id: currentQExamId,
+          subject_id: subId,
+          question_text: text,
+          options: options,
+          correct_options: checkedValues,
         }
 
-        async function loadResults() {
-            const id = document.getElementById('r-exam-select').value;
-            const container = document.getElementById('results-container');
-            if (!id) return;
-            try {
-                const { results } = await apiFetch(`/exam-portal/results/${id}`);
-                if (!results.length) { container.innerHTML = '<p class="p-2">No attempts found.</p>'; return; }
-                container.innerHTML = `<table class="data-table">
+        // If an image file is selected, read as data URL and include
+        if (imageInput && imageInput.files && imageInput.files.length > 0) {
+          const file = imageInput.files[0]
+          data.image_data = await new Promise((resolve, reject) => {
+            const fr = new FileReader()
+            fr.onload = () => resolve(fr.result)
+            fr.onerror = () => reject(new Error("Failed to read image"))
+            fr.readAsDataURL(file)
+          })
+        }
+
+        try {
+          if (qId) {
+            await apiFetch(`/exam-portal/questions/${qId}`, {
+              method: "PUT",
+              body: data,
+            })
+            showToast("Question updated")
+          } else {
+            await apiFetch("/exam-portal/questions", {
+              method: "POST",
+              body: data,
+            })
+            showToast("Question saved")
+          }
+          loadQuestions()
+        } catch (e) {
+          showToast(e.message, "error")
+        }
+      }
+
+      async function deleteQuestion(id) {
+        if (confirm("Delete?")) {
+          await apiFetch(`/exam-portal/questions/${id}`, { method: "DELETE" })
+          loadQuestions()
+        }
+      }
+
+      async function loadResults() {
+        const id = document.getElementById("r-exam-select").value
+        const container = document.getElementById("results-container")
+        if (!id) return
+        try {
+          const { results } = await apiFetch(`/exam-portal/results/${id}`)
+          if (!results.length) {
+            container.innerHTML = '<p class="p-2">No attempts found.</p>'
+            return
+          }
+          container.innerHTML = `<table class="data-table">
                     <thead><tr><th>Rank</th><th>Student</th><th>Score</th><th>Submitted</th><th>Action</th></tr></thead>
-                    <tbody>${results.map((r, i) => `
+                    <tbody>${results
+                      .map(
+                        (r, i) => `
                         <tr>
-                            <td>#${i+1}</td>
+                            <td>#${i + 1}</td>
                             <td style="font-weight:700;">${r.student_name}</td>
                             <td style="font-weight:700; color:var(--gold);">${r.score} / ${r.max_score}</td>
                             <td><small>${new Date(r.submitted_at).toLocaleString()}</small></td>
                             <td><button class="btn btn-sm btn-primary" onclick="viewDetails('${r.id}')">View Details</button></td>
-                        </tr>`).join('')}</tbody></table>`;
-            } catch(e) { container.innerHTML = `<p class="p-2">Error: ${e.message}</p>`; }
+                        </tr>`,
+                      )
+                      .join("")}</tbody></table>`
+        } catch (e) {
+          container.innerHTML = `<p class="p-2">Error: ${e.message}</p>`
         }
+      }
 
-        async function viewDetails(attemptId) {
-            const modal = document.getElementById('detail-modal');
-            const content = document.getElementById('detail-content');
-            modal.classList.remove('hidden');
-            content.innerHTML = '<div class="spinner"></div>';
-            
-            try {
-                const data = await apiFetch(`/exam-portal/attempt-details/${attemptId}`);
-                document.getElementById('detail-title').textContent = `Analysis: ${data.student_name}`;
-                
-                currentAttemptDetails = data.details || [];
-                
-                // Populate subject filter
-                const selectFilter = document.getElementById('analysis-subject-filter');
-                selectFilter.innerHTML = '<option value="all">All Subjects</option>';
-                const subjects = [...new Set(currentAttemptDetails.map(q => q.subject_name))].filter(Boolean);
-                subjects.forEach(sub => {
-                    const opt = document.createElement('option');
-                    opt.value = sub;
-                    opt.textContent = sub;
-                    selectFilter.appendChild(opt);
-                });
-                
-                const totalQs = data.details.length;
-                const correctCount = data.details.filter(q => q.is_correct).length;
-                const incorrectCount = data.details.filter(q => !q.is_correct && q.selected_option !== -1).length;
-                const unansweredCount = data.details.filter(q => q.selected_option === -1).length;
-                const pct = data.max_score ? Math.round((data.score / data.max_score) * 100) : 0;
-                
-                let html = `
+      async function viewDetails(attemptId) {
+        const modal = document.getElementById("detail-modal")
+        const content = document.getElementById("detail-content")
+        modal.classList.remove("hidden")
+        content.innerHTML = '<div class="spinner"></div>'
+
+        try {
+          const data = await apiFetch(
+            `/exam-portal/attempt-details/${attemptId}`,
+          )
+          document.getElementById("detail-title").textContent =
+            `Analysis: ${data.student_name}`
+
+          currentAttemptDetails = data.details || []
+
+          // Populate subject filter
+          const selectFilter = document.getElementById(
+            "analysis-subject-filter",
+          )
+          selectFilter.innerHTML = '<option value="all">All Subjects</option>'
+          const subjects = [
+            ...new Set(currentAttemptDetails.map((q) => q.subject_name)),
+          ].filter(Boolean)
+          subjects.forEach((sub) => {
+            const opt = document.createElement("option")
+            opt.value = sub
+            opt.textContent = sub
+            selectFilter.appendChild(opt)
+          })
+
+          const totalQs = data.details.length
+          const correctCount = data.details.filter((q) => q.is_correct).length
+          const incorrectCount = data.details.filter(
+            (q) => !q.is_correct && q.selected_option !== -1,
+          ).length
+          const unansweredCount = data.details.filter(
+            (q) => q.selected_option === -1,
+          ).length
+          const pct = data.max_score
+            ? Math.round((data.score / data.max_score) * 100)
+            : 0
+
+          let html = `
                     <div class="analysis-summary-grid">
                         <div class="analysis-summary-card" style="padding: 0.75rem 1rem;">
                             <span class="analysis-summary-value" style="font-size: 1.3rem;">${data.score} / ${data.max_score}</span>
                             <span class="analysis-summary-label" style="font-size: 0.75rem;">Total Score</span>
                         </div>
                         <div class="analysis-summary-card" style="padding: 0.75rem 1rem;">
-                            <span class="analysis-summary-value" style="font-size: 1.3rem; color: ${pct >= 40 ? '#10b981' : '#ef4444'}">${pct}%</span>
+                            <span class="analysis-summary-value" style="font-size: 1.3rem; color: ${pct >= 40 ? "#10b981" : "#ef4444"}">${pct}%</span>
                             <span class="analysis-summary-label" style="font-size: 0.75rem;">Percentage</span>
                         </div>
                         <div class="analysis-summary-card" style="padding: 0.75rem 1rem;">
@@ -495,96 +794,122 @@
                         </div>
                     </div>
                     <div id="detail-questions-list"></div>
-                `;
-                content.innerHTML = html;
-                renderFilteredDetails();
-            } catch(e) { content.innerHTML = `<p class="p-2 text-danger">Error: ${e.message}</p>`; }
+                `
+          content.innerHTML = html
+          renderFilteredDetails()
+        } catch (e) {
+          content.innerHTML = `<p class="p-2 text-danger">Error: ${e.message}</p>`
+        }
+      }
+
+      // Image preview for dynamically created question image inputs
+      document.addEventListener("change", function (e) {
+        const target = e.target
+        if (!target || !target.id) return
+        if (target.id.startsWith("q-image-")) {
+          const parts = target.id.split("-")
+          // id format: q-image-<subId>-<idx>
+          const subId = parts[2]
+          const idx = parts[3]
+          const preview = document.getElementById(
+            `q-image-preview-${subId}-${idx}`,
+          )
+          if (!preview) return
+          if (target.files && target.files[0]) {
+            const fr = new FileReader()
+            fr.onload = () => {
+              preview.src = fr.result
+              preview.style.display = "block"
+            }
+            fr.readAsDataURL(target.files[0])
+          } else {
+            preview.src = ""
+            preview.style.display = "none"
+          }
+        }
+      })
+
+      function renderFilteredDetails() {
+        const subject = document.getElementById("analysis-subject-filter").value
+        const container = document.getElementById("detail-questions-list")
+        if (!container) return
+
+        const filtered =
+          subject === "all"
+            ? currentAttemptDetails
+            : currentAttemptDetails.filter((q) => q.subject_name === subject)
+
+        if (!filtered.length) {
+          container.innerHTML =
+            '<p class="p-2 text-muted">No questions found for this subject.</p>'
+          return
         }
 
-        // Image preview for dynamically created question image inputs
-        document.addEventListener('change', function (e) {
-            const target = e.target;
-            if (!target || !target.id) return;
-            if (target.id.startsWith('q-image-')) {
-                const parts = target.id.split('-');
-                // id format: q-image-<subId>-<idx>
-                const subId = parts[2];
-                const idx = parts[3];
-                const preview = document.getElementById(`q-image-preview-${subId}-${idx}`);
-                if (!preview) return;
-                if (target.files && target.files[0]) {
-                    const fr = new FileReader();
-                    fr.onload = () => {
-                        preview.src = fr.result;
-                        preview.style.display = 'block';
-                    };
-                    fr.readAsDataURL(target.files[0]);
-                } else {
-                    preview.src = '';
-                    preview.style.display = 'none';
-                }
-            }
-        });
+        let html = ""
+        filtered.forEach((q, i) => {
+          const letters = ["A", "B", "C", "D"]
+          const isUnanswered = q.selected_options
+            ? q.selected_options.length === 0
+            : q.selected_option === -1
+          const borderCol = isUnanswered
+            ? "var(--border)"
+            : q.marks_earned > 0
+              ? "#10b981"
+              : "#ef4444"
 
-        function renderFilteredDetails() {
-            const subject = document.getElementById('analysis-subject-filter').value;
-            const container = document.getElementById('detail-questions-list');
-            if (!container) return;
-            
-            const filtered = subject === 'all' 
-                ? currentAttemptDetails 
-                : currentAttemptDetails.filter(q => q.subject_name === subject);
-                
-            if (!filtered.length) {
-                container.innerHTML = '<p class="p-2 text-muted">No questions found for this subject.</p>';
-                return;
-            }
-            
-            let html = '';
-            filtered.forEach((q, i) => {
-                const letters = ['A','B','C','D'];
-                const isUnanswered = q.selected_options ? q.selected_options.length === 0 : (q.selected_option === -1);
-                const borderCol = isUnanswered ? 'var(--border)' : (q.marks_earned > 0 ? '#10b981' : '#ef4444');
-                
-                const originalIndex = currentAttemptDetails.indexOf(q) + 1;
-                
-                html += `
+          const originalIndex = currentAttemptDetails.indexOf(q) + 1
+
+          html += `
                     <div class="analysis-q-card" style="border-left: 3px solid ${borderCol}; border-radius: 6px; padding: 1rem 1.25rem; margin-bottom: 1rem; background: var(--bg-card); border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);">
                         <div class="analysis-q-header" style="margin-bottom: 0.5rem; font-size: 0.8rem;">
                             <div>
                                 <span class="badge" style="background:var(--bg-primary); color:var(--text-secondary); font-size:0.7rem; border: 1px solid var(--border); padding: 2px 6px; border-radius: 4px; font-weight:600;">${q.subject_name}</span>
                             </div>
-                            <div style="font-weight:600; color: ${q.marks_earned > 0 ? '#10b981' : (q.marks_earned < 0 ? '#ef4444' : 'var(--text-muted)')}">
-                                ${q.marks_earned > 0 ? '+' : ''}${q.marks_earned} Marks
+                            <div style="font-weight:600; color: ${q.marks_earned > 0 ? "#10b981" : q.marks_earned < 0 ? "#ef4444" : "var(--text-muted)"}">
+                                ${q.marks_earned > 0 ? "+" : ""}${q.marks_earned} Marks
                             </div>
                         </div>
                         <div class="analysis-q-text" style="font-size: 0.95rem; margin-bottom: 0.75rem; line-height: 1.4;">
                             <span style="color: var(--text-muted); font-weight:600; margin-right: 0.5rem;">Q${originalIndex}.</span>${q.question_text}
                         </div>
-                        ${q.image_url ? `<img src="${q.image_url}" style="max-width:320px; display:block; margin-bottom:12px; border:1px solid var(--border); padding:6px; border-radius:8px;" />` : ''}
+                        ${q.image_url ? `<img src="${q.image_url}" style="max-width:320px; display:block; margin-bottom:12px; border:1px solid var(--border); padding:6px; border-radius:8px;" />` : ""}
                         <div class="analysis-options-list" style="display:flex; flex-direction:column; gap: 0.4rem;">
-                            ${q.options.map((opt, idx) => {
-                                let rowClass = 'analysis-option-row';
-                                let tagHtml = '';
-                                
-                                const correctList = q.correct_options || (q.correct_option !== undefined && q.correct_option !== -1 ? [q.correct_option] : []);
-                                const selectedList = q.selected_options || (q.selected_option !== undefined && q.selected_option !== -1 ? [q.selected_option] : []);
-                                
-                                const isCorrectOpt = correctList.includes(idx);
-                                const isSelOpt = selectedList.includes(idx);
-                                
+                            ${q.options
+                              .map((opt, idx) => {
+                                let rowClass = "analysis-option-row"
+                                let tagHtml = ""
+
+                                const correctList =
+                                  q.correct_options ||
+                                  (q.correct_option !== undefined &&
+                                  q.correct_option !== -1
+                                    ? [q.correct_option]
+                                    : [])
+                                const selectedList =
+                                  q.selected_options ||
+                                  (q.selected_option !== undefined &&
+                                  q.selected_option !== -1
+                                    ? [q.selected_option]
+                                    : [])
+
+                                const isCorrectOpt = correctList.includes(idx)
+                                const isSelOpt = selectedList.includes(idx)
+
                                 if (isCorrectOpt) {
-                                    rowClass += ' correct';
-                                    if (isSelOpt) {
-                                        tagHtml = '<span class="analysis-tag analysis-tag-correct">Correct & Selected</span>';
-                                    } else {
-                                        tagHtml = '<span class="analysis-tag analysis-tag-answer">Correct Answer</span>';
-                                    }
+                                  rowClass += " correct"
+                                  if (isSelOpt) {
+                                    tagHtml =
+                                      '<span class="analysis-tag analysis-tag-correct">Correct & Selected</span>'
+                                  } else {
+                                    tagHtml =
+                                      '<span class="analysis-tag analysis-tag-answer">Correct Answer</span>'
+                                  }
                                 } else if (isSelOpt) {
-                                    rowClass += ' wrong-selected';
-                                    tagHtml = '<span class="analysis-tag analysis-tag-wrong">Your Answer (Incorrect)</span>';
+                                  rowClass += " wrong-selected"
+                                  tagHtml =
+                                    '<span class="analysis-tag analysis-tag-wrong">Your Answer (Incorrect)</span>'
                                 }
-                                
+
                                 return `
                                     <div class="${rowClass}" style="padding: 0.6rem 0.8rem;">
                                         <div class="analysis-option-content" style="gap: 0.5rem;">
@@ -593,20 +918,21 @@
                                         </div>
                                         ${tagHtml}
                                     </div>
-                                `;
-                            }).join('')}
+                                `
+                              })
+                              .join("")}
                         </div>
                     </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
+                `
+        })
+        container.innerHTML = html
+      }
 
-        function closeDetails() {
-            document.getElementById('detail-modal').classList.add('hidden');
-        }
+      function closeDetails() {
+        document.getElementById("detail-modal").classList.add("hidden")
+      }
 
-        init();
+      init()
     </script>
-</body>
+  </body>
 </html>

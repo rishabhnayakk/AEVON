@@ -1,369 +1,688 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Global Dashboard — AEVON Admin</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <style>
-        :root {
-            --card-shadow: 0 10px 40px rgba(0,0,0,0.04);
-            --accent-gradient: linear-gradient(135deg, var(--primary), var(--primary-dark));
-        }
+      :root {
+        --card-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+        --accent-gradient: linear-gradient(
+          135deg,
+          var(--primary),
+          var(--primary-dark)
+        );
+      }
 
-        .main-content { padding: 2.5rem; background: var(--bg-primary); min-height: 100vh; }
+      .main-content {
+        padding: 2.5rem;
+        background: var(--bg-primary);
+        min-height: 100vh;
+      }
 
-        .page-header {
-            display: flex; justify-content: space-between; align-items: flex-end;
-            margin-bottom: 2.5rem; border: none; padding-bottom: 0;
-        }
-        .page-header h1 { font-family: 'Inter', sans-serif; font-size: 2.4rem; font-weight: 700; color: var(--navy); margin-bottom: 0.25rem; letter-spacing: -0.5px; }
-        .subtitle { color: var(--text-muted); font-weight: 500; font-size: 1.05rem; }
+      .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 2.5rem;
+        border: none;
+        padding-bottom: 0;
+      }
+      .page-header h1 {
+        font-family: "Inter", sans-serif;
+        font-size: 2.4rem;
+        font-weight: 700;
+        color: var(--navy);
+        margin-bottom: 0.25rem;
+        letter-spacing: -0.5px;
+      }
+      .subtitle {
+        color: var(--text-muted);
+        font-weight: 500;
+        font-size: 1.05rem;
+      }
 
-        .header-actions { display: flex; gap: 1rem; align-items: center; }
+      .header-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+      }
 
-        /* Modern Search */
-        .search-container { position: relative; width: 360px; }
-        .search-input {
-            border: 1px solid var(--border); border-radius: var(--radius-sm);
-            padding: 0.85rem 1rem 0.85rem 3rem; font-size: 0.95rem;
-            width: 100%; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            background: #fff url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="%237c7365" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>') no-repeat 16px center;
-            box-shadow: var(--card-shadow);
-        }
-        .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(241, 143, 1, 0.15); outline: none; width: 400px; transform: translateX(-40px); }
-        .search-results {
-            position: absolute; top: 115%; left: 0; right: 0;
-            background: #fff; border-radius: var(--radius-md); border: 1px solid var(--border);
-            box-shadow: 0 25px 60px rgba(0,0,0,0.12); z-index: 1000;
-            max-height: 450px; overflow-y: auto; display: none; padding: 0.75rem;
-            backdrop-filter: blur(10px);
-        }
-        .search-item {
-            padding: 14px 18px; border-radius: var(--radius-sm); cursor: pointer;
-            display: flex; align-items: center; gap: 14px; transition: all 0.2s ease;
-            margin-bottom: 4px;
-        }
-        .search-item:hover { background: rgba(241, 143, 1, 0.06); transform: scale(1.02); }
-        .search-item .avatar { width: 42px; height: 42px; background: var(--bg-primary); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--primary); font-size: 1rem; border: 1px solid var(--border); }
-        .search-item .type { font-size: 0.65rem; text-transform: uppercase; background: var(--primary); color: #fff; padding: 3px 8px; border-radius: var(--radius-sm); font-weight: 900; letter-spacing: 0.5px; }
+      /* Modern Search */
+      .search-container {
+        position: relative;
+        width: 360px;
+      }
+      .search-input {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.85rem 1rem 0.85rem 3rem;
+        font-size: 0.95rem;
+        width: 100%;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: #fff
+          url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="%237c7365" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>')
+          no-repeat 16px center;
+        box-shadow: var(--card-shadow);
+      }
+      .search-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(241, 143, 1, 0.15);
+        outline: none;
+        width: 400px;
+        transform: translateX(-40px);
+      }
+      .search-results {
+        position: absolute;
+        top: 115%;
+        left: 0;
+        right: 0;
+        background: #fff;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12);
+        z-index: 1000;
+        max-height: 450px;
+        overflow-y: auto;
+        display: none;
+        padding: 0.75rem;
+        backdrop-filter: blur(10px);
+      }
+      .search-item {
+        padding: 14px 18px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        transition: all 0.2s ease;
+        margin-bottom: 4px;
+      }
+      .search-item:hover {
+        background: rgba(241, 143, 1, 0.06);
+        transform: scale(1.02);
+      }
+      .search-item .avatar {
+        width: 42px;
+        height: 42px;
+        background: var(--bg-primary);
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        color: var(--primary);
+        font-size: 1rem;
+        border: 1px solid var(--border);
+      }
+      .search-item .type {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        background: var(--primary);
+        color: #fff;
+        padding: 3px 8px;
+        border-radius: var(--radius-sm);
+        font-weight: 900;
+        letter-spacing: 0.5px;
+      }
 
-        /* Stats Grid */
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2.5rem; }
-        .admin-stat-card {
-            background: #fff; border: 1px solid var(--border); border-radius: var(--radius-md);
-            padding: 2rem; position: relative; overflow: hidden; transition: all 0.3s ease;
-            box-shadow: var(--card-shadow);
-        }
-        .admin-stat-card:hover { transform: translateY(-8px); border-color: var(--primary); }
-        .admin-stat-card::before {
-            content: ''; position: absolute; bottom: 0; right: 0; width: 100px; height: 100px;
-            background: radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.05), transparent);
-            border-radius: 100% 0 0 0;
-        }
-        .stat-icon { font-size: 2.4rem; margin-bottom: 1.25rem; }
-        .stat-value { font-size: 2.6rem; font-weight: 700; color: var(--navy); margin-bottom: 0.4rem; font-family: 'Inter', sans-serif; letter-spacing: -1px; }
-        .stat-label { font-size: 0.9rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.2px; }
+      /* Stats Grid */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
+      }
+      .admin-stat-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 2rem;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: var(--card-shadow);
+      }
+      .admin-stat-card:hover {
+        transform: translateY(-8px);
+        border-color: var(--primary);
+      }
+      .admin-stat-card::before {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 100px;
+        height: 100px;
+        background: radial-gradient(
+          circle at bottom right,
+          rgba(59, 130, 246, 0.05),
+          transparent
+        );
+        border-radius: 100% 0 0 0;
+      }
+      .stat-icon {
+        font-size: 2.4rem;
+        margin-bottom: 1.25rem;
+      }
+      .stat-value {
+        font-size: 2.6rem;
+        font-weight: 700;
+        color: var(--navy);
+        margin-bottom: 0.4rem;
+        font-family: "Inter", sans-serif;
+        letter-spacing: -1px;
+      }
+      .stat-label {
+        font-size: 0.9rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+      }
 
-        /* Charts */
-        .charts-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 2rem; margin-bottom: 2rem; }
-        .chart-card {
-            background: #fff; border-radius: var(--radius-md); border: 1px solid var(--border);
-            padding: 2.5rem; box-shadow: var(--card-shadow); transition: all 0.3s ease;
-        }
-        .chart-card:hover { box-shadow: 0 20px 50px rgba(0,0,0,0.06); }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border: none; padding: 0; }
-        .card-title { font-family: 'Inter', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--navy); letter-spacing: -0.3px; }
+      /* Charts */
+      .charts-grid {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+      .chart-card {
+        background: #fff;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        padding: 2.5rem;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+      }
+      .chart-card:hover {
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.06);
+      }
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        border: none;
+        padding: 0;
+      }
+      .card-title {
+        font-family: "Inter", sans-serif;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--navy);
+        letter-spacing: -0.3px;
+      }
 
-        /* Custom Filters */
-        .filter-group { display: flex; background: #fff; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px; gap: 6px; box-shadow: var(--card-shadow); }
-        .filter-select {
-            border: none; background: transparent; padding: 0.75rem 1.25rem;
-            font-size: 0.9rem; font-weight: 800; color: var(--navy);
-            cursor: pointer; outline: none; border-radius: var(--radius-sm); transition: all 0.2s;
-        }
-        .filter-select:hover { background: var(--bg-primary); }
+      /* Custom Filters */
+      .filter-group {
+        display: flex;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 6px;
+        gap: 6px;
+        box-shadow: var(--card-shadow);
+      }
+      .filter-select {
+        border: none;
+        background: transparent;
+        padding: 0.75rem 1.25rem;
+        font-size: 0.9rem;
+        font-weight: 800;
+        color: var(--navy);
+        cursor: pointer;
+        outline: none;
+        border-radius: var(--radius-sm);
+        transition: all 0.2s;
+      }
+      .filter-select:hover {
+        background: var(--bg-primary);
+      }
 
-        /* Risk Badges */
-        .risk-badge { padding: 6px 14px; border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
-        .risk-high { background: rgba(239, 68, 68, 0.12); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.2); }
-        .risk-medium { background: rgba(245, 158, 11, 0.12); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.2); }
-        .risk-low { background: rgba(16, 185, 129, 0.12); color: #059669; border: 1px solid rgba(16, 185, 129, 0.2); }
+      /* Risk Badges */
+      .risk-badge {
+        padding: 6px 14px;
+        border-radius: var(--radius-sm);
+        font-size: 0.75rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .risk-high {
+        background: rgba(239, 68, 68, 0.12);
+        color: #dc2626;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+      }
+      .risk-medium {
+        background: rgba(245, 158, 11, 0.12);
+        color: #d97706;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+      }
+      .risk-low {
+        background: rgba(16, 185, 129, 0.12);
+        color: #059669;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+      }
 
-        .loading-premium {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 500px; text-align: center;
-        }
-        .loading-premium .spinner { width: 50px; height: 50px; border-width: 4px; }
-        
-        /* Rank Badge */
-        .rank-indicator {
-            width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center;
-            justify-content: center; font-weight: 900; font-size: 0.85rem;
-        }
-        .rank-1 { background: #fff7ed; color: #ea580c; border: 2px solid #fdba74; }
-        .rank-2 { background: #f8fafc; color: #475569; border: 2px solid #cbd5e1; }
-        .rank-3 { background: #fffcf0; color: #b45309; border: 2px solid #fde68a; }
+      .loading-premium {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 500px;
+        text-align: center;
+      }
+      .loading-premium .spinner {
+        width: 50px;
+        height: 50px;
+        border-width: 4px;
+      }
+
+      /* Rank Badge */
+      .rank-indicator {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 0.85rem;
+      }
+      .rank-1 {
+        background: #fff7ed;
+        color: #ea580c;
+        border: 2px solid #fdba74;
+      }
+      .rank-2 {
+        background: #f8fafc;
+        color: #475569;
+        border: 2px solid #cbd5e1;
+      }
+      .rank-3 {
+        background: #fffcf0;
+        color: #b45309;
+        border: 2px solid #fde68a;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="app-layout">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <!-- Branding is dynamically injected by renderSidebar in auth.js -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <!-- Branding is dynamically injected by renderSidebar in auth.js -->
+        </div>
+        <nav class="sidebar-nav" id="nav-links"></nav>
+        <div class="sidebar-footer">
+          <button
+            class="btn btn-secondary"
+            style="width: 100%; border-radius: var(--radius-sm); padding: 1rem"
+            onclick="handleLogout()"
+          >
+            Logout
+          </button>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <div class="page-header">
+          <div>
+            <h1>Global Analytics</h1>
+            <p class="subtitle">
+              Real-time system intelligence & student growth metrics
+            </p>
+          </div>
+          <div class="header-actions">
+            <div class="filter-group">
+              <select
+                id="class-filter"
+                class="filter-select"
+                onchange="loadDashboard()"
+              >
+                <option value="all">All Classes</option>
+              </select>
+              <select
+                id="exam-filter"
+                class="filter-select"
+                onchange="loadDashboard()"
+              >
+                <option value="all">All Exams</option>
+              </select>
             </div>
-            <nav class="sidebar-nav" id="nav-links"></nav>
-            <div class="sidebar-footer">
-                <button class="btn btn-secondary" style="width:100%; border-radius: var(--radius-sm); padding: 1rem;" onclick="handleLogout()">Logout</button>
+            <div class="search-container">
+              <input
+                type="text"
+                id="global-search"
+                class="search-input"
+                placeholder="Quick search..."
+                oninput="handleSearch()"
+              />
+              <div id="search-results" class="search-results"></div>
             </div>
-        </aside>
+          </div>
+        </div>
 
-        <main class="main-content">
-            <div class="page-header">
-                <div>
-                    <h1>Global Analytics</h1>
-                    <p class="subtitle">Real-time system intelligence & student growth metrics</p>
-                </div>
-                <div class="header-actions">
-                    <div class="filter-group">
-                        <select id="class-filter" class="filter-select" onchange="loadDashboard()">
-                            <option value="all">All Classes</option>
-                        </select>
-                        <select id="exam-filter" class="filter-select" onchange="loadDashboard()">
-                            <option value="all">All Exams</option>
-                        </select>
-                    </div>
-                    <div class="search-container">
-                        <input type="text" id="global-search" class="search-input" placeholder="Quick search..." oninput="handleSearch()">
-                        <div id="search-results" class="search-results"></div>
-                    </div>
-                </div>
+        <div id="loading" class="loading-premium">
+          <div class="spinner"></div>
+          <p
+            style="
+              margin-top: 1.5rem;
+              font-weight: 800;
+              color: var(--navy);
+              font-size: 1.1rem;
+            "
+          >
+            Optimizing Neural Aggregates...
+          </p>
+          <p style="color: var(--text-muted); font-size: 0.9rem">
+            Crunching live exam data for AEVON Insights
+          </p>
+        </div>
+
+        <div id="dashboard-content" class="hidden">
+          <div class="stats-grid" id="stats-grid">
+            <!-- Dynamic stat cards -->
+          </div>
+
+          <div class="charts-grid">
+            <div class="chart-card">
+              <div class="card-header">
+                <span class="card-title">Subject Mastery Index</span>
+              </div>
+              <div style="height: 350px">
+                <canvas id="chart-subject-perf"></canvas>
+              </div>
+            </div>
+            <div class="chart-card" id="card-class-comparison">
+              <div class="card-header">
+                <span class="card-title">Competitive Class Matrix</span>
+              </div>
+              <div style="height: 350px">
+                <canvas id="chart-class-comparison"></canvas>
+              </div>
+            </div>
+            <div class="chart-card hidden" id="card-student-perf">
+              <div class="card-header">
+                <span class="card-title">Student Growth Curve</span>
+              </div>
+              <div style="height: 350px">
+                <canvas id="chart-student-perf"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 mt-2">
+            <div class="chart-card">
+              <div class="card-header">
+                <span class="card-title">At-Risk Intervention</span>
+                <span class="badge badge-danger">High Priority</span>
+              </div>
+              <div id="at-risk-container"></div>
             </div>
 
-            <div id="loading" class="loading-premium">
-                <div class="spinner"></div>
-                <p style="margin-top: 1.5rem; font-weight: 800; color: var(--navy); font-size: 1.1rem;">Optimizing Neural Aggregates...</p>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Crunching live exam data for AEVON Insights</p>
+            <div class="chart-card">
+              <div class="card-header">
+                <span class="card-title">Honor Roll</span>
+                <span class="badge badge-success">Top Performers</span>
+              </div>
+              <div id="top-students-table"></div>
             </div>
-
-            <div id="dashboard-content" class="hidden">
-                <div class="stats-grid" id="stats-grid">
-                    <!-- Dynamic stat cards -->
-                </div>
-
-                <div class="charts-grid">
-                    <div class="chart-card">
-                        <div class="card-header"><span class="card-title">Subject Mastery Index</span></div>
-                        <div style="height:350px;"><canvas id="chart-subject-perf"></canvas></div>
-                    </div>
-                    <div class="chart-card" id="card-class-comparison">
-                        <div class="card-header"><span class="card-title">Competitive Class Matrix</span></div>
-                        <div style="height:350px;"><canvas id="chart-class-comparison"></canvas></div>
-                    </div>
-                    <div class="chart-card hidden" id="card-student-perf">
-                        <div class="card-header"><span class="card-title">Student Growth Curve</span></div>
-                        <div style="height:350px;"><canvas id="chart-student-perf"></canvas></div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2 mt-2">
-                    <div class="chart-card">
-                        <div class="card-header">
-                            <span class="card-title">At-Risk Intervention</span>
-                            <span class="badge badge-danger">High Priority</span>
-                        </div>
-                        <div id="at-risk-container"></div>
-                    </div>
-
-                    <div class="chart-card">
-                        <div class="card-header">
-                            <span class="card-title">Honor Roll</span>
-                            <span class="badge badge-success">Top Performers</span>
-                        </div>
-                        <div id="top-students-table"></div>
-                    </div>
-                </div>
-            </div>
-        </main>
+          </div>
+        </div>
+      </main>
     </div>
 
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/charts.js"></script>
     <script>
-        let allStudents = [];
-        let currentClassId = 'all';
+      let allStudents = []
+      let currentClassId = "all"
 
-        async function init() {
-            const user = await requireAuth(['admin']);
-            if (!user) return;
-            renderSidebar('admin_dashboard.html');
+      async function init() {
+        const user = await requireAuth(["admin"])
+        if (!user) return
+        renderSidebar("admin_dashboard.html")
 
-            try {
-                const { classes } = await AnalyticsAPI.getClasses();
-                const cFilter = document.getElementById('class-filter');
-                classes.forEach(c => {
-                    const opt = document.createElement('option');
-                    opt.value = c.id; opt.textContent = c.name;
-                    cFilter.appendChild(opt);
-                });
-            } catch(e) {}
+        try {
+          const { classes } = await AnalyticsAPI.getClasses()
+          const cFilter = document.getElementById("class-filter")
+          classes.forEach((c) => {
+            const opt = document.createElement("option")
+            opt.value = c.id
+            opt.textContent = c.name
+            cFilter.appendChild(opt)
+          })
+        } catch (e) {}
 
-            try { await loadExamsForFilter('all'); } catch(e) {}
-            await loadDashboard();
+        try {
+          await loadExamsForFilter("all")
+        } catch (e) {}
+        await loadDashboard()
 
-            // Lazy load search data
-            StudentsAPI.getAll().then(res => allStudents = res.students).catch(()=>{});
+        // Lazy load search data
+        StudentsAPI.getAll()
+          .then((res) => (allStudents = res.students))
+          .catch(() => {})
+      }
+
+      async function loadDashboard() {
+        const classId = document.getElementById("class-filter").value
+        const examId = document.getElementById("exam-filter").value
+
+        if (classId !== currentClassId) {
+          currentClassId = classId
+          try {
+            await loadExamsForFilter(classId)
+          } catch (e) {}
         }
 
-        async function loadDashboard() {
-            const classId = document.getElementById('class-filter').value;
-            const examId = document.getElementById('exam-filter').value;
+        document.getElementById("loading").classList.remove("hidden")
+        document.getElementById("dashboard-content").classList.add("hidden")
 
-            if (classId !== currentClassId) {
-                currentClassId = classId;
-                try { await loadExamsForFilter(classId); } catch(e) {}
-            }
-
-            document.getElementById('loading').classList.remove('hidden');
-            document.getElementById('dashboard-content').classList.add('hidden');
-
-            try {
-                const data = await AnalyticsAPI.overview(
-                    classId === 'all' ? undefined : classId,
-                    examId === 'all' ? undefined : examId
-                );
-                renderStats(data);
-                renderCharts(data);
-                renderAtRisk(data.at_risk_students || []);
-                renderTopStudents(data.top_students || []);
-                document.getElementById('dashboard-content').classList.remove('hidden');
-            } catch (err) {
-                showToast('Failed to load dashboard: ' + err.message, 'error');
-                // Show empty dashboard instead of leaving spinner up
-                document.getElementById('stats-grid').innerHTML = '<p style="color:var(--text-muted);padding:1rem;">Could not load analytics. Please refresh.</p>';
-                document.getElementById('dashboard-content').classList.remove('hidden');
-            } finally {
-                document.getElementById('loading').classList.add('hidden');
-            }
+        try {
+          const data = await AnalyticsAPI.overview(
+            classId === "all" ? undefined : classId,
+            examId === "all" ? undefined : examId,
+          )
+          renderStats(data)
+          renderCharts(data)
+          renderAtRisk(data.at_risk_students || [])
+          renderTopStudents(data.top_students || [])
+          document
+            .getElementById("dashboard-content")
+            .classList.remove("hidden")
+        } catch (err) {
+          showToast("Failed to load dashboard: " + err.message, "error")
+          // Show empty dashboard instead of leaving spinner up
+          document.getElementById("stats-grid").innerHTML =
+            '<p style="color:var(--text-muted);padding:1rem;">Could not load analytics. Please refresh.</p>'
+          document
+            .getElementById("dashboard-content")
+            .classList.remove("hidden")
+        } finally {
+          document.getElementById("loading").classList.add("hidden")
         }
+      }
 
-        async function loadExamsForFilter(classId) {
-            try {
-                const { exams } = await AdminAPI.getExams(classId === 'all' ? null : classId);
-                const select = document.getElementById('exam-filter');
-                const currentVal = select.value;
-                select.innerHTML = '<option value="all">All Exams</option>' +
-                    exams.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
-                if (Array.from(select.options).some(o => o.value === currentVal)) select.value = currentVal;
-            } catch(e) {
-                console.warn('Could not load exams for filter:', e.message);
-            }
+      async function loadExamsForFilter(classId) {
+        try {
+          const { exams } = await AdminAPI.getExams(
+            classId === "all" ? null : classId,
+          )
+          const select = document.getElementById("exam-filter")
+          const currentVal = select.value
+          select.innerHTML =
+            '<option value="all">All Exams</option>' +
+            exams
+              .map((e) => `<option value="${e.id}">${e.name}</option>`)
+              .join("")
+          if (Array.from(select.options).some((o) => o.value === currentVal))
+            select.value = currentVal
+        } catch (e) {
+          console.warn("Could not load exams for filter:", e.message)
         }
+      }
 
-        function renderStats(data) {
-            const classId = document.getElementById('class-filter').value;
-            const avgLabel = classId === 'all' ? 'System Avg' : 'Class Avg';
-            
-            const stats = [
-                { label: 'Enrolled Students', value: data.total_students },
-                { label: 'Active Classes', value: data.total_classes },
-                { label: avgLabel, value: `${data.average_percentage || 0}%` },
-                { label: 'Critical Risk', value: (data.at_risk_students || []).length }
-            ];
+      function renderStats(data) {
+        const classId = document.getElementById("class-filter").value
+        const avgLabel = classId === "all" ? "System Avg" : "Class Avg"
 
-            document.getElementById('stats-grid').innerHTML = stats.map(s => `
+        const stats = [
+          { label: "Enrolled Students", value: data.total_students },
+          { label: "Active Classes", value: data.total_classes },
+          { label: avgLabel, value: `${data.average_percentage || 0}%` },
+          {
+            label: "Critical Risk",
+            value: (data.at_risk_students || []).length,
+          },
+        ]
+
+        document.getElementById("stats-grid").innerHTML = stats
+          .map(
+            (s) => `
                 <div class="admin-stat-card">
                     <div class="stat-value">${s.value}</div>
                     <div class="stat-label">${s.label}</div>
                 </div>
-            `).join('');
+            `,
+          )
+          .join("")
+      }
+
+      function renderCharts(data) {
+        const examId = document.getElementById("exam-filter").value
+        const classId = document.getElementById("class-filter").value
+
+        if (data.subject_performance) {
+          Charts.renderSubjectPerformance(
+            "chart-subject-perf",
+            data.subject_performance,
+          )
         }
 
-        function renderCharts(data) {
-            const examId = document.getElementById('exam-filter').value;
-            const classId = document.getElementById('class-filter').value;
-
-            if (data.subject_performance) {
-                Charts.renderSubjectPerformance('chart-subject-perf', data.subject_performance);
-            }
-
-            if ((examId !== 'all' || classId !== 'all') && data.student_performance) {
-                document.getElementById('card-class-comparison').classList.add('hidden');
-                document.getElementById('card-student-perf').classList.remove('hidden');
-                Charts.renderStudentPerformance('chart-student-perf', data.student_performance);
-            } else {
-                document.getElementById('card-class-comparison').classList.remove('hidden');
-                document.getElementById('card-student-perf').classList.add('hidden');
-                if (data.class_performance) Charts.renderClassComparison('chart-class-comparison', data.class_performance);
-            }
+        if (
+          (examId !== "all" || classId !== "all") &&
+          data.student_performance
+        ) {
+          document
+            .getElementById("card-class-comparison")
+            .classList.add("hidden")
+          document
+            .getElementById("card-student-perf")
+            .classList.remove("hidden")
+          Charts.renderStudentPerformance(
+            "chart-student-perf",
+            data.student_performance,
+          )
+        } else {
+          document
+            .getElementById("card-class-comparison")
+            .classList.remove("hidden")
+          document.getElementById("card-student-perf").classList.add("hidden")
+          if (data.class_performance)
+            Charts.renderClassComparison(
+              "chart-class-comparison",
+              data.class_performance,
+            )
         }
+      }
 
-        function renderAtRisk(students) {
-            const container = document.getElementById('at-risk-container');
-            if (!students.length) {
-                container.innerHTML = '<div class="p-3 text-center" style="color:var(--success); font-weight:800; background:rgba(16,185,129,0.05); border-radius:var(--radius-md);">All students meeting benchmarks.</div>';
-                return;
-            }
-            container.innerHTML = `<table class="data-table">
+      function renderAtRisk(students) {
+        const container = document.getElementById("at-risk-container")
+        if (!students.length) {
+          container.innerHTML =
+            '<div class="p-3 text-center" style="color:var(--success); font-weight:800; background:rgba(16,185,129,0.05); border-radius:var(--radius-md);">All students meeting benchmarks.</div>'
+          return
+        }
+        container.innerHTML = `<table class="data-table">
                 <thead><tr><th>Student</th><th>Class</th><th>Risk Level</th></tr></thead>
-                <tbody>${students.map(s => `
+                <tbody>${students
+                  .map(
+                    (s) => `
                     <tr onclick="window.location.href='student.html?id=${s.id}'" style="cursor:pointer">
                         <td style="font-weight:700; color:var(--navy);">${s.name}</td>
                         <td><span class="badge" style="background:#f1f5f9; color:#475569;">${s.class_name}</span></td>
-                        <td><span class="risk-badge ${s.risk_level === 'high' ? 'risk-high' : 'risk-medium'}">${s.risk_level}</span></td>
+                        <td><span class="risk-badge ${s.risk_level === "high" ? "risk-high" : "risk-medium"}">${s.risk_level}</span></td>
                     </tr>
-                `).join('')}</tbody></table>`;
-        }
+                `,
+                  )
+                  .join("")}</tbody></table>`
+      }
 
-        function renderTopStudents(students) {
-            const container = document.getElementById('top-students-table');
-            if (!students.length) {
-                container.innerHTML = '<div class="p-3 text-center text-muted">No assessment data available.</div>';
-                return;
-            }
-            container.innerHTML = `<table class="data-table">
+      function renderTopStudents(students) {
+        const container = document.getElementById("top-students-table")
+        if (!students.length) {
+          container.innerHTML =
+            '<div class="p-3 text-center text-muted">No assessment data available.</div>'
+          return
+        }
+        container.innerHTML = `<table class="data-table">
                 <thead><tr><th>Rank</th><th>Name</th><th>Efficiency</th></tr></thead>
-                <tbody>${students.map((s, i) => `
+                <tbody>${students
+                  .map(
+                    (s, i) => `
                     <tr>
-                        <td><div class="rank-indicator ${i < 3 ? 'rank-'+(i+1) : ''}">${i+1}</div></td>
+                        <td><div class="rank-indicator ${i < 3 ? "rank-" + (i + 1) : ""}">${i + 1}</div></td>
                         <td style="font-weight:700; color:var(--navy);">${s.name}</td>
                         <td style="color:var(--success); font-weight:800; font-size:1.1rem;">${s.avg_percentage}%</td>
                     </tr>
-                `).join('')}</tbody></table>`;
+                `,
+                  )
+                  .join("")}</tbody></table>`
+      }
+
+      function handleSearch() {
+        const q = document
+          .getElementById("global-search")
+          .value.toLowerCase()
+          .trim()
+        const results = document.getElementById("search-results")
+        if (q.length < 2) {
+          results.style.display = "none"
+          return
         }
 
-        function handleSearch() {
-            const q = document.getElementById('global-search').value.toLowerCase().trim();
-            const results = document.getElementById('search-results');
-            if (q.length < 2) { results.style.display = 'none'; return; }
-
-            const filtered = allStudents.filter(s => s.name.toLowerCase().includes(q) || s.enrollment_no.toLowerCase().includes(q)).slice(0, 8);
-            if (!filtered.length) {
-                results.innerHTML = '<div class="p-3 text-center text-muted">No student found matching query</div>';
-            } else {
-                results.innerHTML = filtered.map(s => `
+        const filtered = allStudents
+          .filter(
+            (s) =>
+              s.name.toLowerCase().includes(q) ||
+              s.enrollment_no.toLowerCase().includes(q),
+          )
+          .slice(0, 8)
+        if (!filtered.length) {
+          results.innerHTML =
+            '<div class="p-3 text-center text-muted">No student found matching query</div>'
+        } else {
+          results.innerHTML = filtered
+            .map(
+              (s) => `
                     <div class="search-item" onclick="window.location.href='student.html?id=${s.id}'">
-                        <div class="avatar">${s.name.substring(0,1).toUpperCase()}</div>
+                        <div class="avatar">${s.name.substring(0, 1).toUpperCase()}</div>
                         <div style="flex:1;">
                             <div style="font-weight:800; color:var(--navy);">${s.name}</div>
                             <div style="font-size:0.85rem; color:var(--text-muted);">${s.enrollment_no} • ${s.class_name}</div>
                         </div>
                         <span class="type">Student</span>
                     </div>
-                `).join('');
-            }
-            results.style.display = 'block';
+                `,
+            )
+            .join("")
         }
+        results.style.display = "block"
+      }
 
-        document.addEventListener('click', (e) => {
-            if (!document.getElementById('global-search').contains(e.target)) {
-                document.getElementById('search-results').style.display = 'none';
-            }
-        });
+      document.addEventListener("click", (e) => {
+        if (!document.getElementById("global-search").contains(e.target)) {
+          document.getElementById("search-results").style.display = "none"
+        }
+      })
 
-        init();
+      init()
     </script>
-</body>
+  </body>
 </html>

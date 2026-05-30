@@ -1,59 +1,86 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Reports — AEVON</title>
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
     <div class="app-layout">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h2>AEVON</h2>
-                <div class="user-role" id="role-label">Panel</div>
-            </div>
-            <nav class="sidebar-nav" id="nav-links"></nav>
-            <div class="sidebar-footer">
-                <button class="btn btn-secondary" style="width:100%;" onclick="handleLogout()">Logout</button>
-            </div>
-        </aside>
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <h2>AEVON</h2>
+          <div class="user-role" id="role-label">Panel</div>
+        </div>
+        <nav class="sidebar-nav" id="nav-links"></nav>
+        <div class="sidebar-footer">
+          <button
+            class="btn btn-secondary"
+            style="width: 100%"
+            onclick="handleLogout()"
+          >
+            Logout
+          </button>
+        </div>
+      </aside>
 
-        <main class="main-content">
-            <div class="page-header">
-                <div>
-                    <h1>Report Generation</h1>
-                    <p class="subtitle">Download PDF reports of student performance</p>
-                </div>
-            </div>
+      <main class="main-content">
+        <div class="page-header">
+          <div>
+            <h1>Report Generation</h1>
+            <p class="subtitle">Download PDF reports of student performance</p>
+          </div>
+        </div>
 
-            <div class="card">
-                <div class="card-header"><span class="card-title">Select Student to Generate Report</span></div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Select Student to Generate Report</span>
+          </div>
 
-                <div class="flex gap-1 mb-2" style="flex-wrap:wrap;">
-                    <select id="report-class" class="form-control" style="width:180px;" onchange="loadStudentsForReport()">
-                        <option value="">Select Class</option>
-                    </select>
-                    <select id="report-student" class="form-control" style="width:250px;">
-                        <option value="">Select Student</option>
-                    </select>
-                    <button class="btn btn-primary" onclick="downloadReport()">Download PDF Report</button>
-                </div>
+          <div class="flex gap-1 mb-2" style="flex-wrap: wrap">
+            <select
+              id="report-class"
+              class="form-control"
+              style="width: 180px"
+              onchange="loadStudentsForReport()"
+            >
+              <option value="">Select Class</option>
+            </select>
+            <select
+              id="report-student"
+              class="form-control"
+              style="width: 250px"
+            >
+              <option value="">Select Student</option>
+            </select>
+            <button class="btn btn-primary" onclick="downloadReport()">
+              Download PDF Report
+            </button>
+          </div>
 
-                <div id="student-preview" class="hidden mt-2">
-                    <h3 class="mb-1" id="preview-name"></h3>
-                    <div id="preview-stats" class="stats-grid"></div>
-                </div>
-            </div>
+          <div id="student-preview" class="hidden mt-2">
+            <h3 class="mb-1" id="preview-name"></h3>
+            <div id="preview-stats" class="stats-grid"></div>
+          </div>
+        </div>
 
-            <div class="card mt-2" id="bulk-reports-card">
-                <div class="card-header"><span class="card-title">Quick Student Reports</span></div>
-                <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1rem;">
-                    Click on any student below to download their PDF report instantly.
-                </p>
-                <div id="quick-reports-list"></div>
-            </div>
-        </main>
+        <div class="card mt-2" id="bulk-reports-card">
+          <div class="card-header">
+            <span class="card-title">Quick Student Reports</span>
+          </div>
+          <p
+            style="
+              color: var(--text-secondary);
+              font-size: 0.9rem;
+              margin-bottom: 1rem;
+            "
+          >
+            Click on any student below to download their PDF report instantly.
+          </p>
+          <div id="quick-reports-list"></div>
+        </div>
+      </main>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -61,77 +88,82 @@
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        let currentUser = null;
+      let currentUser = null
 
-        async function init() {
-            currentUser = await requireAuth(['teacher', 'student', 'admin']);
-            if (!currentUser) return;
+      async function init() {
+        currentUser = await requireAuth(["teacher", "student", "admin"])
+        if (!currentUser) return
 
-            renderSidebar('reports.html');
+        renderSidebar("reports.html")
 
-            if (currentUser.role === 'student' && currentUser.student_id) {
-                document.getElementById('bulk-reports-card').classList.add('hidden');
-                document.getElementById('report-class').classList.add('hidden');
-                document.getElementById('report-student').classList.add('hidden');
-                document.getElementById('report-student').innerHTML = `<option value="${currentUser.student_id}">My Report</option>`;
-                loadPreview(currentUser.student_id);
-                return;
-            }
+        if (currentUser.role === "student" && currentUser.student_id) {
+          document.getElementById("bulk-reports-card").classList.add("hidden")
+          document.getElementById("report-class").classList.add("hidden")
+          document.getElementById("report-student").classList.add("hidden")
+          document.getElementById("report-student").innerHTML =
+            `<option value="${currentUser.student_id}">My Report</option>`
+          loadPreview(currentUser.student_id)
+          return
+        }
 
-            try {
-                const { classes } = await AnalyticsAPI.getClasses();
-                const select = document.getElementById('report-class');
-                classes.forEach(c => {
-                    select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-                });
+        try {
+          const { classes } = await AnalyticsAPI.getClasses()
+          const select = document.getElementById("report-class")
+          classes.forEach((c) => {
+            select.innerHTML += `<option value="${c.id}">${c.name}</option>`
+          })
 
-                const { students } = await StudentsAPI.getAll();
-                let html = '<table class="data-table"><thead><tr><th>Name</th><th>Class</th><th>Enrollment</th><th>Action</th></tr></thead><tbody>';
-                students.forEach(s => {
-                    html += `<tr><td>${s.name}</td><td><span class="badge badge-info">${s.class_name}</span></td>
+          const { students } = await StudentsAPI.getAll()
+          let html =
+            '<table class="data-table"><thead><tr><th>Name</th><th>Class</th><th>Enrollment</th><th>Action</th></tr></thead><tbody>'
+          students.forEach((s) => {
+            html += `<tr><td>${s.name}</td><td><span class="badge badge-info">${s.class_name}</span></td>
                         <td>${s.enrollment_no}</td>
-                        <td><button class="btn btn-sm btn-primary" onclick="ReportsAPI.downloadStudentReport('${s.id}')">PDF</button></td></tr>`;
-                });
-                html += '</tbody></table>';
-                document.getElementById('quick-reports-list').innerHTML = html;
-            } catch(e) {}
-        }
+                        <td><button class="btn btn-sm btn-primary" onclick="ReportsAPI.downloadStudentReport('${s.id}')">PDF</button></td></tr>`
+          })
+          html += "</tbody></table>"
+          document.getElementById("quick-reports-list").innerHTML = html
+        } catch (e) {}
+      }
 
-        async function loadStudentsForReport() {
-            const classId = document.getElementById('report-class').value;
-            const select = document.getElementById('report-student');
-            select.innerHTML = '<option value="">Select Student</option>';
-            if (!classId) return;
+      async function loadStudentsForReport() {
+        const classId = document.getElementById("report-class").value
+        const select = document.getElementById("report-student")
+        select.innerHTML = '<option value="">Select Student</option>'
+        if (!classId) return
 
-            const { students } = await StudentsAPI.getAll(classId);
-            students.forEach(s => {
-                select.innerHTML += `<option value="${s.id}">${s.name} (${s.enrollment_no})</option>`;
-            });
-        }
+        const { students } = await StudentsAPI.getAll(classId)
+        students.forEach((s) => {
+          select.innerHTML += `<option value="${s.id}">${s.name} (${s.enrollment_no})</option>`
+        })
+      }
 
-        async function loadPreview(studentId) {
-            try {
-                const data = await AnalyticsAPI.studentAnalytics(studentId);
-                document.getElementById('preview-name').textContent = data.student.name;
-                document.getElementById('preview-stats').innerHTML = `
+      async function loadPreview(studentId) {
+        try {
+          const data = await AnalyticsAPI.studentAnalytics(studentId)
+          document.getElementById("preview-name").textContent =
+            data.student.name
+          document.getElementById("preview-stats").innerHTML = `
                     <div class="stat-card"><div class="stat-icon" style="font-size: 1.2rem; font-weight: 700; color: var(--primary);">AVG</div><div class="stat-value">${data.overall_average || 0}%</div><div class="stat-label">Overall Avg</div></div>
-                    <div class="stat-card"><div class="stat-icon" style="font-size: 1.2rem; font-weight: 700; color: var(--primary);">RNK</div><div class="stat-value">#${data.rank || '-'}</div><div class="stat-label">Class Rank</div></div>
-                `;
-                document.getElementById('student-preview').classList.remove('hidden');
-            } catch { /* ignore */ }
+                    <div class="stat-card"><div class="stat-icon" style="font-size: 1.2rem; font-weight: 700; color: var(--primary);">RNK</div><div class="stat-value">#${data.rank || "-"}</div><div class="stat-label">Class Rank</div></div>
+                `
+          document.getElementById("student-preview").classList.remove("hidden")
+        } catch {
+          /* ignore */
         }
+      }
 
-        function downloadReport() {
-            const studentId = document.getElementById('report-student').value;
-            if (!studentId) {
-                showToast('Please select a student', 'error');
-                return;
-            }
-            ReportsAPI.downloadStudentReport(studentId);
-            showToast('Generating PDF report...');
+      function downloadReport() {
+        const studentId = document.getElementById("report-student").value
+        if (!studentId) {
+          showToast("Please select a student", "error")
+          return
         }
+        ReportsAPI.downloadStudentReport(studentId)
+        showToast("Generating PDF report...")
+      }
 
-        init();
+      init()
     </script>
-</body>
+  </body>
 </html>
