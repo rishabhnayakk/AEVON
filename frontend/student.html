@@ -740,7 +740,8 @@
           .slice(0, 2)
         document.getElementById("student-avatar").textContent = initials
 
-        const marks = data.marks || []
+        const allMarks = data.marks || []
+        const marks = allMarks.filter((m) => m.exam_name && m.exam_name !== "-")
         const passCount = marks.filter((m) => m.percentage >= 40).length
         const failCount = marks.length - passCount
 
