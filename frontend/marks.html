@@ -154,7 +154,7 @@
                     class="form-control"
                     onchange="checkStatusForAdd(this.value)"
                   >
-                    <option value="">No Exam</option>
+                    <option value="">Select Exam</option>
                   </select>
                 </div>
                 <div class="form-group" style="margin: 0">
@@ -329,7 +329,7 @@
 
           const addSel = document.getElementById("add-exam")
           addSel.innerHTML =
-            '<option value="">No Exam</option>' +
+            '<option value="">Select Exam</option>' +
             exams
               .map((e) => `<option value="${e.id}">${e.name}</option>`)
               .join("")
@@ -495,7 +495,7 @@
             .join("")
           const examSel = document.getElementById("add-exam")
           examSel.innerHTML =
-            '<option value="">No Exam</option>' +
+            '<option value="">Select Exam</option>' +
             exams
               .map((e) => `<option value="${e.id}">${e.name}</option>`)
               .join("")
@@ -565,6 +565,7 @@
           marks_obtained: parseInt(document.getElementById("add-marks").value),
           max_marks: parseInt(document.getElementById("add-max").value),
         }
+        if (!data.exam_id) return showToast("Please select an Exam", "error")
         if (!data.subject_id || isNaN(data.marks_obtained))
           return showToast("Fill all fields", "error")
         try {

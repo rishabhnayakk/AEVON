@@ -409,7 +409,7 @@
 
           const examSel = document.getElementById("m-exam")
           examSel.innerHTML =
-            '<option value="">No Exam (Internal/Class Test)</option>' +
+            '<option value="">Select Exam</option>' +
             exams
               .map(
                 (e) =>
@@ -487,6 +487,11 @@
         const examId = document.getElementById("m-exam").value
         const subjectId = document.getElementById("m-subject").value
         const marksValue = parseInt(document.getElementById("m-val").value)
+
+        if (!examId) {
+          showToast("Please select an Exam", "error")
+          return
+        }
 
         if (!subjectId || isNaN(marksValue)) {
           showToast("Please select a subject and enter a valid mark", "error")
