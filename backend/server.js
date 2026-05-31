@@ -26,10 +26,8 @@ const {
   StudyMaterial,
 } = require("./models")
 
-
 const app = express()
 
-// Middleware
 app.use(cors({ origin: true, credentials: true }))
 app.use(express.json({ limit: "10mb" }))
 const isProd = process.env.NODE_ENV === "production"
@@ -45,19 +43,17 @@ app.use(
     store: MongoStore.create({
       mongoUrl: MONGO_URI,
       collectionName: "sessions",
-      ttl: 7 * 24 * 60 * 60, // 7 days
+      ttl: 7 * 24 * 60 * 60, 
     }),
     cookie: {
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000, 
       secure: isProd,
       sameSite: isProd ? "none" : "lax",
     },
   }),
 )
 
-// Serve frontend
 app.use(express.static(path.join(__dirname, "..", "frontend")))
-// Serve uploaded media
 app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 
 const fs = require("fs")
@@ -67,7 +63,6 @@ const materialsDir = path.join(__dirname, "uploads", "materials")
 if (!fs.existsSync(materialsDir))
   fs.mkdirSync(materialsDir, { recursive: true })
 
-// Auth middleware
 function requireLogin(req, res, next) {
   if (!req.session.userId)
     return res.status(401).json({ error: "Not authenticated" })
@@ -88,11 +83,10 @@ async function getTeacherClasses(userId) {
 
 async function filterRealMarks(marks, onlyPublished = false) {
   const filtered = []
-  const groups = {} // studentId_subjectId
+  const groups = {} 
 
   let publishedIds = null
   if (onlyPublished) {
-    // Fetch all published exam IDs
     const publishedConfigs = await mongoose
       .model("ExamConfig")
       .find({ resultsVisible: true }, "examId")
@@ -105,7 +99,6 @@ async function filterRealMarks(marks, onlyPublished = false) {
     groups[key].push(m)
   })
   Object.values(groups).forEach((group) => {
-    // Only include exam marks if they are published (if filtering is enabled)
     const examMarks = group.filter((m) => {
       if (!m.examId) return false
       if (onlyPublished) {
@@ -120,7 +113,6 @@ async function filterRealMarks(marks, onlyPublished = false) {
     if (examMarks.length) {
       filtered.push(...examMarks)
     } else {
-      // Fallback to manual/legacy marks (where examId is null)
       const manualMarks = group.filter((m) => !m.examId)
       filtered.push(...manualMarks)
     }
@@ -133,18 +125,14 @@ async function checkAndAwardBadges(studentId) {
     const student = await Student.findById(studentId)
     if (!student) return
 
-    // Fetch student's marks and populate subjectId and examId
     const marks = await Mark.find({ studentId }).populate("subjectId examId")
-    // Filter them as if we are a student (show only published marks)
     const filteredMarks = await filterRealMarks(marks, true)
 
     const earnedBadges = student.badges || []
     const newBadges = []
 
-    // Helper to check if badge already exists
     const hasBadge = (name) => earnedBadges.some((b) => b.name === name)
 
-    // 1. Math Wizard: >= 85% average in Math subjects (subject name contains 'math' case-insensitively)
     if (!hasBadge("Math Wizard")) {
       const mathMarks = filteredMarks.filter(
         (m) =>
@@ -170,7 +158,6 @@ async function checkAndAwardBadges(studentId) {
       }
     }
 
-    // 2. Perfect Score: 100% in any subject in any exam
     if (!hasBadge("Perfect Score")) {
       const perfectScoreExists = filteredMarks.some(
         (m) => Math.round((m.marksObtained / m.maxMarks) * 100) >= 100,
@@ -184,7 +171,6 @@ async function checkAndAwardBadges(studentId) {
       }
     }
 
-    // Sort/group exams chronologically to check Streak, Consistent Performer, and Most Improved.
     const examMarks = filteredMarks.filter((m) => m.examId)
     const examsGrouped = {}
     examMarks.forEach((m) => {
@@ -211,9 +197,8 @@ async function checkAndAwardBadges(studentId) {
           avg: Math.round(avg),
         }
       })
-      .sort((a, b) => a.date - b.date) // ascending chronological order
+      .sort((a, b) => a.date - b.date) 
 
-    // 3. Streak Master: >= 90% in 3 consecutive exams
     if (!hasBadge("Streak Master") && examList.length >= 3) {
       let streak = 0
       let hasStreakOf3 = false
@@ -237,7 +222,6 @@ async function checkAndAwardBadges(studentId) {
       }
     }
 
-    // 4. Consistent Performer: >= 75% in >= 3 exams
     if (!hasBadge("Consistent Performer") && examList.length >= 3) {
       const consistentCount = examList.filter((ex) => ex.avg >= 75).length
       if (consistentCount >= 3) {
@@ -249,7 +233,6 @@ async function checkAndAwardBadges(studentId) {
       }
     }
 
-    // 5. Most Improved: >= 15% improvement between consecutive exam averages
     if (!hasBadge("Most Improved") && examList.length >= 2) {
       let has15PercentJump = false
       for (let i = 1; i < examList.length; i++) {
@@ -273,7 +256,6 @@ async function checkAndAwardBadges(studentId) {
       student.badges.push(...newBadges)
       await student.save()
 
-      // Create notification alerts for each badge earned
       for (const badge of newBadges) {
         await Notification.create({
           message: `Congratulations! You've unlocked the "${badge.name}" badge ${badge.icon}!`,
@@ -289,7 +271,6 @@ async function checkAndAwardBadges(studentId) {
   }
 }
 
-// ─── AUTH ROUTES ─────────────────────────────────────────────
 app.post("/api/auth/login", async (req, res) => {
   try {
     const { username, password } = req.body
@@ -340,7 +321,6 @@ app.get("/api/auth/me", requireLogin, async (req, res) => {
   })
 })
 
-// Change password
 app.post("/api/auth/change-password", requireLogin, async (req, res) => {
   try {
     const { current_password, new_password } = req.body
@@ -363,7 +343,6 @@ app.post("/api/auth/change-password", requireLogin, async (req, res) => {
   }
 })
 
-// ─── STUDENTS ROUTES ─────────────────────────────────────────
 app.get("/api/students", requireLogin, async (req, res) => {
   let filter =
     req.query.class_id && req.query.class_id !== "all"
@@ -385,7 +364,6 @@ app.get("/api/students", requireLogin, async (req, res) => {
 
   const students = await Student.find(filter).populate("classId")
 
-  // Map users to students for password resets and blocking
   const users = await User.find({
     studentId: { $in: students.map((s) => s._id) },
   })
@@ -433,7 +411,6 @@ app.post("/api/students", requireAdmin, async (req, res) => {
       enrollmentNo: req.body.enrollment_no,
       classId: req.body.class_id,
     })
-    // Auto-create user account (email = username, name = password)
     if (req.body.email) {
       const existing = await User.findOne({ username: req.body.email })
       if (!existing) {
@@ -447,7 +424,6 @@ app.post("/api/students", requireAdmin, async (req, res) => {
       }
     }
 
-    // Auto-seed 0 marks for every subject in the class (so student always has data)
     const subjects = await Subject.find({ classId: req.body.class_id })
     const markInserts = subjects.map((sub) => ({
       studentId: s._id,
@@ -481,7 +457,6 @@ app.delete("/api/students/:id", requireAdmin, async (req, res) => {
   try {
     const student = await Student.findById(req.params.id)
     if (!student) return res.status(404).json({ error: "Student not found" })
-    // Cascade: delete marks, attempts, linked user account and notifications
     await Promise.all([
       Mark.deleteMany({ studentId: req.params.id }),
       ExamAttempt.deleteMany({ studentId: req.params.id }),
@@ -495,7 +470,6 @@ app.delete("/api/students/:id", requireAdmin, async (req, res) => {
   }
 })
 
-// ─── MARKS ROUTES ────────────────────────────────────────────
 app.get("/api/marks", requireLogin, async (req, res) => {
   try {
     const filter = {}
@@ -503,7 +477,6 @@ app.get("/api/marks", requireLogin, async (req, res) => {
     if (req.query.subject_id) filter.subjectId = req.query.subject_id
     if (req.query.exam_id) filter.examId = req.query.exam_id
 
-    // Handle filtering marks by class
     if (req.query.class_id && req.query.class_id !== "all") {
       const studentsInClass = await Student.find({
         classId: req.query.class_id,
@@ -656,7 +629,6 @@ app.post("/api/marks/bulk", requireLogin, async (req, res) => {
   }
 })
 
-// Update a mark (teacher only)
 app.put("/api/marks/:id", requireLogin, async (req, res) => {
   try {
     const mark = await Mark.findById(req.params.id).populate("examId")
@@ -691,19 +663,16 @@ app.put("/api/marks/:id", requireLogin, async (req, res) => {
   }
 })
 
-// Delete a mark
 app.delete("/api/marks/:id", requireLogin, async (req, res) => {
   await Mark.findByIdAndDelete(req.params.id)
   res.json({ message: "Mark deleted" })
 })
 
-// Delete attendance record
 app.delete("/api/attendance/:id", requireLogin, async (req, res) => {
   await Attendance.findByIdAndDelete(req.params.id)
   res.json({ message: "Attendance record deleted" })
 })
 
-// ─── ANALYTICS ROUTES ────────────────────────────────────────
 app.get("/api/analytics/classes", requireLogin, async (req, res) => {
   let filter = {}
   if (req.session.role === "teacher") {
@@ -789,7 +758,6 @@ app.get("/api/analytics/overview", requireLogin, async (req, res) => {
     const isStudent = req.session.role === "student"
     const filteredMarks = await filterRealMarks(allMarks, isStudent)
 
-    // Overall average
     let avg = 0
     if (filteredMarks.length) {
       avg = Math.round(
@@ -800,7 +768,6 @@ app.get("/api/analytics/overview", requireLogin, async (req, res) => {
       )
     }
 
-    // Subject performance
     const subjectMap = {}
     filteredMarks.forEach((m) => {
       const name = m.subjectId?.name || "Unknown"
@@ -816,7 +783,6 @@ app.get("/api/analytics/overview", requireLogin, async (req, res) => {
       }))
       .sort((a, b) => b.avg_percentage - a.avg_percentage)
 
-    // Class performance
     const classMap = {}
     for (const s of allStudentsWithClass) {
       const cn = s.classId?.name || "Unknown"
@@ -842,7 +808,6 @@ app.get("/api/analytics/overview", requireLogin, async (req, res) => {
       }))
       .sort((a, b) => b.avg_percentage - a.avg_percentage)
 
-    // Top students
     const studentAvgs = []
     for (const s of students) {
       const sMarks = filteredMarks.filter(
@@ -933,7 +898,6 @@ app.get("/api/analytics/class/:id", requireLogin, async (req, res) => {
     }
     studentData.sort((a, b) => b.avg_percentage - a.avg_percentage)
 
-    // Subject avgs
     const subjectData = subjects
       .map((sub) => {
         const sMarks = filteredMarks.filter(
@@ -951,7 +915,6 @@ app.get("/api/analytics/class/:id", requireLogin, async (req, res) => {
       })
       .sort((a, b) => b.avg_percentage - a.avg_percentage)
 
-    // Grade distribution
     const allPcts = filteredMarks.map(
       (m) => (m.marksObtained / m.maxMarks) * 100,
     )
@@ -1005,7 +968,6 @@ app.get("/api/analytics/student/:id", requireLogin, async (req, res) => {
       classId: student.classId._id,
     })
 
-    // Overall avg for context
     const avgMarks = filteredMarks.length
       ? Math.round(
           filteredMarks.reduce(
@@ -1015,7 +977,6 @@ app.get("/api/analytics/student/:id", requireLogin, async (req, res) => {
         )
       : 0
 
-    // Rank for this specific context (Exam or Overall)
     const avgs = []
     for (const cs of allClassStudents) {
       let csFilter = { studentId: cs._id }
@@ -1034,7 +995,6 @@ app.get("/api/analytics/student/:id", requireLogin, async (req, res) => {
     avgs.sort((a, b) => b.avg - a.avg)
     const rank = avgs.findIndex((a) => a.id === student._id.toString()) + 1
 
-    // Subject marks
     const subjMap = {}
     filteredMarks.forEach((m) => {
       const name = m.subjectId?.name || ""
@@ -1091,8 +1051,6 @@ app.get("/api/analytics/student/:id", requireLogin, async (req, res) => {
     res.status(500).json({ error: e.message })
   }
 })
-
-// ─── AI HELPERS (inlined from ai.js) ─────────────────────────
 
 function generateFallbackAnalysis(data) {
   const allSubjectsZero =
@@ -1278,8 +1236,6 @@ async function chatAssistant(message, dataStr, role) {
   return "AI chatbot has been disabled by the administrator."
 }
 
-// ─── AI ROUTES ───────────────────────────────────────────────
-
 app.get("/api/ai/predict/:id", requireLogin, async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id))
@@ -1311,7 +1267,6 @@ app.get("/api/ai/predict/:id", requireLogin, async (req, res) => {
       avg: Math.round(vals.reduce((a, b) => a + b, 0) / vals.length),
     }))
 
-    // If no marks yet, fetch class subjects so fallback can still give recommendations
     let effectiveSubjectAverages = subjectAverages
     if (!effectiveSubjectAverages.length) {
       const classSubjects = await Subject.find({ classId: student.classId._id })
@@ -1340,7 +1295,6 @@ app.get("/api/ai/predict/:id", requireLogin, async (req, res) => {
     }
 
     const result = await analyzeStudent(data)
-    // Normalize to snake_case for frontend
     res.json({
       predictions: (result.predictions || []).map((p) => ({
         subject_name: p.subject,
@@ -1387,7 +1341,6 @@ app.get("/api/ai/recommendations/:id", requireLogin, async (req, res) => {
       avg: Math.round(vals.reduce((a, b) => a + b, 0) / vals.length),
     }))
 
-    // If no marks yet, fetch class subjects so fallback can still give recommendations
     let effectiveSubjectAverages2 = subjectAverages
     if (!effectiveSubjectAverages2.length) {
       const classSubjects2 = await Subject.find({
@@ -1485,7 +1438,6 @@ app.get("/api/ai/at-risk", requireLogin, async (req, res) => {
     })
 
     const result = await analyzeAtRisk(studentsData)
-    // Normalize to snake_case for frontend
     res.json({
       at_risk_students: (result.atRiskStudents || []).map((s) => ({
         name: s.name,
@@ -1581,7 +1533,6 @@ app.post("/api/admin/toggle-block", requireAdmin, async (req, res) => {
   }
 })
 
-// ─── TEACHER MANAGEMENT (Admin Only) ─────────────────────────
 app.get("/api/teachers", requireAdmin, async (req, res) => {
   const teachers = await User.find({ role: "teacher" })
   res.json({
@@ -1607,7 +1558,6 @@ app.delete("/api/teachers/:id", requireAdmin, async (req, res) => {
   try {
     const teacher = await User.findOne({ _id: req.params.id, role: "teacher" })
     if (!teacher) return res.status(404).json({ error: "Teacher not found" })
-    // Remove teacher from any classes they are assigned to
     await Class.updateMany(
       { teacherIds: req.params.id },
       { $pull: { teacherIds: req.params.id } },
@@ -1619,7 +1569,6 @@ app.delete("/api/teachers/:id", requireAdmin, async (req, res) => {
   }
 })
 
-// ─── CLASS MANAGEMENT (Admin Only) ───────────────────────────
 app.post("/api/classes", requireAdmin, async (req, res) => {
   try {
     const c = await Class.create({ name: req.body.name })
@@ -1654,7 +1603,6 @@ app.delete("/api/classes/:id", requireAdmin, async (req, res) => {
   }
 })
 
-// ─── SUBJECT MANAGEMENT (Admin Only) ─────────────────────────
 app.get("/api/subjects/all", requireAdmin, async (req, res) => {
   try {
     const subjects = await Subject.find().populate("classId")
@@ -1682,7 +1630,6 @@ app.post("/api/subjects", requireAdmin, async (req, res) => {
 
     const s = await Subject.create({ name, code, classId: class_id })
 
-    // Auto-seed 0 marks for all students in this class for the new subject
     const students = await Student.find({ classId: class_id })
     const markInserts = students.map((student) => ({
       studentId: student._id,
@@ -1708,7 +1655,6 @@ app.delete("/api/subjects/:id", requireAdmin, async (req, res) => {
   }
 })
 
-// ─── EXAM MANAGEMENT (Admin Only) ───────────────────────────
 app.get("/api/exams", requireLogin, async (req, res) => {
   try {
     let filter = {}
@@ -1767,7 +1713,6 @@ app.post("/api/exams", requireAdmin, async (req, res) => {
       await Mark.insertMany(bulkMarks)
     }
 
-    // Auto-create notification for scheduled exam targeted to the students in the class
     try {
       const dateObj = new Date(date)
       const formattedDate = dateObj.toLocaleDateString("en-IN", {
@@ -1800,7 +1745,6 @@ app.post("/api/exams", requireAdmin, async (req, res) => {
         })
         await Promise.all(notifPromises)
       } else {
-        // Fallback class notification if no students are enrolled yet
         const classObj = await Class.findById(class_id)
         const className = classObj ? classObj.name : "your class"
         const message = `Hello Students, your exam ${name} has been scheduled on ${formattedDateTime}.\nThe topics are: ${description || "all general class topics"}\nWishing you the absolute best of luck!`
@@ -1822,7 +1766,6 @@ app.post("/api/exams", requireAdmin, async (req, res) => {
   }
 })
 
-// Update Exam Status
 app.patch("/api/exams/:id/status", requireLogin, async (req, res) => {
   try {
     const { status } = req.body
@@ -1830,7 +1773,6 @@ app.patch("/api/exams/:id/status", requireLogin, async (req, res) => {
     if (!allowed.includes(status))
       return res.status(400).json({ error: "Invalid status" })
 
-    // Block status changes if results have been published
     const config = await ExamConfig.findOne({ examId: req.params.id })
     if (config && config.resultsVisible) {
       return res
@@ -1858,7 +1800,6 @@ app.delete("/api/exams/:id", requireAdmin, async (req, res) => {
     const exam = await Exam.findById(req.params.id)
     if (!exam) return res.status(404).json({ error: "Exam not found" })
 
-    // Cascade: delete marks, config, attempts and notifications related to this exam
     await Promise.all([
       Exam.findByIdAndDelete(req.params.id),
       Mark.deleteMany({ examId: req.params.id }),
@@ -1871,12 +1812,6 @@ app.delete("/api/exams/:id", requireAdmin, async (req, res) => {
   }
 })
 
-// ═══════════════════════════════════════════════════════════
-// ─── EXAM PORTAL ROUTES ─────────────────────────────────────
-// ═══════════════════════════════════════════════════════════
-
-// ── Exam Config (Admin) ──────────────────────────────────────
-// GET config for a single exam
 app.get("/api/exam-portal/config/:examId", requireLogin, async (req, res) => {
   try {
     const config = await ExamConfig.findOne({
@@ -1909,7 +1844,6 @@ app.get("/api/exam-portal/config/:examId", requireLogin, async (req, res) => {
   }
 })
 
-// Create or update exam config
 app.post("/api/exam-portal/config", requireAdmin, async (req, res) => {
   try {
     const {
@@ -1960,7 +1894,6 @@ app.post("/api/exam-portal/config", requireAdmin, async (req, res) => {
         isRescheduled = true
       }
 
-      // Update parent Exam date and reset status if it was completed
       let newStatus = exam.status
       if (exam.status === "completed") {
         newStatus = "scheduled"
@@ -1970,7 +1903,6 @@ app.post("/api/exam-portal/config", requireAdmin, async (req, res) => {
         status: newStatus,
       })
 
-      // Send notification to students who have NOT attempted the exam
       if (isRescheduled) {
         try {
           const [allStudents, attempts] = await Promise.all([
@@ -2036,7 +1968,6 @@ app.post("/api/exam-portal/config", requireAdmin, async (req, res) => {
       }
     })
 
-    // Check if there are attempts for this exam
     const attemptsCount = await ExamAttempt.countDocuments({ examId: exam_id })
     if (attemptsCount > 0 && oldConfig) {
       if (
@@ -2124,19 +2055,16 @@ app.post("/api/exam-portal/config", requireAdmin, async (req, res) => {
       { upsert: true, new: true },
     )
 
-    // Align Mark records with the newly configured subjects
     try {
       const configuredSubjectIds = formattedSubjects.map((s) =>
         s.subjectId.toString(),
       )
 
-      // Delete mark records for subjects not in the config for this exam
       await Mark.deleteMany({
         examId: exam_id,
         subjectId: { $nin: configuredSubjectIds },
       })
 
-      // Seed/ensure mark records exist only for the configured subjects
       const students = await Student.find({ classId: exam.classId })
       if (students.length > 0) {
         const markPromises = []
@@ -2169,7 +2097,6 @@ app.post("/api/exam-portal/config", requireAdmin, async (req, res) => {
   }
 })
 
-// Toggle exam active/inactive
 app.post(
   "/api/exam-portal/config/:examId/toggle",
   requireAdmin,
@@ -2191,7 +2118,6 @@ app.post(
       }
 
       if (!config.isActive) {
-        // Before activating, check if all questions are uploaded
         const questions = await Question.find({ examId: req.params.examId })
         for (const sub of config.subjects) {
           const subQuestions = questions.filter(
@@ -2219,7 +2145,6 @@ app.post(
   },
 )
 
-// Toggle result visibility (admin publishes/hides results for students)
 app.post(
   "/api/exam-portal/config/:examId/toggle-results",
   requireAdmin,
@@ -2242,8 +2167,6 @@ app.post(
   },
 )
 
-// ── Questions (Admin) ────────────────────────────────────────
-// Get all questions for an exam
 app.get(
   "/api/exam-portal/questions/:examId",
   requireLogin,
@@ -2262,7 +2185,6 @@ app.get(
           subject_id: q.subjectId?._id,
           subject_name: q.subjectId?.name,
           order: q.order,
-          // Only hide correct answer from students
           ...(isStudent
             ? {}
             : {
@@ -2287,7 +2209,6 @@ app.get(
   },
 )
 
-// Create a question
 app.post("/api/exam-portal/questions", requireAdmin, async (req, res) => {
   try {
     const {
@@ -2304,7 +2225,6 @@ app.post("/api/exam-portal/questions", requireAdmin, async (req, res) => {
       return res.status(400).json({ error: "exam_id is required" })
     }
 
-    // Block adding questions if results have been published
     const config = await ExamConfig.findOne({ examId: exam_id })
     if (config && config.resultsVisible) {
       return res
@@ -2314,7 +2234,6 @@ app.post("/api/exam-portal/questions", requireAdmin, async (req, res) => {
         })
     }
 
-    // Block adding questions if the exam has already been conducted (has attempts)
     const attemptsCount = await ExamAttempt.countDocuments({ examId: exam_id })
     if (attemptsCount > 0) {
       return res
@@ -2362,7 +2281,6 @@ app.post("/api/exam-portal/questions", requireAdmin, async (req, res) => {
       order: count,
     }
 
-    // If image data (data URL) provided, save file and set imageUrl
     if (
       image_data &&
       typeof image_data === "string" &&
@@ -2390,7 +2308,6 @@ app.post("/api/exam-portal/questions", requireAdmin, async (req, res) => {
   }
 })
 
-// Update a question
 app.put("/api/exam-portal/questions/:id", requireAdmin, async (req, res) => {
   try {
     const {
@@ -2404,7 +2321,6 @@ app.put("/api/exam-portal/questions/:id", requireAdmin, async (req, res) => {
     const existingQ = await Question.findById(req.params.id)
     if (!existingQ) return res.status(404).json({ error: "Question not found" })
 
-    // Block modifying questions if results have been published
     const config = await ExamConfig.findOne({ examId: existingQ.examId })
     if (config && config.resultsVisible) {
       return res
@@ -2414,7 +2330,6 @@ app.put("/api/exam-portal/questions/:id", requireAdmin, async (req, res) => {
         })
     }
 
-    // Block modifying questions if the exam has already been conducted (has attempts)
     const attemptsCount = await ExamAttempt.countDocuments({
       examId: existingQ.examId,
     })
@@ -2486,13 +2401,11 @@ app.put("/api/exam-portal/questions/:id", requireAdmin, async (req, res) => {
   }
 })
 
-// Delete a question
 app.delete("/api/exam-portal/questions/:id", requireAdmin, async (req, res) => {
   try {
     const question = await Question.findById(req.params.id)
     if (!question) return res.status(404).json({ error: "Question not found" })
 
-    // Block deleting questions if results have been published
     const config = await ExamConfig.findOne({ examId: question.examId })
     if (config && config.resultsVisible) {
       return res
@@ -2502,7 +2415,6 @@ app.delete("/api/exam-portal/questions/:id", requireAdmin, async (req, res) => {
         })
     }
 
-    // Block deleting questions if the exam has already been conducted (has attempts)
     const attemptsCount = await ExamAttempt.countDocuments({
       examId: question.examId,
     })
@@ -2522,8 +2434,6 @@ app.delete("/api/exam-portal/questions/:id", requireAdmin, async (req, res) => {
   }
 })
 
-// ── Student Exam Flow ────────────────────────────────────────
-// Get available exams for the logged-in student's class
 app.get("/api/exam-portal/available", requireLogin, async (req, res) => {
   try {
     if (req.session.role === "student") {
@@ -2573,14 +2483,12 @@ app.get("/api/exam-portal/available", requireLogin, async (req, res) => {
             login_window_minutes: cfg?.loginWindowMinutes || 15,
             already_attempted: !!att,
             attempt_id: att && resultsVisible ? att._id : att ? "hidden" : null,
-            // Only expose score if admin has published results
             score: att && resultsVisible ? att.score : null,
             max_score: att && resultsVisible ? att.maxScore : null,
           }
         }),
       })
     } else {
-      // Teacher/admin sees all exams with config status
       const { class_id } = req.query
       let filter = {}
       if (class_id && class_id !== "all") filter.classId = class_id
@@ -2632,7 +2540,6 @@ app.get("/api/exam-portal/available", requireLogin, async (req, res) => {
   }
 })
 
-// Start an exam — returns questions (without correct answers) for students
 app.get("/api/exam-portal/start/:examId", requireLogin, async (req, res) => {
   try {
     if (req.session.role !== "student")
@@ -2648,7 +2555,6 @@ app.get("/api/exam-portal/start/:examId", requireLogin, async (req, res) => {
     if (!config.isActive)
       return res.status(403).json({ error: "This exam is not open yet" })
 
-    // Enforce time window if set
     const now = new Date()
     if (config.startsAt && now < config.startsAt) {
       const opensIn = config.startsAt.toLocaleString("en-IN", {
@@ -2673,7 +2579,6 @@ app.get("/api/exam-portal/start/:examId", requireLogin, async (req, res) => {
       }
     }
 
-    // Check for existing attempt
     const existing = await ExamAttempt.findOne({
       examId: req.params.examId,
       studentId: student._id,
@@ -2698,7 +2603,6 @@ app.get("/api/exam-portal/start/:examId", requireLogin, async (req, res) => {
       is_multiple_choice: q.correctOptions && q.correctOptions.length > 1,
     }))
 
-    // Fisher-Yates (Knuth) Shuffle to randomize the sequence for anti-cheating
     for (let i = mappedQuestions.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1))
       ;[mappedQuestions[i], mappedQuestions[j]] = [
@@ -2724,7 +2628,6 @@ app.get("/api/exam-portal/start/:examId", requireLogin, async (req, res) => {
   }
 })
 
-// Submit exam answers — auto-graded, writes score to Marks table
 app.post("/api/exam-portal/submit/:examId", requireLogin, async (req, res) => {
   try {
     if (req.session.role !== "student")
@@ -2748,7 +2651,7 @@ app.post("/api/exam-portal/submit/:examId", requireLogin, async (req, res) => {
       return res.status(403).json({ error: "Exam is not active" })
 
     const questions = await Question.find({ examId: req.params.examId })
-    const { answers, time_taken_seconds } = req.body // answers: [{questionId, selectedOption, selectedOptions}]
+    const { answers, time_taken_seconds } = req.body 
 
     const answerMap = {}
     ;(answers || []).forEach((a) => {
@@ -2838,7 +2741,6 @@ app.post("/api/exam-portal/submit/:examId", requireLogin, async (req, res) => {
       timeTakenSeconds: time_taken_seconds || 0,
     })
 
-    // Write/update score into the Marks table for analytics
     for (const [subId, data] of Object.entries(subjectScores)) {
       try {
         await Mark.findOneAndUpdate(
@@ -2851,7 +2753,6 @@ app.post("/api/exam-portal/submit/:examId", requireLogin, async (req, res) => {
           { upsert: true },
         )
       } catch (_) {
-        /* non-fatal */
       }
     }
 
@@ -2866,7 +2767,6 @@ app.post("/api/exam-portal/submit/:examId", requireLogin, async (req, res) => {
   }
 })
 
-// Get results for a specific exam (teacher/admin)
 app.get("/api/exam-portal/results/:examId", requireLogin, async (req, res) => {
   try {
     if (req.session.role === "student")
@@ -2893,7 +2793,6 @@ app.get("/api/exam-portal/results/:examId", requireLogin, async (req, res) => {
   }
 })
 
-// Get detailed analysis of a specific attempt
 app.get(
   "/api/exam-portal/attempt-details/:attemptId",
   requireLogin,
@@ -2907,13 +2806,11 @@ app.get(
       const config = await ExamConfig.findOne({ examId: attempt.examId })
       const isStudent = req.session.role === "student"
 
-      // Security check
       if (isStudent) {
         if (
           attempt.studentId._id.toString() !== req.session.userId &&
           attempt.studentId.userId?.toString() !== req.session.userId
         ) {
-          // Check if user is the student
           const studentUser = await User.findById(req.session.userId)
           if (
             studentUser.studentId?.toString() !==
@@ -2932,7 +2829,6 @@ app.get(
         }
       }
 
-      // Fetch questions and enrich answers
       const questions = await Question.find({
         examId: attempt.examId,
       }).populate("subjectId")
@@ -3030,12 +2926,10 @@ app.get(
   },
 )
 
-// ─── REPORTS (simple JSON for now) ───────────────────────────
 app.get("/api/reports/student/:id", requireLogin, async (req, res) => {
   res.redirect(`/api/analytics/student/${req.params.id}`)
 })
 
-// ─── NOTIFICATIONS ROUTE ─────────────────────────────────────
 app.post("/api/notifications", requireLogin, async (req, res) => {
   try {
     const { message, targetType, targetClassId, targetStudentId } = req.body
@@ -3112,9 +3006,6 @@ app.delete("/api/notifications/:id", requireLogin, async (req, res) => {
   }
 })
 
-// ─── STUDY MATERIALS ROUTES ───────────────────────────────────
-
-// Create a study material (admin or teacher only)
 app.post("/api/materials", requireLogin, async (req, res) => {
   try {
     if (req.session.role !== "admin" && req.session.role !== "teacher") {
@@ -3142,7 +3033,6 @@ app.post("/api/materials", requireLogin, async (req, res) => {
         })
     }
 
-    // Teacher access check — can only upload for their own classes
     if (req.session.role === "teacher") {
       const teacherClassIds = await getTeacherClasses(req.session.userId)
       if (!teacherClassIds.map((id) => id.toString()).includes(class_id)) {
@@ -3170,7 +3060,6 @@ app.post("/api/materials", requireLogin, async (req, res) => {
       uploadedByName: uploaderName,
     }
 
-    // Save PDF/ZIP if base64 data provided
     if (
       file_data &&
       typeof file_data === "string" &&
@@ -3200,7 +3089,6 @@ app.post("/api/materials", requireLogin, async (req, res) => {
   }
 })
 
-// Get materials for a class + subject (all logged-in users)
 app.get("/api/materials", requireLogin, async (req, res) => {
   try {
     const { class_id, subject_id } = req.query
@@ -3232,7 +3120,6 @@ app.get("/api/materials", requireLogin, async (req, res) => {
   }
 })
 
-// Get distinct subjects that have materials for a class
 app.get("/api/materials/subjects/:classId", requireLogin, async (req, res) => {
   try {
     const { classId } = req.params
@@ -3250,7 +3137,6 @@ app.get("/api/materials/subjects/:classId", requireLogin, async (req, res) => {
   }
 })
 
-// Update a study material (admin or teacher only)
 app.put("/api/materials/:id", requireLogin, async (req, res) => {
   try {
     if (req.session.role !== "admin" && req.session.role !== "teacher") {
@@ -3260,7 +3146,6 @@ app.put("/api/materials/:id", requireLogin, async (req, res) => {
     const mat = await StudyMaterial.findById(req.params.id)
     if (!mat) return res.status(404).json({ error: "Material not found" })
 
-    // Teacher access check — can only edit for their assigned classes
     if (req.session.role === "teacher") {
       const teacherClassIds = await getTeacherClasses(req.session.userId)
       if (
@@ -3293,9 +3178,7 @@ app.put("/api/materials/:id", requireLogin, async (req, res) => {
     if (youtube_url !== undefined) mat.youtubeUrl = youtube_url || ""
     if (description !== undefined) mat.description = description || ""
 
-    // Handle file updates
     if (remove_file) {
-      // Delete old file
       if (mat.fileUrl) {
         const filePath = path.join(__dirname, mat.fileUrl)
         if (fs.existsSync(filePath)) {
@@ -3311,7 +3194,6 @@ app.put("/api/materials/:id", requireLogin, async (req, res) => {
       typeof file_data === "string" &&
       file_data.startsWith("data:")
     ) {
-      // Delete old file if exists
       if (mat.fileUrl) {
         const filePath = path.join(__dirname, mat.fileUrl)
         if (fs.existsSync(filePath)) {
@@ -3320,7 +3202,6 @@ app.put("/api/materials/:id", requireLogin, async (req, res) => {
           } catch (_) {}
         }
       }
-      // Save new file
       try {
         const matches = file_data.match(/^data:([^;]+);base64,(.+)$/)
         if (matches) {
@@ -3346,7 +3227,6 @@ app.put("/api/materials/:id", requireLogin, async (req, res) => {
   }
 })
 
-// Delete a study material (admin or teacher only)
 app.delete("/api/materials/:id", requireLogin, async (req, res) => {
   try {
     if (req.session.role !== "admin" && req.session.role !== "teacher") {
@@ -3355,7 +3235,6 @@ app.delete("/api/materials/:id", requireLogin, async (req, res) => {
     const mat = await StudyMaterial.findById(req.params.id)
     if (!mat) return res.status(404).json({ error: "Material not found" })
 
-    // Delete file from disk if it exists
     if (mat.fileUrl) {
       const filePath = path.join(__dirname, mat.fileUrl)
       if (fs.existsSync(filePath)) {
@@ -3372,7 +3251,6 @@ app.delete("/api/materials/:id", requireLogin, async (req, res) => {
   }
 })
 
-// ─── GAMIFICATION ROUTES ──────────────────────────────────────
 app.get("/api/leaderboard/class/:classId", requireLogin, async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.classId)) {
@@ -3395,7 +3273,6 @@ app.get("/api/leaderboard/class/:classId", requireLogin, async (req, res) => {
       )
       const filteredMarks = await filterRealMarks(marks, true)
 
-      // Overall Average
       const overallAverage = filteredMarks.length
         ? Math.round(
             filteredMarks.reduce(
@@ -3405,7 +3282,6 @@ app.get("/api/leaderboard/class/:classId", requireLogin, async (req, res) => {
           )
         : 0
 
-      // Improvement Trend
       const examMarks = filteredMarks.filter((m) => m.examId)
       const examsGrouped = {}
       examMarks.forEach((m) => {
@@ -3437,7 +3313,6 @@ app.get("/api/leaderboard/class/:classId", requireLogin, async (req, res) => {
           examList[examList.length - 1].avg - examList[examList.length - 2].avg
       }
 
-      // Display Name resolution
       let displayName = s.name
       if (s.useAlias) {
         displayName = s.alias
@@ -3455,7 +3330,6 @@ app.get("/api/leaderboard/class/:classId", requireLogin, async (req, res) => {
       })
     }
 
-    // Sort by overall average descending, then by improvement trend descending
     leaderboardData.sort((a, b) => {
       if (b.overallAverage !== a.overallAverage) {
         return b.overallAverage - a.overallAverage
@@ -3463,7 +3337,6 @@ app.get("/api/leaderboard/class/:classId", requireLogin, async (req, res) => {
       return b.improvementTrend - a.improvementTrend
     })
 
-    // Add rank
     leaderboardData.forEach((item, idx) => {
       item.rank = idx + 1
     })
@@ -3480,7 +3353,6 @@ app.put("/api/students/:id/alias", requireLogin, async (req, res) => {
       return res.status(400).json({ error: "Invalid student ID format" })
     }
 
-    // Authorization check
     if (req.session.role === "student") {
       const user = await User.findById(req.session.userId)
       if (!user || user.studentId?.toString() !== req.params.id) {
@@ -3519,7 +3391,6 @@ app.put("/api/students/:id/alias", requireLogin, async (req, res) => {
   }
 })
 
-// ─── START ───────────────────────────────────────────────────
 mongoose
   .connect(MONGO_URI)
   .then(async () => {

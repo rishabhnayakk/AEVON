@@ -1,19 +1,10 @@
-/**
- * AEVON — Unified Frontend Module
- * Combines API Client, Authentication, and Chart utilities.
- * All API functions return Promises with JSON data.
- */
 
-// ─── API BASE ─────────────────────────────────────────────────
 const API_BASE =
   window.location.hostname === "localhost" ||
   window.location.hostname === "127.0.0.1"
     ? "http://localhost:6060/api"
     : "https://aevon-4.onrender.com/api"
 
-/**
- * Generic fetch wrapper with error handling.
- */
 async function apiFetch(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`
   const config = {
@@ -57,7 +48,6 @@ async function apiFetch(endpoint, options = {}) {
   return data
 }
 
-// ─── Auth API ────────────────────────────────────────────────
 const AuthAPI = {
   login: (username, password) =>
     apiFetch("/auth/login", { method: "POST", body: { username, password } }),
@@ -70,7 +60,6 @@ const AuthAPI = {
     }),
 }
 
-// ─── Students API ────────────────────────────────────────────
 const StudentsAPI = {
   getAll: (params = {}) => {
     if (typeof params === "string") params = { class_id: params }
@@ -84,7 +73,6 @@ const StudentsAPI = {
   delete: (id) => apiFetch(`/students/${id}`, { method: "DELETE" }),
 }
 
-// ─── Marks API ───────────────────────────────────────────────
 const MarksAPI = {
   getAll: (params = {}) => {
     const qs = new URLSearchParams(params).toString()
@@ -98,7 +86,6 @@ const MarksAPI = {
   delete: (id) => apiFetch(`/marks/${id}`, { method: "DELETE" }),
 }
 
-// ─── Analytics API ───────────────────────────────────────────
 const AnalyticsAPI = {
   overview: (classId, examId) => {
     let q = []
@@ -120,7 +107,6 @@ const AnalyticsAPI = {
   getSubjectsAll: () => apiFetch("/subjects/all"),
 }
 
-// ─── AI API ──────────────────────────────────────────────────
 const AIAPI = {
   predict: (studentId) => apiFetch(`/ai/predict/${studentId}`),
   atRisk: (classId) =>
@@ -130,7 +116,6 @@ const AIAPI = {
     apiFetch("/ai/chat", { method: "POST", body: { message } }),
 }
 
-// ─── Admin API ───────────────────────────────────────────────
 const AdminAPI = {
   getTeachers: () => apiFetch("/teachers"),
   createTeacher: (username, password) =>
@@ -156,7 +141,6 @@ const AdminAPI = {
     apiFetch("/admin/toggle-block", { method: "POST", body: { userId } }),
 }
 
-// ─── Notifications API ─────────────────────────────────────────
 const NotificationsAPI = {
   getAll: () => apiFetch("/notifications"),
   create: (message, targetType, targetClassId, targetStudentId) =>
@@ -167,7 +151,6 @@ const NotificationsAPI = {
   delete: (id) => apiFetch(`/notifications/${id}`, { method: "DELETE" }),
 }
 
-// ─── Reports API ─────────────────────────────────────────────
 const ReportsAPI = {
   downloadStudentReport: async (studentId) => {
     try {
@@ -238,7 +221,6 @@ const ReportsAPI = {
   },
 }
 
-// ─── Materials API ─────────────────────────────────────────────
 const MaterialsAPI = {
   getAll: (classId, subjectId) =>
     apiFetch(`/materials?class_id=${classId}&subject_id=${subjectId}`),
@@ -249,14 +231,12 @@ const MaterialsAPI = {
   delete: (id) => apiFetch(`/materials/${id}`, { method: "DELETE" }),
 }
 
-// ─── Leaderboard & Privacy API ─────────────────────────────────
 const LeaderboardAPI = {
   getClassLeaderboard: (classId) => apiFetch(`/leaderboard/class/${classId}`),
   updateAlias: (studentId, data) =>
     apiFetch(`/students/${studentId}/alias`, { method: "PUT", body: data }),
 }
 
-// ─── Utility: Toast Notifications ────────────────────────────
 function showToast(message, type = "success") {
   const existing = document.querySelector(".toast")
   if (existing) existing.remove()
@@ -269,7 +249,6 @@ function showToast(message, type = "success") {
   setTimeout(() => toast.remove(), 4000)
 }
 
-// ─── Mobile Menu Toggle ─────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
   const sidebar = document.querySelector(".sidebar")
   if (!sidebar) return
@@ -304,8 +283,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   })
 })
-
-// ─── Authentication ───────────────────────────────────────────
 
 async function handleLogin(e) {
   e.preventDefault()
@@ -511,13 +488,10 @@ async function handleLogout() {
   try {
     await AuthAPI.logout()
   } catch {
-    // Ignore errors — just clear local state
   }
   localStorage.removeItem("eduUser")
   window.location.href = "index.html"
 }
-
-// ─── Charts ───────────────────────────────────────────────────
 
 const CHART_COLORS = {
   primary: ["#3b82f6", "#475569", "#64748b", "#93c5fd", "#1e293b"],

@@ -1,10 +1,5 @@
-/**
- * MongoDB Models — Mongoose Schemas
- * All database models in one file for simplicity.
- */
 const mongoose = require("mongoose")
 
-// ─── User Schema ─────────────────────────────────────────────
 const userSchema = new mongoose.Schema(
   {
     username: { type: String, required: true, unique: true },
@@ -24,13 +19,11 @@ const userSchema = new mongoose.Schema(
   { timestamps: true },
 )
 
-// ─── Class Schema ────────────────────────────────────────────
 const classSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
   teacherIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 })
 
-// ─── Student Schema ──────────────────────────────────────────
 const studentSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
@@ -55,7 +48,6 @@ const studentSchema = new mongoose.Schema(
   { timestamps: true },
 )
 
-// ─── Subject Schema ──────────────────────────────────────────
 const subjectSchema = new mongoose.Schema({
   name: { type: String, required: true },
   code: { type: String, required: true, unique: true },
@@ -67,7 +59,6 @@ const subjectSchema = new mongoose.Schema({
 })
 subjectSchema.index({ name: 1, classId: 1 }, { unique: true })
 
-// ─── Exam Schema ─────────────────────────────────────────────
 const examSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
@@ -89,7 +80,6 @@ const examSchema = new mongoose.Schema(
 )
 examSchema.index({ name: 1, classId: 1 }, { unique: true })
 
-// ─── Marks Schema ────────────────────────────────────────────
 const markSchema = new mongoose.Schema({
   studentId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -107,7 +97,6 @@ const markSchema = new mongoose.Schema({
 })
 markSchema.index({ studentId: 1, subjectId: 1, examId: 1 }, { unique: true })
 
-// ─── Exam Config Schema (Admin sets duration & marks per question) ──────────
 const examConfigSchema = new mongoose.Schema(
   {
     examId: {
@@ -129,18 +118,17 @@ const examConfigSchema = new mongoose.Schema(
       },
     ],
     durationMinutes: { type: Number, required: true, min: 1, default: 60 },
-    isActive: { type: Boolean, default: false }, // Admin toggles to "open" the exam after questions are uploaded
-    resultsVisible: { type: Boolean, default: false }, // Admin toggles to publish results to students
-    startsAt: { type: Date, default: null }, // When students can first enter
-    loginWindowMinutes: { type: Number, default: 15, min: 1 }, // How many mins after startsAt students may still enter
-    strictForwardOnly: { type: Boolean, default: false }, // Cannot go back
-    timePerQuestionSeconds: { type: Number, default: 0 }, // 0 means no per-question timer
-    negativeMarks: { type: Number, default: 0, min: 0 }, // Penalty per wrong answer
+    isActive: { type: Boolean, default: false }, 
+    resultsVisible: { type: Boolean, default: false }, 
+    startsAt: { type: Date, default: null }, 
+    loginWindowMinutes: { type: Number, default: 15, min: 1 }, 
+    strictForwardOnly: { type: Boolean, default: false }, 
+    timePerQuestionSeconds: { type: Number, default: 0 }, 
+    negativeMarks: { type: Number, default: 0, min: 0 }, 
   },
   { timestamps: true },
 )
 
-// ─── Question Schema (Single-choice MCQ) ─────────────────────
 const questionSchema = new mongoose.Schema(
   {
     examId: {
@@ -159,15 +147,14 @@ const questionSchema = new mongoose.Schema(
       type: [String],
       validate: (v) => v.length === 4,
       required: true,
-    }, // Always 4 options
-    correctOption: { type: Number }, // Keep for backward compatibility
-    correctOptions: { type: [Number], default: [] }, // Array of 0-based indices
+    }, 
+    correctOption: { type: Number }, 
+    correctOptions: { type: [Number], default: [] }, 
     order: { type: Number, default: 0 },
   },
   { timestamps: true },
 )
 
-// ─── Exam Attempt Schema (Student's submitted answers) ────────
 const examAttemptSchema = new mongoose.Schema(
   {
     examId: {
@@ -183,7 +170,7 @@ const examAttemptSchema = new mongoose.Schema(
     answers: [
       {
         questionId: mongoose.Schema.Types.ObjectId,
-        selectedOption: Number, // Keep for backward compatibility
+        selectedOption: Number, 
         selectedOptions: { type: [Number], default: [] },
         isCorrect: { type: Boolean, default: false },
         marksEarned: { type: Number, default: 0 },
@@ -196,9 +183,8 @@ const examAttemptSchema = new mongoose.Schema(
   },
   { timestamps: true },
 )
-examAttemptSchema.index({ examId: 1, studentId: 1 }, { unique: true }) // One attempt per student per exam
+examAttemptSchema.index({ examId: 1, studentId: 1 }, { unique: true }) 
 
-// ─── Notification Schema ──────────────────────────────────────
 const notificationSchema = new mongoose.Schema(
   {
     message: { type: String, required: true },
@@ -223,13 +209,11 @@ const notificationSchema = new mongoose.Schema(
   { timestamps: true },
 )
 
-// Auto-delete notifications after 14 days (MongoDB TTL index)
 notificationSchema.index(
   { createdAt: 1 },
   { expireAfterSeconds: 14 * 24 * 60 * 60 },
 )
 
-// ─── Study Material Schema ────────────────────────────────────
 const studyMaterialSchema = new mongoose.Schema(
   {
     classId: {
@@ -244,18 +228,17 @@ const studyMaterialSchema = new mongoose.Schema(
     },
     chapterNo: { type: Number, required: true, min: 1 },
     chapterName: { type: String, required: true },
-    teacherName: { type: String, default: "" }, // name shown in table; clicking opens YouTube
-    youtubeUrl: { type: String, default: "" }, // linked to teacherName
-    description: { type: String, default: "" }, // optional notes/description
-    fileUrl: { type: String, default: "" }, // served path e.g. /uploads/materials/xyz.pdf
-    fileName: { type: String, default: "" }, // original filename for display
+    teacherName: { type: String, default: "" }, 
+    youtubeUrl: { type: String, default: "" }, 
+    description: { type: String, default: "" }, 
+    fileUrl: { type: String, default: "" }, 
+    fileName: { type: String, default: "" }, 
     uploadedByName: { type: String, default: "" },
   },
   { timestamps: true },
 )
 studyMaterialSchema.index({ classId: 1, subjectId: 1, chapterNo: 1 })
 
-// ─── Export Models ───────────────────────────────────────────
 module.exports = {
   User: mongoose.model("User", userSchema),
   Class: mongoose.model("Class", classSchema),

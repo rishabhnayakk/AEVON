@@ -1,17 +1,3 @@
-/**
- * AEVON — Unified Admin & Test Scripts
- *
- * Usage: node scripts.js <command>
- *
- * Commands:
- *   setup-admin          Wipe DB and create a fresh admin user
- *   check-users          List all users in the database
- *   cleanup              Remove duplicate marks, exams, subjects and ensure indexes
- *   test-notification    Create a test exam notification and verify it in the DB
- *   test-delete-notif    Login as admin, create and delete a notification via HTTP
- *   test-ai              Run a quick test of the AI analysis logic
- */
-
 require("dotenv").config()
 
 const command = process.argv[2]
@@ -23,10 +9,8 @@ if (!command) {
   process.exit(1)
 }
 
-// ─── Shared Setup ─────────────────────────────────────────────
 const MONGO_URI = process.env.MONGO_URI
 
-// ─── setup-admin ──────────────────────────────────────────────
 async function setupAdmin() {
   const crypto = require("crypto")
   const mongoose = require("mongoose")
@@ -77,7 +61,6 @@ async function setupAdmin() {
   await mongoose.disconnect()
 }
 
-// ─── check-users ──────────────────────────────────────────────
 async function checkUsers() {
   const mongoose = require("mongoose")
   const { User } = require("./models")
@@ -93,7 +76,6 @@ async function checkUsers() {
   await mongoose.disconnect()
 }
 
-// ─── cleanup ──────────────────────────────────────────────────
 async function cleanup() {
   const mongoose = require("mongoose")
   const { Mark, Exam, Subject } = require("./models")
@@ -102,7 +84,6 @@ async function cleanup() {
   await mongoose.connect(CLEANUP_URI)
   console.log("Connected to DB")
 
-  // Duplicate marks
   const marks = await Mark.find().populate("examId subjectId studentId")
   console.log(`Total marks: ${marks.length}`)
   const seen = new Set()
@@ -124,7 +105,6 @@ async function cleanup() {
     console.log("No duplicate marks found.")
   }
 
-  // Duplicate exams
   const exams = await Exam.find()
   const seenExams = new Set()
   const examToDelete = []
@@ -142,7 +122,6 @@ async function cleanup() {
     console.log(`Deleted ${examToDelete.length} duplicate exams.`)
   }
 
-  // Duplicate subjects
   const subjects = await Subject.find()
   const seenSubs = new Set()
   const subToDelete = []
@@ -160,7 +139,6 @@ async function cleanup() {
     console.log(`Deleted ${subToDelete.length} duplicate subjects.`)
   }
 
-  // Ensure indexes
   try {
     await Mark.collection.createIndex({ studentId: 1, subjectId: 1, examId: 1 }, { unique: true })
     await Exam.collection.createIndex({ name: 1, classId: 1 }, { unique: true })
@@ -173,7 +151,6 @@ async function cleanup() {
   process.exit(0)
 }
 
-// ─── test-notification ────────────────────────────────────────
 async function testNotification() {
   const mongoose = require("mongoose")
   const { User, Class, Notification } = require("./models")
@@ -236,7 +213,6 @@ async function testNotification() {
   await mongoose.disconnect()
 }
 
-// ─── test-delete-notif ────────────────────────────────────────
 async function testDeleteNotif() {
   const http = require("http")
 
@@ -308,9 +284,7 @@ async function testDeleteNotif() {
   console.log("Delete Body:", deleteRes.body)
 }
 
-// ─── test-ai ──────────────────────────────────────────────────
 async function testAI() {
-  // Inline the fallback analysis function for a standalone smoke-test
   function generateFallbackAnalysis(data) {
     const allSubjectsZero =
       data.subjectAverages.length > 0 &&
@@ -343,7 +317,6 @@ async function testAI() {
   console.log("AI test completed successfully.")
 }
 
-// ─── Command Router ───────────────────────────────────────────
 ;(async () => {
   try {
     switch (command) {

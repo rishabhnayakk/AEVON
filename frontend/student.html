@@ -241,7 +241,6 @@
             class="flex gap-1"
             style="align-items: center; position: relative"
           >
-            <!-- Notification Bell Container -->
             <div class="notification-container" style="position: relative">
               <button
                 class="btn btn-secondary"
@@ -287,7 +286,6 @@
                   >0</span
                 >
               </button>
-              <!-- Dropdown -->
               <div
                 id="notifications-dropdown"
                 class="hidden"
@@ -342,7 +340,6 @@
                     flex-direction: column;
                   "
                 >
-                  <!-- Loaded dynamically -->
                   <p
                     style="
                       padding: 20px;
@@ -369,7 +366,6 @@
         </div>
 
         <div id="dashboard-content" class="hidden">
-          <!-- Tab Switching Navigation -->
           <div
             class="tabs-container"
             style="
@@ -397,7 +393,6 @@
             </button>
           </div>
 
-          <!-- Tab 1: Performance Overview -->
           <div id="tab-performance">
             <div class="stats-grid" id="stats-grid"></div>
             <div class="charts-grid">
@@ -435,9 +430,7 @@
             </div>
           </div>
 
-          <!-- Tab 2: Leaderboard & Badges -->
           <div id="tab-leaderboard" class="hidden">
-            <!-- Achievements & Badges Card -->
             <div class="card mt-2">
               <div class="card-header">
                 <span class="card-title">🏆 Visual Achievement Badges</span>
@@ -460,11 +453,9 @@
                   gap: 1rem;
                 "
               >
-                <!-- Dynamically loaded badges -->
               </div>
             </div>
 
-            <!-- Privacy & Alias settings card -->
             <div class="card mt-2 text-left" style="text-align: left">
               <div class="card-header">
                 <span class="card-title">🔒 Leaderboard Privacy Settings</span>
@@ -524,7 +515,6 @@
               </div>
             </div>
 
-            <!-- Classroom Leaderboard Card -->
             <div class="card mt-2">
               <div
                 class="card-header"
@@ -564,7 +554,6 @@
                     </tr>
                   </thead>
                   <tbody id="leaderboard-tbody">
-                    <!-- Loaded dynamically -->
                   </tbody>
                 </table>
               </div>
@@ -592,7 +581,6 @@
       </div>
     </div>
 
-    <!-- Notification Popup Modal -->
     <div
       id="notification-alert-modal"
       class="hidden"
@@ -785,7 +773,6 @@
             },
           },
         )
-
 
         // Group marks by exam_name
         const examGroups = {}
