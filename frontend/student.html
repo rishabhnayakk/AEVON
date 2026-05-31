@@ -426,12 +426,7 @@
                 </div>
               </div>
             </div>
-            <div class="card mt-2">
-              <div class="card-header">
-                <span class="card-title">AI Study Tips & Insights</span>
-              </div>
-              <div id="recommendations-container"></div>
-            </div>
+
             <div class="card mt-2" id="marks-table-section">
               <div class="card-header">
                 <span class="card-title">Detailed Marks Ledger</span>
@@ -790,19 +785,6 @@
           },
         )
 
-        const recContainer = document.getElementById(
-          "recommendations-container",
-        )
-        recContainer.innerHTML = (recommendations.recommendations || [])
-          .map(
-            (r) => `
-                <div class="rec-card" style="padding:1rem;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:0.5rem;border-left:4px solid var(--gold);">
-                    <strong>${r.message}</strong>
-                    <ul style="margin-top:0.5rem;font-size:0.9rem;color:var(--text-secondary);">${(r.tips || []).map((t) => `<li>${t}</li>`).join("")}</ul>
-                </div>
-            `,
-          )
-          .join("")
 
         // Group marks by exam_name
         const examGroups = {}
