@@ -917,6 +917,7 @@
         if (isOpen) {
           dropdown.classList.add("hidden")
         } else {
+          renderNotificationsDropdown()
           dropdown.classList.remove("hidden")
           markAllNotificationsRead()
         }
@@ -1004,13 +1005,22 @@
 
       function renderNotificationsDropdown() {
         const container = document.getElementById("notifications-list")
-        if (!notificationsList || !notificationsList.length) {
+        
+        let readIds = []
+        try {
+          const stored = localStorage.getItem("readNotificationIds")
+          if (stored) readIds = JSON.parse(stored)
+        } catch (e) {}
+
+        const unreadList = notificationsList.filter(n => !readIds.includes(n._id))
+
+        if (!unreadList || !unreadList.length) {
           container.innerHTML =
             '<p style="padding: 20px; text-align: center; color: var(--text-secondary); font-size: 0.9rem; margin: 0;">No notifications yet.</p>'
           return
         }
 
-        container.innerHTML = notificationsList
+        container.innerHTML = unreadList
           .map((n) => {
             let subtitle = ""
             if (n.senderRole === "admin") {

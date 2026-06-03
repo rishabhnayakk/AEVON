@@ -1216,24 +1216,87 @@ function generateFallbackAtRisk(studentsData) {
   return { atRiskStudents }
 }
 
+const GROQ_API_KEY = process.env.GROQ_API_KEY || "YOUR_GROQ_API_KEY"
+
+async function callGroq(systemPrompt, userPrompt, jsonMode = false) {
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${GROQ_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      response_format: jsonMode ? { type: "json_object" } : { type: "text" },
+    }),
+  })
+  if (!response.ok) {
+    const err = await response.text()
+    throw new Error(`Groq API Error: ${err}`)
+  }
+  const data = await response.json()
+  const content = data.choices[0].message.content
+  if (jsonMode) return JSON.parse(content)
+  return content
+}
+
 async function analyzeStudent(studentData) {
-  return generateFallbackAnalysis(studentData)
+  try {
+    const systemPrompt = `You are an AI educational counselor. Analyze the student's performance data and return a JSON object with:
+{
+  "predictions": [{ "subject": "Math", "currentAvg": 80, "predictedNext": 85, "trend": "stable|needs_improvement|critical" }],
+  "recommendations": [{ "message": "General advice", "tips": ["Tip 1", "Tip 2"] }],
+  "weakAreas": ["Subject 1"]
+}
+Ensure it is valid JSON.`
+    const userPrompt = JSON.stringify(studentData)
+    return await callGroq(systemPrompt, userPrompt, true)
+  } catch (err) {
+    console.error("Groq analyzeStudent error:", err)
+    return generateFallbackAnalysis(studentData)
+  }
 }
 
 async function analyzeAtRisk(studentsData) {
-  return generateFallbackAtRisk(studentsData)
+  try {
+    const systemPrompt = `You are an AI analyzing student data. Identify students at risk of failing (average < 50%). Return a JSON object:
+{
+  "atRiskStudents": [
+    {
+      "name": "Student Name",
+      "className": "Class 10A",
+      "riskLevel": "high|medium",
+      "reasons": ["Reason 1"],
+      "subjects": ["Math"],
+      "avgPercentage": 45
+    }
+  ]
+}
+Return valid JSON.`
+    const userPrompt = JSON.stringify(studentsData)
+    return await callGroq(systemPrompt, userPrompt, true)
+  } catch (err) {
+    console.error("Groq analyzeAtRisk error:", err)
+    return generateFallbackAtRisk(studentsData)
+  }
 }
 
 async function chatAssistant(message, dataStr, role) {
-  if (role === "teacher") {
-    const nameMatch = message.match(/([A-Z][a-z]+)\b/)
-    const studentName = nameMatch ? nameMatch[1] : null
-    if (studentName) {
-      return `Based on the available data for ${studentName}, review their subject-wise marks and prioritize the lowest scoring subject for targeted support.`
-    }
-    return "Please specify a student's name for recommendations (e.g., 'Aarav')."
+  try {
+    const systemPrompt = `You are a helpful AI assistant for the EduAnalytics platform.
+The user is a ${role}. 
+Context data available: ${dataStr}
+
+Answer the user's queries concisely and helpfully based on the context.`
+    return await callGroq(systemPrompt, message, false)
+  } catch (err) {
+    console.error("Groq chat error:", err)
+    return "The AI assistant is temporarily unavailable."
   }
-  return "AI chatbot has been disabled by the administrator."
 }
 
 app.get("/api/ai/predict/:id", requireLogin, async (req, res) => {
