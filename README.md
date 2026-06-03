@@ -5,26 +5,21 @@ A complete full-stack web application that analyzes student academic performance
 ## 🌟 Features
 
 ### Core Features
-- **Student Performance Tracking** — Marks by subject, semester, and class
-- **Attendance Tracking** — Daily attendance recording and analysis
-- **Performance Trends** — Interactive charts (bar, line, pie, radar)
-- **Weak Subject Identification** — Auto-detect subjects needing attention
-- **Class Comparison & Rankings** — Compare classes and rank students
+- **Student Performance Tracking** — Marks by subject, exam, and class
+- **Performance Trends** — Interactive dashboards with visual charts (bar, line, pie, etc.) using Chart.js
+- **Exam Portal** — Online examinations with custom configurations (strict forward-only, negative marks, etc.)
+- **Study Materials** — Upload and manage study resources (videos, PDFs, links) by class and subject
+- **Leaderboard** — View rankings with configurable privacy (anonymous aliases)
 
 ### AI Features
-- **Performance Prediction** — Linear Regression predicts next-semester marks
-- **At-Risk Detection** — Identifies students at academic risk
-- **Study Recommendations** — Personalized, actionable study tips
+- **Performance Analysis & Predictions** — Automated predictions for student success, utilizing LLMs via Groq
+- **At-Risk Detection** — Detects students who need academic intervention
+- **Personalized Recommendations** — Actionable insights and custom study tips for students
 
-### Dashboards
-- **Admin Dashboard** — System-wide analytics, all classes, all students
-- **Teacher Dashboard** — Class-specific performance and attendance
-- **Student Dashboard** — Personal progress, predictions, and recommendations
-
-### Additional
-- **Role-Based Authentication** — Admin, Teacher, Student access control
-- **PDF Report Generation** — Download formatted academic reports
-- **REST API** — Full API for all functionalities
+### Dashboards & Management
+- **Admin Dashboard** — Complete management of users (teachers, students), classes, subjects, exams, and settings
+- **Teacher Dashboard** — Input marks, broadcast notifications, upload study materials, and monitor performance
+- **Student Dashboard** — Access to personal marks history, exam portal, study materials, and AI counselor progress reports
 
 ---
 
@@ -32,82 +27,92 @@ A complete full-stack web application that analyzes student academic performance
 
 | Component | Technology |
 |-----------|-----------|
-| Backend | Python 3.10+, Flask |
-| Frontend | HTML5, CSS3, JavaScript |
+| Backend | Node.js (Express), MongoDB (Mongoose) |
+| Frontend | HTML5, CSS3 (Vanilla), JavaScript |
 | Charts | Chart.js |
-| Database | SQLite3 |
-| AI/ML | scikit-learn (Linear Regression) |
-| PDF | ReportLab |
+| AI Provider | Groq Cloud API (`llama-3.3-70b-versatile`) |
+| Auth & Sessions | `bcryptjs`, `express-session`, `connect-mongo` |
 
 ---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.10 or higher
-- pip (Python package manager)
+- Node.js (version 18 or higher)
+- MongoDB (local instance or MongoDB Atlas URI)
+- Groq API Key (sign up at [console.groq.com](https://console.groq.com/))
 
 ### Setup Steps
 
-```bash
-# 1. Navigate to backend directory
-cd AEVON/backend
+1. **Clone the repository** and navigate to the project directory:
+   ```bash
+   cd EduAnalytics1
+   ```
 
-# 2. Create virtual environment (recommended)
-python3 -m venv venv
-source venv/bin/activate   # On Windows: venv\Scripts\activate
+2. **Configure environment variables:**
+   Create a `.env` file in the `backend/` directory:
+   ```env
+   MONGO_URI=mongodb://127.0.0.1:27017/eduanalytics   # Or MongoDB Atlas URL
+   SESSION_SECRET=aevon-secret-key-change-this
+   PORT=6060
+   GROQ_API_KEY=your_groq_api_key_here
+   ```
 
-# 3. Install dependencies
-pip install -r requirements.txt
+3. **Install dependencies:**
+   ```bash
+   # Install backend dependencies (the root package.json has a postinstall script to do this)
+   npm install
+   ```
 
-# 4. Run the application (auto-creates DB and seeds sample data)
-python app.py
-```
+4. **Initialize/Reset the Admin User:**
+   ```bash
+   cd backend
+   node scripts.js setup-admin
+   ```
+   *Note: This will clear the database and create a default `admin` user. Check console logs for the generated credentials (or specify `ADMIN_PASSWORD` in your `.env`).*
 
-### Access the Application
-Open your browser and go to: **http://localhost:5000**
+5. **Start the backend server:**
+   ```bash
+   # From the root directory:
+   npm start
+   
+   # Or directly inside the backend directory:
+   npm run start
+   ```
 
-### Demo Credentials
-
-The admin account is created by `backend/setup_admin.js`.
-Set `ADMIN_PASSWORD` in your environment before running the script, or the script will generate a secure password and print it during setup.
+### Accessing the application
+- Backend API server runs on **http://localhost:6060**
+- Access the frontend by opening the HTML files (e.g., `frontend/index.html`) in a browser or serving them.
 
 ---
 
 ## 📁 Project Structure
 
 ```
-AEVON/
+EduAnalytics1/
 ├── backend/
-│   ├── app.py               # Main Flask application
-│   ├── config.py             # Configuration settings
-│   ├── models.py             # Database helpers
-│   ├── auth.py               # Authentication & access control
-│   ├── schema.sql            # Database schema (DDL)
-│   ├── seed_data.py          # Sample data generator
-│   ├── requirements.txt      # Python dependencies
-│   ├── api/
-│   │   ├── students.py       # Student CRUD API
-│   │   ├── marks.py          # Marks CRUD API
-│   │   ├── attendance.py     # Attendance API
-│   │   ├── analytics.py      # Dashboard analytics API
-│   │   └── reports.py        # PDF report generation
-│   └── ai/
-│       ├── predictor.py      # ML performance prediction
-│       └── recommender.py    # Study recommendations
+│   ├── .env                 # Environment config (ignored in Git)
+│   ├── server.js            # Main Express application & API routing
+│   ├── models.js            # Mongoose schemas & MongoDB connection
+│   ├── scripts.js           # Administrative helper scripts (setup-admin, cleanup, etc.)
+│   ├── package.json         # Backend dependencies & start scripts
+│   └── uploads/             # Directory for uploaded files (e.g. study materials)
 ├── frontend/
-│   ├── index.html            # Login page
-│   ├── admin.html            # Admin dashboard
-│   ├── teacher.html          # Teacher dashboard
-│   ├── student.html          # Student dashboard
-│   ├── students.html         # Student management
-│   ├── attendance.html       # Attendance tracker
-│   ├── reports.html          # Report generation
-│   ├── css/style.css         # Design system
+│   ├── index.html           # Login page
+│   ├── admin_dashboard.html # Main Admin dashboard
+│   ├── teacher.html         # Teacher portal
+│   ├── student.html         # Student portal
+│   ├── exam_admin.html      # Exam manager
+│   ├── exam_portal.html     # Student exam interface
+│   ├── study_material_admin.html
+│   ├── study_planner.html
+│   ├── marks.html
+│   ├── reports.html
+│   ├── css/                 # Vanilla styling system
 │   └── js/
-│       ├── api.js            # API client
-│       ├── auth.js           # Auth logic
-│       └── charts.js         # Chart helpers
+│       └── app.js           # API client routing & fetch requests
+├── server.js                # Root entrypoint redirecting to backend/server.js
+├── vercel.json              # Vercel deployment configuration
 └── README.md
 ```
 
@@ -115,92 +120,44 @@ AEVON/
 
 ## 🤖 How the AI Models Work
 
-### 1. Performance Prediction (Linear Regression)
-
-```
-Input:  Student's marks across semesters for each subject
-        e.g., Sem1: 65, Sem2: 70, Sem3: 72
-
-Model:  y = mx + b  (where x = semester, y = marks%)
-
-Output: Predicted marks for the next semester
-        e.g., Sem4: ~76% (extrapolation)
-```
-
-**Why Linear Regression?**
-- Simple and interpretable
-- Works well for trend extrapolation
-- The slope `m` tells us if a student is improving (positive) or declining (negative)
-- R² score indicates prediction confidence
+### 1. Performance Analytics & Counselor (Groq API)
+The application leverages the **Llama-3.3-70b-versatile** model via the **Groq API** to provide dynamic, context-aware student counselling.
+- **Student Performance Analysis**: Takes student marks, averages, and subject data, then prompts the LLM to output a JSON structure containing predictions, risk trends, weaknesses, and custom study advice.
+- **Chat Assistant**: Students and teachers can chat with an interactive bot in the dashboard. The prompt includes live performance data as context, ensuring that responses are highly personalized to the student's status.
 
 ### 2. At-Risk Student Detection
+The system passes student lists to the LLM to classify risk levels (`high` or `medium`). It identifies students whose performance drops below critical benchmarks (e.g., `< 50%` average) and lists specific warning reasons (e.g. "Low marks in Math").
 
-Uses a **weighted scoring system**:
-- Average marks < 40% → +3 risk points
-- Average marks < 55% → +1 risk point
-- Attendance < 75% → +2 risk points
-- Declining trend (slope < -3) → +2 risk points
-
-**Risk Levels:**
-- ≥ 4 points → HIGH risk
-- ≥ 2 points → MEDIUM risk
-- ≥ 1 point → LOW risk
-
-### 3. Personalized Recommendations
-
-Rule-based engine that analyzes:
-- Per-subject performance vs. class average
-- Attendance patterns per subject
-- Overall academic standing
-
-Generates targeted, actionable study tips based on the specific areas where a student needs improvement.
+### 3. Graceful Fallbacks
+If the Groq API key is not configured, or if the API request fails, the application automatically uses local rule-based helper functions (`generateFallbackAnalysis` and `generateFallbackAtRisk`) to calculate risk levels and generate default predictions/tips without crashing.
 
 ---
 
-## 📊 API Endpoints
+## 📊 Core API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/login` | User login |
-| POST | `/api/auth/logout` | User logout |
-| GET | `/api/auth/me` | Current user info |
-| GET/POST | `/api/students` | List/Create students |
-| GET/PUT/DELETE | `/api/students/<id>` | Student CRUD |
-| GET/POST | `/api/marks` | List/Add marks |
-| GET | `/api/marks/student/<id>` | Student marks |
-| GET/POST | `/api/attendance` | List/Record attendance |
-| GET | `/api/attendance/student/<id>` | Student attendance |
-| GET | `/api/analytics/overview` | Admin overview |
-| GET | `/api/analytics/class/<id>` | Class analytics |
-| GET | `/api/analytics/student/<id>` | Student analytics |
-| GET | `/api/ai/predict/<id>` | AI predictions |
-| GET | `/api/ai/at-risk` | At-risk students |
-| GET | `/api/ai/recommendations/<id>` | Study tips |
-| GET | `/api/reports/student/<id>` | Download PDF |
+### Authentication
+- `POST /api/auth/login` - User authentication
+- `POST /api/auth/logout` - Clear user session
+- `GET /api/auth/me` - Get current session info
+- `POST /api/auth/change-password` - Reset password
 
----
+### Users & Classes (Admin Only)
+- `GET/POST /api/students` - Retrieve / Register students
+- `PUT/DELETE /api/students/:id` - Update / Delete students
+- `GET/POST/DELETE /api/teachers` - Manage teacher users
+- `POST/PUT/DELETE /api/classes` - Manage classes
 
-## 📝 Database Schema
+### Academics & Marks
+- `GET/POST /api/marks` - View / Add marks
+- `GET /api/marks/student/:id` - Fetch academic history for a student
+- `POST /api/marks/bulk` - Import marks in bulk
+- `PUT/DELETE /api/marks/:id` - Update or remove marks records
 
-- **users** — Login credentials and roles
-- **classes** — Class/section definitions
-- **students** — Student profiles
-- **subjects** — Subjects per class
-- **marks** — Student marks per subject per semester
-- **attendance** — Daily attendance records
-
-See `backend/schema.sql` for the full DDL.
-
----
-
-## 🎨 Sample Data
-
-The system auto-seeds with:
-- 30 students across 3 classes (CS-A, CS-B, IT-A)
-- 5 subjects per class
-- 4 semesters of marks data
-- 60 days of attendance records per student
-- 1 admin + 3 teachers + 30 student user accounts
+### AI Features (Groq-driven)
+- `GET /api/ai/predict/:id` - Retrieve predicted percentages and risk factors
+- `GET /api/ai/recommendations/:id` - Dynamic general advice & personalized tips
+- `GET /api/ai/at-risk` - Fetch flagged at-risk students for teachers/admin
+- `POST /api/ai/chat` - Interact with the AI Counsel assistant
 
 ---
 
