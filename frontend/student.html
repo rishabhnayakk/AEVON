@@ -9,174 +9,125 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <style>
+      /* ── Chat Widget ── */
       .chat-widget {
         position: fixed;
         bottom: 20px;
         right: 20px;
         width: 320px;
-        background: #141414;
+        background: var(--surface);
         border: 1px solid var(--border);
         border-radius: var(--radius-md);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        box-shadow: var(--shadow-xl);
         display: flex;
         flex-direction: column;
         z-index: 1000;
         overflow: hidden;
-        transition: all 0.3s;
-        color: #ffffff;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
       .chat-widget.collapsed {
         height: 50px;
         cursor: pointer;
       }
       .chat-header {
-        background: linear-gradient(
-          135deg,
-          var(--primary),
-          var(--primary-dark)
-        );
+        background: var(--primary);
         color: #fff;
         padding: 12px 16px;
-        font-weight: bold;
+        font-weight: 600;
+        font-size: 0.875rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        cursor: pointer;
+        flex-shrink: 0;
       }
-      .chat-body {
-        height: 300px;
-        padding: 12px;
-        overflow-y: auto;
-        background: #0a0a0a;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-      .chat-msg {
-        max-width: 85%;
-        padding: 8px 12px;
-        border-radius: var(--radius-sm);
-        font-size: 0.9rem;
-        color: #ffffff;
-        line-height: 1.4;
-      }
-      .chat-msg.user {
-        background: rgba(241, 143, 1, 0.25);
-        border: 1px solid rgba(241, 143, 1, 0.4);
-        align-self: flex-end;
-      }
-      .chat-msg.bot {
-        background: #222222;
-        border: 1px solid #333333;
-        align-self: flex-start;
-      }
-      .chat-footer {
-        padding: 12px;
-        border-top: 1px solid var(--border);
-        display: flex;
-        gap: 8px;
-        background: #141414;
-      }
-      .chat-footer input {
-        flex: 1;
-        padding: 8px 12px;
-        border: 1px solid var(--border);
-        background: #222;
-        color: #fff;
-        border-radius: var(--radius-sm);
-        font-size: 0.9rem;
-      }
-      .chat-footer button {
-        background: var(--primary);
+      .chat-header button {
+        background: rgba(255,255,255,0.15);
         border: none;
         color: #fff;
-        padding: 8px 14px;
-        border-radius: var(--radius-sm);
-        font-weight: 600;
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
         cursor: pointer;
-        transition: background 0.2s;
-        font-size: 0.9rem;
-      }
-      .chat-footer button:hover {
-        background: var(--primary-dark);
-      }
-      @keyframes pulseBell {
-        0% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.1) rotate(5deg);
-        }
-        100% {
-          transform: scale(1);
-        }
-      }
-      @keyframes zoomIn {
-        from {
-          opacity: 0;
-          transform: scale(0.9);
-        }
-        to {
-          opacity: 1;
-          transform: scale(1);
-        }
-      }
-
-      /* Gamification Styles */
-      .badge-grid-item {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-md);
-        padding: 1.25rem;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        transition: var(--transition);
-      }
-      .badge-grid-item.locked {
-        opacity: 0.4;
-        filter: grayscale(100%);
-        border-style: dashed;
-      }
-      .badge-grid-item:hover:not(.locked) {
-        border-color: var(--primary);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
-        transform: translateY(-2px);
-      }
-      .badge-grid-icon {
-        font-size: 2.25rem;
-        width: 48px;
-        height: 48px;
+        font-size: 0.75rem;
         display: flex;
         align-items: center;
         justify-content: center;
       }
-      .badge-grid-info {
+      .chat-body {
+        height: 280px;
+        padding: 12px;
+        overflow-y: auto;
+        background: var(--bg);
         display: flex;
         flex-direction: column;
-        gap: 0.25rem;
+        gap: 8px;
       }
-      .badge-grid-name {
-        font-weight: 700;
-        color: var(--text-primary);
-        font-size: 0.95rem;
+      .chat-body::-webkit-scrollbar { width: 4px; }
+      .chat-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+      .chat-msg {
+        max-width: 88%;
+        padding: 8px 12px;
+        border-radius: var(--radius-sm);
+        font-size: 0.8125rem;
+        line-height: 1.5;
       }
-      .badge-grid-desc {
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-        line-height: 1.3;
+      .chat-msg.user {
+        background: var(--primary);
+        color: #fff;
+        align-self: flex-end;
+        border-radius: var(--radius-sm) var(--radius-sm) 2px var(--radius-sm);
       }
-      .badge-grid-date {
-        font-size: 0.7rem;
-        color: var(--success);
+      .chat-msg.bot {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        align-self: flex-start;
+        border-radius: 2px var(--radius-sm) var(--radius-sm) var(--radius-sm);
+      }
+      .chat-footer {
+        padding: 10px 12px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        gap: 8px;
+        background: var(--surface);
+        flex-shrink: 0;
+      }
+      .chat-footer input {
+        flex: 1;
+        padding: 7px 10px;
+        border: 1px solid var(--border);
+        background: var(--bg);
+        color: var(--text);
+        border-radius: var(--radius-xs);
+        font-size: 0.8125rem;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .chat-footer input:focus { border-color: var(--primary); }
+      .chat-footer button {
+        background: var(--primary);
+        border: none;
+        color: #fff;
+        padding: 7px 13px;
+        border-radius: var(--radius-xs);
         font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+        font-size: 0.8125rem;
+        font-family: inherit;
       }
-      .leaderboard-row-self {
-        background: rgba(59, 130, 246, 0.05) !important;
-        border-left: 4px solid var(--primary) !important;
+      .chat-footer button:hover { background: var(--primary-dark); }
+
+      @keyframes pulseBell {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1) rotate(5deg); }
+        100% { transform: scale(1); }
       }
-      .leaderboard-row-self td {
-        font-weight: 600 !important;
-        color: var(--primary-dark) !important;
+      @keyframes zoomIn {
+        from { opacity: 0; transform: scale(0.92); }
+        to { opacity: 1; transform: scale(1); }
       }
     </style>
   </head>
@@ -194,38 +145,35 @@
             style="width: 100%"
             onclick="handleLogout()"
           >
-            Logout
+            Sign Out
           </button>
         </div>
       </aside>
 
       <main class="main-content">
         <div class="page-header" style="align-items: flex-end">
-          <div style="display: flex; align-items: center; gap: 1.5rem">
+          <div style="display: flex; align-items: center; gap: 16px">
             <div
               id="student-avatar"
               style="
-                width: 64px;
-                height: 64px;
-                background: linear-gradient(
-                  135deg,
-                  var(--primary),
-                  var(--secondary)
-                );
-                border-radius: var(--radius-md);
+                width: 52px;
+                height: 52px;
+                background: var(--primary);
+                border-radius: var(--radius-sm);
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 color: #fff;
-                font-size: 1.5rem;
+                font-size: 1.2rem;
                 font-weight: 800;
-                box-shadow: var(--shadow-md);
+                flex-shrink: 0;
+                letter-spacing: -0.5px;
               "
             >
               ?
             </div>
             <div>
-              <h1 id="page-title" style="margin-bottom: 0.25rem">
+              <h1 id="page-title" style="margin-bottom: 2px">
                 Loading Student...
               </h1>
               <p
@@ -362,34 +310,60 @@
 
         <div id="loading" class="loading-overlay">
           <div class="spinner"></div>
-          <p>Loading your data...</p>
+          <p style="font-size:0.875rem;color:var(--text-muted);margin-top:8px;">Loading your data...</p>
         </div>
 
         <div id="dashboard-content" class="hidden">
-          <div
-            class="tabs-container"
-            style="
-              display: flex;
-              gap: 0.5rem;
-              margin-bottom: 1.5rem;
-              border-bottom: 1px solid var(--border);
-              padding-bottom: 0.75rem;
-              flex-wrap: wrap;
-            "
-          >
-            <button
-              class="btn btn-primary tab-btn active"
-              id="btn-tab-performance"
-              onclick="switchTab('performance')"
-            >
-              📊 Performance Overview
+
+          <!-- Overall progress hero strip -->
+          <div id="overall-progress-strip" style="
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 20px 24px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+          ">
+            <div style="display:flex;align-items:center;gap:16px;flex:1;min-width:200px;">
+              <div style="
+                width: 56px; height: 56px;
+                border-radius: 50%;
+                background: var(--primary-light);
+                border: 3px solid var(--primary);
+                display: flex; align-items: center; justify-content: center;
+                font-size: 1rem; font-weight: 800; color: var(--primary);
+                flex-shrink: 0;
+                letter-spacing: -0.5px;
+              " id="overall-pct-ring">–%</div>
+              <div>
+                <div style="font-size:0.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:2px;">OVERALL AVERAGE</div>
+                <div style="font-size:1.375rem;font-weight:700;color:var(--text);letter-spacing:-0.03em;line-height:1.2;" id="overall-pct-label">–</div>
+                <div style="font-size:0.8125rem;color:var(--text-secondary);margin-top:2px;" id="overall-exams-label">across all exams</div>
+              </div>
+            </div>
+            <div style="flex:2;min-width:160px;">
+              <div style="font-size:0.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:8px;">PERFORMANCE TRACK</div>
+              <div class="progress-track" style="height:8px;">
+                <div class="progress-fill" id="overall-progress-bar" style="width:0%;"></div>
+              </div>
+            </div>
+            <div style="flex-shrink:0;">
+              <button class="btn btn-secondary btn-sm" onclick="downloadReport()" style="display:flex;align-items:center;gap:6px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                PDF Report
+              </button>
+            </div>
+          </div>
+
+          <div class="tabs-container" style="margin-bottom: 20px;">
+            <button class="tab-btn active" id="btn-tab-performance" onclick="switchTab('performance')">
+              Performance
             </button>
-            <button
-              class="btn btn-secondary tab-btn"
-              id="btn-tab-leaderboard"
-              onclick="switchTab('leaderboard')"
-            >
-              🏆 Leaderboard & Badges
+            <button class="tab-btn" id="btn-tab-leaderboard" onclick="switchTab('leaderboard')">
+              Leaderboard &amp; Badges
             </button>
           </div>
 
@@ -563,23 +537,27 @@
       </main>
     </div>
 
-    <div class="chat-widget collapsed" id="chat-widget">
-      <div class="chat-header" onclick="toggleChat()">
-        <span>AI Assistant</span><button id="chat-toggle-icon">▲</button>
+      <div class="chat-widget collapsed" id="chat-widget">
+        <div class="chat-header" onclick="toggleChat()">
+          <span style="display:flex;align-items:center;gap:8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            AI Assistant
+          </span>
+          <button id="chat-toggle-icon">▲</button>
+        </div>
+        <div class="chat-body" id="chat-body">
+          <div class="chat-msg bot">Hi! Ask me anything about your academic progress.</div>
+        </div>
+        <div class="chat-footer">
+          <input
+            type="text"
+            id="chat-input"
+            placeholder="Ask a question..."
+            onkeypress="if (event.key === 'Enter') sendChatMessage()"
+          />
+          <button onclick="sendChatMessage()">Send</button>
+        </div>
       </div>
-      <div class="chat-body" id="chat-body">
-        <div class="chat-msg bot">Hi! Ask me anything about your progress.</div>
-      </div>
-      <div class="chat-footer">
-        <input
-          type="text"
-          id="chat-input"
-          placeholder="Type here..."
-          onkeypress="if (event.key === 'Enter') sendChatMessage()"
-        />
-        <button onclick="sendChatMessage()">Send</button>
-      </div>
-    </div>
 
     <div
       id="notification-alert-modal"
@@ -587,70 +565,73 @@
       style="
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.8);
+        background: rgba(23, 32, 51, 0.55);
+        backdrop-filter: blur(5px);
         z-index: 10100;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 2rem;
+        padding: 20px;
       "
     >
       <div
         class="card"
         style="
           width: 100%;
-          max-width: 480px;
-          padding: 2rem;
+          max-width: 440px;
+          padding: 28px;
           text-align: center;
           position: relative;
-          border: 1px solid var(--gold);
-          box-shadow: 0 0 24px rgba(241, 143, 1, 0.25);
+          border-top: 3px solid var(--accent);
+          box-shadow: var(--shadow-xl);
           animation: zoomIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         "
       >
         <div
           style="
-            margin-bottom: 1rem;
+            margin-bottom: 16px;
             display: flex;
             justify-content: center;
             animation: pulseBell 2s infinite;
           "
         >
-          <svg
-            width="48"
-            height="48"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="var(--gold)"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-          </svg>
+          <div style="width:44px;height:44px;background:var(--accent-light);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;">
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--accent)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+          </div>
         </div>
         <h3
-          style="color: var(--primary); margin-bottom: 1rem; font-weight: 700"
+          style="color: var(--text); margin-bottom: 10px; font-weight: 700; font-size: 1rem;"
         >
           New Notification
         </h3>
         <p
           id="notif-alert-message"
           style="
-            font-size: 1.05rem;
-            color: var(--text-primary);
-            line-height: 1.5;
-            margin-bottom: 1.5rem;
-            font-weight: 500;
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 14px;
+            font-weight: 400;
             white-space: pre-line;
           "
         ></p>
         <div
           style="
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--text-muted);
-            margin-bottom: 1.5rem;
+            margin-bottom: 20px;
           "
           id="notif-alert-sender"
         ></div>
@@ -732,19 +713,34 @@
         const marks = allMarks.filter((m) => m.exam_name && m.exam_name !== "-")
         const passCount = marks.filter((m) => m.percentage >= 40).length
         const failCount = marks.length - passCount
+        const avg = data.overall_average || 0
+
+        // Populate overall progress hero strip
+        const ring = document.getElementById('overall-pct-ring')
+        const label = document.getElementById('overall-pct-label')
+        const sub = document.getElementById('overall-exams-label')
+        const bar = document.getElementById('overall-progress-bar')
+        if (ring) ring.textContent = avg + '%'
+        if (label) label.textContent = avg + '% average'
+        if (sub) sub.textContent = marks.length + ' exam' + (marks.length !== 1 ? 's' : '') + ' recorded · Class Rank #' + (data.rank || '–')
+        if (bar) { bar.style.width = '0%'; setTimeout(() => { bar.style.width = avg + '%' }, 120); }
 
         document.getElementById("stats-grid").innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-value" style="color:var(--text-primary);">${data.overall_average || 0}%</div>
-                    <div class="stat-label">Overall Average</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" style="color:var(--text-primary);">#${data.rank || "-"}</div>
+                <div class="stat-card secondary">
+                    <div class="stat-value">#${data.rank || "–"}</div>
                     <div class="stat-label">Class Rank</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value" style="color:var(--text-primary);">${marks.length}</div>
-                    <div class="stat-label">Total Exams</div>
+                <div class="stat-card primary">
+                    <div class="stat-value">${marks.length}</div>
+                    <div class="stat-label">Exams Taken</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-value">${passCount}</div>
+                    <div class="stat-label">Passed</div>
+                </div>
+                <div class="stat-card danger">
+                    <div class="stat-value">${failCount}</div>
+                    <div class="stat-label">Failed</div>
                 </div>
             `
 

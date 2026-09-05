@@ -7,306 +7,251 @@
     <link rel="stylesheet" href="css/style.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <style>
-      :root {
-        --card-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
-        --accent-gradient: linear-gradient(
-          135deg,
-          var(--primary),
-          var(--primary-dark)
-        );
-      }
-
-      .main-content {
-        padding: 2.5rem;
-        background: var(--bg-primary);
-        min-height: 100vh;
-      }
+      /* Admin Dashboard — overrides only what style.css can't handle generically */
 
       .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        margin-bottom: 2.5rem;
-        border: none;
+        border-bottom: none;
         padding-bottom: 0;
-      }
-      .page-header h1 {
-        font-family: "Inter", sans-serif;
-        font-size: 2.4rem;
-        font-weight: 700;
-        color: var(--navy);
-        margin-bottom: 0.25rem;
-        letter-spacing: -0.5px;
-      }
-      .subtitle {
-        color: var(--text-muted);
-        font-weight: 500;
-        font-size: 1.05rem;
-      }
-
-      .header-actions {
-        display: flex;
-        gap: 1rem;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
+        gap: 12px;
         align-items: center;
       }
 
-      /* Modern Search */
-      .search-container {
-        position: relative;
-        width: 360px;
-      }
+      /* Search bar */
+      .search-container { position: relative; width: 280px; }
       .search-input {
+        width: 100%;
+        padding: 8px 12px 8px 36px;
         border: 1px solid var(--border);
         border-radius: var(--radius-sm);
-        padding: 0.85rem 1rem 0.85rem 3rem;
-        font-size: 0.95rem;
-        width: 100%;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        background: #fff
-          url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="%237c7365" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>')
-          no-repeat 16px center;
-        box-shadow: var(--card-shadow);
+        font-size: 0.875rem;
+        font-family: inherit;
+        background: var(--surface);
+        color: var(--text);
+        outline: none;
+        transition: var(--transition);
       }
       .search-input:focus {
         border-color: var(--primary);
-        box-shadow: 0 0 0 4px rgba(241, 143, 1, 0.15);
-        outline: none;
-        width: 400px;
-        transform: translateX(-40px);
+        box-shadow: 0 0 0 3px rgba(49, 87, 213, 0.10);
+      }
+      .search-input::placeholder { color: var(--text-muted); }
+      .search-icon-wrap {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        pointer-events: none;
       }
       .search-results {
         position: absolute;
-        top: 115%;
+        top: calc(100% + 4px);
         left: 0;
         right: 0;
-        background: #fff;
-        border-radius: var(--radius-md);
+        background: var(--surface);
         border: 1px solid var(--border);
-        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-lg);
         z-index: 1000;
-        max-height: 450px;
+        max-height: 380px;
         overflow-y: auto;
         display: none;
-        padding: 0.75rem;
-        backdrop-filter: blur(10px);
+        padding: 6px;
       }
       .search-item {
-        padding: 14px 18px;
-        border-radius: var(--radius-sm);
+        padding: 10px 12px;
+        border-radius: var(--radius-xs);
         cursor: pointer;
         display: flex;
         align-items: center;
-        gap: 14px;
-        transition: all 0.2s ease;
-        margin-bottom: 4px;
+        gap: 10px;
+        transition: background 0.12s;
+        margin-bottom: 2px;
       }
-      .search-item:hover {
-        background: rgba(241, 143, 1, 0.06);
-        transform: scale(1.02);
-      }
+      .search-item:hover { background: var(--primary-light); }
       .search-item .avatar {
-        width: 42px;
-        height: 42px;
-        background: var(--bg-primary);
-        border-radius: var(--radius-sm);
+        width: 34px;
+        height: 34px;
+        background: var(--bg);
+        border-radius: var(--radius-xs);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: 800;
+        font-weight: 700;
         color: var(--primary);
-        font-size: 1rem;
+        font-size: 0.875rem;
         border: 1px solid var(--border);
+        flex-shrink: 0;
       }
       .search-item .type {
-        font-size: 0.65rem;
+        font-size: 0.625rem;
         text-transform: uppercase;
-        background: var(--primary);
-        color: #fff;
-        padding: 3px 8px;
-        border-radius: var(--radius-sm);
-        font-weight: 900;
-        letter-spacing: 0.5px;
+        background: var(--primary-light);
+        color: var(--primary);
+        padding: 2px 7px;
+        border-radius: var(--radius-xs);
+        font-weight: 700;
+        letter-spacing: 0.05em;
       }
 
-      /* Stats Grid */
+      /* Filter group */
+      .filter-group {
+        display: flex;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+        gap: 0;
+      }
+      .filter-select {
+        border: none;
+        border-right: 1px solid var(--border);
+        background: transparent;
+        padding: 8px 12px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text);
+        cursor: pointer;
+        outline: none;
+        font-family: inherit;
+        transition: background 0.12s;
+      }
+      .filter-select:last-child { border-right: none; }
+      .filter-select:hover { background: var(--bg); }
+
+      /* Stat cards — responsive grid */
       .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1.5rem;
-        margin-bottom: 2.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 16px;
       }
       .admin-stat-card {
-        background: #fff;
+        background: var(--surface);
         border: 1px solid var(--border);
         border-radius: var(--radius-md);
-        padding: 2rem;
+        padding: 20px;
         position: relative;
         overflow: hidden;
-        transition: all 0.3s ease;
-        box-shadow: var(--card-shadow);
+        transition: var(--transition);
       }
       .admin-stat-card:hover {
-        transform: translateY(-8px);
-        border-color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--border-strong);
       }
       .admin-stat-card::before {
         content: "";
         position: absolute;
-        bottom: 0;
-        right: 0;
-        width: 100px;
-        height: 100px;
-        background: radial-gradient(
-          circle at bottom right,
-          rgba(59, 130, 246, 0.05),
-          transparent
-        );
-        border-radius: 100% 0 0 0;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: var(--stat-accent, var(--primary));
+        border-radius: var(--radius-md) var(--radius-md) 0 0;
       }
       .stat-icon {
-        font-size: 2.4rem;
-        margin-bottom: 1.25rem;
+        font-size: 1.25rem;
+        width: 36px;
+        height: 36px;
+        background: var(--primary-light);
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 14px;
       }
       .stat-value {
-        font-size: 2.6rem;
+        font-size: 1.875rem;
         font-weight: 700;
-        color: var(--navy);
-        margin-bottom: 0.4rem;
-        font-family: "Inter", sans-serif;
-        letter-spacing: -1px;
+        color: var(--text);
+        letter-spacing: -0.03em;
+        line-height: 1;
+        margin-bottom: 6px;
       }
       .stat-label {
-        font-size: 0.9rem;
-        font-weight: 800;
+        font-size: 0.6875rem;
+        font-weight: 700;
         color: var(--text-muted);
         text-transform: uppercase;
-        letter-spacing: 1.2px;
+        letter-spacing: 0.07em;
       }
 
-      /* Charts */
+      /* Charts — responsive grid, no fixed ratio columns */
       .charts-grid {
-        display: grid;
-        grid-template-columns: 1.4fr 1fr;
-        gap: 2rem;
-        margin-bottom: 2rem;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 16px;
       }
       .chart-card {
-        background: #fff;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--border);
-        padding: 2.5rem;
-        box-shadow: var(--card-shadow);
-        transition: all 0.3s ease;
-      }
-      .chart-card:hover {
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.06);
+        padding: 20px;
+        min-width: 0; /* prevent grid blowout */
+        overflow: hidden;
       }
       .card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
-        border: none;
+        margin-bottom: 16px;
         padding: 0;
+        border: none;
       }
       .card-title {
-        font-family: "Inter", sans-serif;
-        font-size: 1.4rem;
+        font-size: 0.875rem;
         font-weight: 700;
-        color: var(--navy);
-        letter-spacing: -0.3px;
+        color: var(--text);
+        letter-spacing: 0;
+        text-transform: none;
       }
 
-      /* Custom Filters */
-      .filter-group {
-        display: flex;
-        background: #fff;
-        border: 1px solid var(--border);
-        border-radius: var(--radius-sm);
-        padding: 6px;
-        gap: 6px;
-        box-shadow: var(--card-shadow);
-      }
-      .filter-select {
-        border: none;
-        background: transparent;
-        padding: 0.75rem 1.25rem;
-        font-size: 0.9rem;
-        font-weight: 800;
-        color: var(--navy);
-        cursor: pointer;
-        outline: none;
-        border-radius: var(--radius-sm);
-        transition: all 0.2s;
-      }
-      .filter-select:hover {
-        background: var(--bg-primary);
-      }
-
-      /* Risk Badges */
+      /* Risk badges */
       .risk-badge {
-        padding: 6px 14px;
-        border-radius: var(--radius-sm);
-        font-size: 0.75rem;
-        font-weight: 900;
+        padding: 3px 10px;
+        border-radius: var(--radius-xs);
+        font-size: 0.6875rem;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.05em;
       }
-      .risk-high {
-        background: rgba(239, 68, 68, 0.12);
-        color: #dc2626;
-        border: 1px solid rgba(239, 68, 68, 0.2);
-      }
-      .risk-medium {
-        background: rgba(245, 158, 11, 0.12);
-        color: #d97706;
-        border: 1px solid rgba(245, 158, 11, 0.2);
-      }
-      .risk-low {
-        background: rgba(16, 185, 129, 0.12);
-        color: #059669;
-        border: 1px solid rgba(16, 185, 129, 0.2);
-      }
+      .risk-high   { background: var(--danger-light);  color: var(--danger); }
+      .risk-medium { background: var(--warning-light); color: var(--warning); }
+      .risk-low    { background: var(--success-light); color: var(--success); }
 
+      /* Loading state */
       .loading-premium {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        height: 500px;
+        height: 360px;
         text-align: center;
+        gap: 12px;
+        color: var(--text-muted);
       }
-      .loading-premium .spinner {
-        width: 50px;
-        height: 50px;
-        border-width: 4px;
-      }
+      .loading-premium .spinner { width: 28px; height: 28px; border-width: 3px; }
 
-      /* Rank Badge */
+      /* Rank badges */
       .rank-indicator {
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: 900;
-        font-size: 0.85rem;
+        font-weight: 700;
+        font-size: 0.75rem;
+        flex-shrink: 0;
       }
-      .rank-1 {
-        background: #fff7ed;
-        color: #ea580c;
-        border: 2px solid #fdba74;
+      .rank-1 { background: #FFFBEB; color: var(--accent); border: 1px solid #FDE68A; }
+      .rank-2 { background: #F8FAFC; color: var(--text-secondary); border: 1px solid #E2E8F0; }
+      .rank-3 { background: #FFFCF0; color: #B45309; border: 1px solid #FDE68A; }
+
+      @media (max-width: 1100px) {
+        .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        .charts-grid { grid-template-columns: 1fr; }
       }
-      .rank-2 {
-        background: #f8fafc;
-        color: #475569;
-        border: 2px solid #cbd5e1;
+      @media (max-width: 768px) {
+        .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        .header-actions { flex-wrap: wrap; gap: 8px; width: 100%; }
+        .filter-group { flex: 1; }
+        .search-container { width: 100% !important; flex: 1; }
       }
-      .rank-3 {
-        background: #fffcf0;
-        color: #b45309;
-        border: 2px solid #fde68a;
+      @media (max-width: 480px) {
+        .stats-grid { grid-template-columns: 1fr 1fr; }
       }
     </style>
   </head>
@@ -319,10 +264,10 @@
         <div class="sidebar-footer">
           <button
             class="btn btn-secondary"
-            style="width: 100%; border-radius: var(--radius-sm); padding: 1rem"
+            style="width: 100%;"
             onclick="handleLogout()"
           >
-            Logout
+            Sign Out
           </button>
         </div>
       </aside>
@@ -335,7 +280,7 @@
               Real-time system intelligence & student growth metrics
             </p>
           </div>
-          <div class="header-actions">
+          <div class="header-actions" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0;">
             <div class="filter-group">
               <select
                 id="class-filter"
@@ -353,6 +298,7 @@
               </select>
             </div>
             <div class="search-container">
+              <svg class="search-icon-wrap" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               <input
                 type="text"
                 id="global-search"
@@ -367,18 +313,11 @@
 
         <div id="loading" class="loading-premium">
           <div class="spinner"></div>
-          <p
-            style="
-              margin-top: 1.5rem;
-              font-weight: 800;
-              color: var(--navy);
-              font-size: 1.1rem;
-            "
-          >
-            Optimizing Neural Aggregates...
+          <p style="font-weight: 600; color: var(--text-secondary); font-size: 0.9375rem; margin: 0;">
+            Loading analytics...
           </p>
-          <p style="color: var(--text-muted); font-size: 0.9rem">
-            Crunching live exam data for AEVON Insights
+          <p style="color: var(--text-muted); font-size: 0.8125rem; margin: 0;">
+            Aggregating exam data across all classes
           </p>
         </div>
 
@@ -413,8 +352,8 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-2 mt-2">
-            <div class="chart-card">
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 16px;">
+            <div class="chart-card" style="min-width:0;">
               <div class="card-header">
                 <span class="card-title">At-Risk Intervention</span>
                 <span class="badge badge-danger">High Priority</span>
@@ -422,7 +361,7 @@
               <div id="at-risk-container"></div>
             </div>
 
-            <div class="chart-card">
+            <div class="chart-card" style="min-width:0;">
               <div class="card-header">
                 <span class="card-title">Honor Roll</span>
                 <span class="badge badge-success">Top Performers</span>

@@ -404,6 +404,21 @@ function setupMobileNavigation() {
   })
 }
 
+// ── SVG icon helpers for sidebar ──────────────────────────────
+const NAV_ICONS = {
+  dashboard: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>`,
+  control: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>`,
+  academics: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,
+  students: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+  marks: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
+  exam: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`,
+  materials: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`,
+  comparisons: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
+  reports: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
+  planner: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
+  logout: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`,
+}
+
 function renderSidebar(activePage = "") {
   const user = getCurrentUser()
   if (!user) return
@@ -411,9 +426,6 @@ function renderSidebar(activePage = "") {
   setupMobileNavigation()
 
   const navLinks = document.getElementById("nav-links")
-  const roleLabel =
-    document.getElementById("role-label") ||
-    document.getElementById("user-role-label")
   const sidebarHeader = document.querySelector(".sidebar-header")
 
   if (sidebarHeader) {
@@ -424,19 +436,12 @@ function renderSidebar(activePage = "") {
           ? "Teacher Panel"
           : "Student Panel"
     sidebarHeader.innerHTML = `
-            <div style="display:flex;align-items:center;gap:10px;padding:0.25rem 0 0.4rem;">
-                <img src="logo.png" alt="AEVON" style="height:36px;width:auto;object-fit:contain;flex-shrink:0;">
-                <span style="font-size:1.1rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--primary-dark));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.3px;">AEVON</span>
-            </div>
-            <div class="user-role" id="role-label">${roleName}</div>
-        `
-  } else if (roleLabel) {
-    roleLabel.textContent =
-      user.role === "admin"
-        ? "Administrator"
-        : user.role === "teacher"
-          ? "Teacher Panel"
-          : "Student Panel"
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:34px;height:34px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.9rem;font-weight:800;letter-spacing:-0.5px;flex-shrink:0;">A</div>
+        <span style="font-size:1.1rem;font-weight:800;color:var(--text);letter-spacing:-0.04em;">AEVON</span>
+      </div>
+      <div class="user-role" id="role-label">${roleName}</div>
+    `
   }
 
   if (!navLinks) return
@@ -444,32 +449,32 @@ function renderSidebar(activePage = "") {
   let links = []
   if (user.role === "admin") {
     links = [
-      { href: "admin_dashboard.html", icon: "•", text: "Global Dashboard" },
-      { href: "admin.html", icon: "•", text: "Control Panel" },
-      { href: "academics.html", icon: "•", text: "Academics" },
-      { href: "students.html", icon: "•", text: "Students" },
-      { href: "marks.html", icon: "•", text: "Marks" },
-      { href: "exam_admin.html", icon: "•", text: "Exam Portal" },
-      { href: "study_material_admin.html", icon: "•", text: "Study Materials" },
-      { href: "comparisons.html", icon: "•", text: "Comparisons" },
-      { href: "reports.html", icon: "•", text: "Reports" },
+      { href: "admin_dashboard.html", icon: NAV_ICONS.dashboard,   text: "Dashboard" },
+      { href: "admin.html",           icon: NAV_ICONS.control,     text: "Control Panel" },
+      { href: "academics.html",       icon: NAV_ICONS.academics,   text: "Academics" },
+      { href: "students.html",        icon: NAV_ICONS.students,    text: "Students" },
+      { href: "marks.html",           icon: NAV_ICONS.marks,       text: "Marks" },
+      { href: "exam_admin.html",      icon: NAV_ICONS.exam,        text: "Exam Portal" },
+      { href: "study_material_admin.html", icon: NAV_ICONS.materials, text: "Study Materials" },
+      { href: "comparisons.html",     icon: NAV_ICONS.comparisons, text: "Comparisons" },
+      { href: "reports.html",         icon: NAV_ICONS.reports,     text: "Reports" },
     ]
   } else if (user.role === "teacher") {
     links = [
-      { href: "teacher.html", icon: "•", text: "Dashboard" },
-      { href: "students.html", icon: "•", text: "Students" },
-      { href: "marks.html", icon: "•", text: "Marks" },
-      { href: "exam_admin.html", icon: "•", text: "Exam Portal" },
-      { href: "study_material_admin.html", icon: "•", text: "Study Materials" },
-      { href: "comparisons.html", icon: "•", text: "Comparisons" },
-      { href: "reports.html", icon: "•", text: "Reports" },
+      { href: "teacher.html",         icon: NAV_ICONS.dashboard,   text: "Dashboard" },
+      { href: "students.html",        icon: NAV_ICONS.students,    text: "Students" },
+      { href: "marks.html",           icon: NAV_ICONS.marks,       text: "Marks" },
+      { href: "exam_admin.html",      icon: NAV_ICONS.exam,        text: "Exam Portal" },
+      { href: "study_material_admin.html", icon: NAV_ICONS.materials, text: "Study Materials" },
+      { href: "comparisons.html",     icon: NAV_ICONS.comparisons, text: "Comparisons" },
+      { href: "reports.html",         icon: NAV_ICONS.reports,     text: "Reports" },
     ]
   } else {
     links = [
-      { href: "student.html", icon: "•", text: "Dashboard" },
-      { href: "study_planner.html", icon: "•", text: "Study Planner" },
-      { href: "exam_portal.html", icon: "•", text: "Exam Portal" },
-      { href: "reports.html", icon: "•", text: "Reports" },
+      { href: "student.html",         icon: NAV_ICONS.dashboard,   text: "Dashboard" },
+      { href: "study_planner.html",   icon: NAV_ICONS.planner,     text: "Study Planner" },
+      { href: "exam_portal.html",     icon: NAV_ICONS.exam,        text: "Exam Portal" },
+      { href: "reports.html",         icon: NAV_ICONS.reports,     text: "Reports" },
     ]
   }
 
@@ -477,11 +482,21 @@ function renderSidebar(activePage = "") {
     .map(
       (link) => `
         <a href="${link.href}" class="nav-item ${activePage === link.href ? "active" : ""}">
-            <span class="icon">${link.icon}</span> ${link.text}
+          <span class="icon">${link.icon}</span>${link.text}
         </a>
-    `,
+      `
     )
     .join("")
+
+  // Update sidebar footer logout button with icon
+  const sidebarFooter = document.querySelector(".sidebar-footer")
+  if (sidebarFooter) {
+    const logoutBtn = sidebarFooter.querySelector("button")
+    if (logoutBtn) {
+      logoutBtn.innerHTML = `${NAV_ICONS.logout} Sign Out`
+      logoutBtn.style.cssText = "width:100%;display:flex;align-items:center;justify-content:center;gap:8px;"
+    }
+  }
 }
 
 async function handleLogout() {
@@ -494,19 +509,19 @@ async function handleLogout() {
 }
 
 const CHART_COLORS = {
-  primary: ["#3b82f6", "#475569", "#64748b", "#93c5fd", "#1e293b"],
-  gradient: ["#3b82f6", "#64748b", "#93c5fd"],
+  primary: ["#3157D5", "#6366F1", "#16A34A", "#F59E0B", "#DC2626"],
+  gradient: ["#3157D5", "#6366F1", "#243FA3"],
   rainbow: [
-    "#3b82f6",
-    "#10b981",
-    "#f59e0b",
-    "#ec4899",
-    "#8b5cf6",
-    "#06b6d4",
-    "#f97316",
-    "#14b8a6",
-    "#ef4444",
-    "#a855f7",
+    "#3157D5",
+    "#16A34A",
+    "#F59E0B",
+    "#6366F1",
+    "#DC2626",
+    "#0EA5E9",
+    "#EC4899",
+    "#14B8A6",
+    "#7C3AED",
+    "#F97316",
   ],
 }
 
@@ -731,9 +746,10 @@ const Charts = {
 }
 
 if (typeof Chart !== "undefined") {
-  Chart.defaults.color = "#8d99ae"
-  Chart.defaults.borderColor = "rgba(67, 97, 238, 0.1)"
+  Chart.defaults.color = "#667085"
+  Chart.defaults.borderColor = "rgba(228, 232, 240, 1)"
   Chart.defaults.font.family = "'Inter', sans-serif"
+  Chart.defaults.font.size = 12
 }
 
 window.Charts = Charts

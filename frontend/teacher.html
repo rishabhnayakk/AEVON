@@ -7,96 +7,116 @@
     <link rel="stylesheet" href="css/style.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <style>
+      /* ── Chat Widget ── */
       .chat-widget {
         position: fixed;
         bottom: 20px;
         right: 20px;
         width: 320px;
-        background: #141414;
+        background: var(--surface);
         border: 1px solid var(--border);
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-xl);
         display: flex;
         flex-direction: column;
         z-index: 1000;
         overflow: hidden;
-        transition: all 0.3s;
-        color: #ffffff;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
       .chat-widget.collapsed {
         height: 50px;
         cursor: pointer;
       }
       .chat-header {
-        background: linear-gradient(
-          135deg,
-          var(--primary),
-          var(--primary-dark)
-        );
+        background: var(--primary);
         color: #fff;
         padding: 12px 16px;
-        font-weight: bold;
+        font-weight: 600;
+        font-size: 0.875rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .chat-header button {
+        background: rgba(255,255,255,0.15);
+        border: none;
+        color: #fff;
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       .chat-body {
-        height: 300px;
+        height: 280px;
         padding: 12px;
         overflow-y: auto;
-        background: #0a0a0a;
+        background: var(--bg);
         display: flex;
         flex-direction: column;
         gap: 8px;
       }
+      .chat-body::-webkit-scrollbar { width: 4px; }
+      .chat-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
       .chat-msg {
-        max-width: 85%;
+        max-width: 88%;
         padding: 8px 12px;
-        border-radius: 8px;
-        font-size: 0.9rem;
-        color: #ffffff;
-        line-height: 1.4;
+        border-radius: var(--radius-sm);
+        font-size: 0.8125rem;
+        line-height: 1.5;
       }
       .chat-msg.user {
-        background: rgba(241, 143, 1, 0.25);
-        border: 1px solid rgba(241, 143, 1, 0.4);
+        background: var(--primary);
+        color: #fff;
         align-self: flex-end;
+        border-radius: var(--radius-sm) var(--radius-sm) 2px var(--radius-sm);
       }
       .chat-msg.bot {
-        background: #222222;
-        border: 1px solid #333333;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
         align-self: flex-start;
+        border-radius: 2px var(--radius-sm) var(--radius-sm) var(--radius-sm);
       }
       .chat-footer {
-        padding: 12px;
+        padding: 10px 12px;
         border-top: 1px solid var(--border);
         display: flex;
         gap: 8px;
-        background: #141414;
+        background: var(--surface);
+        flex-shrink: 0;
       }
       .chat-footer input {
         flex: 1;
-        padding: 8px 12px;
+        padding: 7px 10px;
         border: 1px solid var(--border);
-        background: #222;
-        color: #fff;
-        border-radius: 6px;
-        font-size: 0.9rem;
+        background: var(--bg);
+        color: var(--text);
+        border-radius: var(--radius-xs);
+        font-size: 0.8125rem;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.2s;
       }
+      .chat-footer input:focus { border-color: var(--primary); }
       .chat-footer button {
         background: var(--primary);
         border: none;
         color: #fff;
-        padding: 8px 14px;
-        border-radius: 6px;
+        padding: 7px 13px;
+        border-radius: var(--radius-xs);
         font-weight: 600;
         cursor: pointer;
-        transition: background 0.2s;
-        font-size: 0.9rem;
+        transition: background 0.15s;
+        font-size: 0.8125rem;
+        font-family: inherit;
       }
-      .chat-footer button:hover {
-        background: var(--primary-dark);
-      }
+      .chat-footer button:hover { background: var(--primary-dark); }
     </style>
   </head>
   <body>
@@ -113,7 +133,7 @@
             style="width: 100%"
             onclick="handleLogout()"
           >
-            Logout
+            Sign Out
           </button>
         </div>
       </aside>
