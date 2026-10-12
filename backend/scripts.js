@@ -4,7 +4,7 @@ const command = process.argv[2]
 
 if (!command) {
   console.error(
-    "Usage: node scripts.js <setup-admin|check-users|cleanup|test-notification|test-delete-notif|test-ai>",
+    "Usage: node scripts.js <reset-admin|setup-admin|check-users|cleanup|test-notification|test-delete-notif|test-ai>",
   )
   process.exit(1)
 }
@@ -57,6 +57,44 @@ async function setupAdmin() {
     console.log(`[Admin Setup] Generated admin password: ${adminPassword}`)
     console.log("[Admin Setup] No ADMIN_PASSWORD environment variable was set; save this password now.")
   }
+
+  await mongoose.disconnect()
+}
+
+async function resetAdmin() {
+  const mongoose = require("mongoose")
+  const bcrypt = require("bcryptjs")
+  const { User } = require("./models")
+
+  await mongoose.connect(MONGO_URI)
+  console.log("[Admin Reset] Connected to MongoDB")
+
+  const adminUsername = process.argv[3] || process.env.ADMIN_USERNAME || "admin"
+  const adminPassword = process.argv[4] || process.env.ADMIN_PASSWORD || "admin123"
+
+  const hashedPassword = await bcrypt.hash(adminPassword, 10)
+
+  let user = await User.findOne({ role: "admin" })
+  if (user) {
+    user.username = adminUsername
+    user.password = hashedPassword
+    user.isBlocked = false
+    await user.save()
+    console.log(`[Admin Reset] Existing admin user updated successfully!`)
+  } else {
+    user = await User.create({
+      username: adminUsername,
+      password: hashedPassword,
+      role: "admin",
+      isBlocked: false,
+    })
+    console.log(`[Admin Reset] New admin user created successfully!`)
+  }
+
+  console.log("------------------------------------------")
+  console.log(`Admin Username / ID : ${adminUsername}`)
+  console.log(`Admin Password      : ${adminPassword}`)
+  console.log("------------------------------------------")
 
   await mongoose.disconnect()
 }
@@ -320,6 +358,9 @@ async function testAI() {
 ;(async () => {
   try {
     switch (command) {
+      case "reset-admin":
+        await resetAdmin()
+        break
       case "setup-admin":
         await setupAdmin()
         break

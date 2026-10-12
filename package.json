@@ -5,7 +5,8 @@
   "scripts": {
     "postinstall": "npm install --prefix backend",
     "build": "echo 'No build step required'",
-    "start": "npm start --prefix backend"
+    "start": "npm start --prefix backend",
+    "dev": "npm run dev --prefix backend"
   },
   "engines": {
     "node": ">=18.0.0"
