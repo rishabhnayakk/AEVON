@@ -2318,3 +2318,61 @@ select.form-control {
 /* Section spacing */
 .section-gap    { margin-top: 24px; }
 .section-gap-lg { margin-top: 32px; }
+
+
+/* AEVON Neo-Brutalist interior theme */
+:root{
+ --primary:#3157D5;--primary-dark:#17399F;--primary-light:#E8EDFF;--primary-rgb:49,87,213;
+ --secondary:#F4C542;--secondary-light:#FFF4C7;--accent:#F4C542;--accent-light:#FFF4C7;
+ --bg:#F3F0E8;--surface:#FFFEFA;--surface-hover:#F8F5EC;--surface-raised:#FFFEFA;
+ --text:#171717;--text-secondary:#454545;--text-muted:#686868;--text-disabled:#A3A3A3;
+ --border:#222;--border-strong:#111;--border-focus:#3157D5;
+ --shadow-xs:2px 2px 0 #171717;--shadow-sm:3px 3px 0 #171717;--shadow-md:5px 5px 0 #171717;
+ --shadow-lg:7px 7px 0 #171717;--shadow-xl:9px 9px 0 #171717;
+ --radius-xs:0;--radius-sm:0;--radius-md:0;--radius-lg:0;--radius-xl:0;--radius-full:0;
+ --bg-primary:var(--bg);--bg-secondary:var(--surface);--bg-card:var(--surface);
+ --bg-card-hover:var(--surface-hover);--bg-glass:var(--surface);--bg-input:var(--surface);
+ --text-primary:var(--text);--border-color:var(--border);--border-active:var(--primary);
+ --shadow-glow:3px 3px 0 #171717;--gold:#F4C542;
+}
+body,.app-layout,.main-content{background:var(--bg);color:var(--text)}
+h1,h2,h3,h4,h5,h6,.sidebar-header h2{color:#171717;font-weight:800;letter-spacing:-.045em}
+h1{font-size:clamp(1.8rem,3vw,2.65rem);text-transform:uppercase}
+h2,h3{text-transform:uppercase}
+.sidebar{background:#171717;color:#FFFEFA;border-right:3px solid #171717}
+.sidebar-header{border-bottom:2px solid #F4C542}
+.sidebar-header h2{color:#F4C542;font-size:1.55rem}
+.sidebar-header .user-role,.nav-section-label{color:#C8C5BC}
+.nav-item{color:#F3F0E8;border:1px solid transparent;border-radius:0;font-weight:650;margin:3px 0}
+.nav-item:hover,.nav-item.active{background:#F4C542;color:#171717;border-color:#F4C542}
+.nav-item.active:before{display:none}
+.sidebar-footer{border-top:2px solid #F4C542}
+.page-header{border-bottom:3px solid #171717;padding-bottom:18px}
+.card,.management-card,.stat-card,.chart-card,.modal-content,.table-container,.panel,.widget,.exam-card,.subject-card,.feature-card{
+ background:#FFFEFA;border:2px solid #171717;border-radius:0;box-shadow:3px 3px 0 #171717
+}
+.card:hover,.management-card:hover,.stat-card:hover,.subject-card:hover,.feature-card:hover{
+ transform:translate(-2px,-2px);box-shadow:5px 5px 0 #171717;border-color:#171717
+}
+.card-title{color:#3157D5;font-weight:850;letter-spacing:.09em}
+.stat-card:before{height:7px;border-radius:0}
+.stat-card .stat-icon{background:#F4C542;color:#171717;border:2px solid #171717;border-radius:0}
+.stat-card .stat-value{font-weight:900}
+.btn,button,input[type=submit]{border-radius:0!important;font-weight:800;border:2px solid #171717;box-shadow:3px 3px 0 #171717;transition:transform .14s,box-shadow .14s}
+.btn:hover,button:hover,input[type=submit]:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 #171717}
+.btn-primary,.btn-primary:hover{background:#3157D5;color:#fff;border-color:#171717}
+.btn-secondary,.btn-secondary:hover{background:#F4C542;color:#171717;border-color:#171717}
+.form-control,input,select,textarea{border:2px solid #171717!important;border-radius:0!important;background:#FFFEFA;color:#171717;box-shadow:2px 2px 0 #17171720}
+.form-control:focus,input:focus,select:focus,textarea:focus{outline:2px solid #3157D5;outline-offset:2px}
+.data-table thead th{background:#171717;color:#F4C542;border-color:#171717;font-weight:850}
+.data-table tbody td{border-bottom:1px solid #B9B4A8;color:#333}
+.data-table tbody tr:hover{background:#FFF1B8}
+.badge{border:1px solid #171717;border-radius:0;font-weight:800}
+.badge-info{background:#E8EDFF;color:#17399F}
+.badge-warning,.badge-secondary{background:#FFF1B8;color:#171717}
+.badge-success{background:#DDF2D7;color:#174A21}
+.badge-danger{background:#FFE0DC;color:#8A1F16}
+.progress-track{background:#D7D1C4;border:1px solid #171717;border-radius:0}
+.progress-fill{background:#3157D5;border-radius:0}
+@media(max-width:900px){.main-content{padding:22px 20px}}
+@media(max-width:640px){.main-content{padding:16px 12px}.page-header{gap:12px;flex-wrap:wrap}.stats-grid{gap:12px}.card,.management-card,.chart-card{padding:15px}}
