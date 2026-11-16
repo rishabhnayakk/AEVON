@@ -17,8 +17,8 @@
     "connect-mongo": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.4.2",
-    "express": "^4.21.0",
+    "express": "^5.3.0",
     "express-session": "^1.18.1",
-    "mongoose": "^8.8.0"
+    "mongoose": "^9.12.1"
   }
 }
