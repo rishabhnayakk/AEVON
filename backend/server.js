@@ -1366,6 +1366,10 @@ app.get("/api/ai/predict/:id", requireLogin, async (req, res) => {
       return res.status(400).json({ error: "Invalid ID format" })
     const student = await Student.findById(req.params.id).populate("classId")
     if (!student) return res.status(404).json({ error: "Student not found" })
+    if (req.session.role === "student") {
+      const user = await User.findById(req.session.userId).select("studentId")
+      if (!user?.studentId || user.studentId.toString() !== student._id.toString()) return res.status(403).json({ error: "You can only view your own student records" })
+    }
 
     if (req.session.role === "teacher") {
       const teacherClassIds = await getTeacherClasses(req.session.userId)
@@ -1440,6 +1444,10 @@ app.get("/api/ai/recommendations/:id", requireLogin, async (req, res) => {
       return res.status(400).json({ error: "Invalid ID format" })
     const student = await Student.findById(req.params.id).populate("classId")
     if (!student) return res.status(404).json({ error: "Student not found" })
+    if (req.session.role === "student") {
+      const user = await User.findById(req.session.userId).select("studentId")
+      if (!user?.studentId || user.studentId.toString() !== student._id.toString()) return res.status(403).json({ error: "You can only access your own AI analysis" })
+    }
 
     if (req.session.role === "teacher") {
       const teacherClassIds = await getTeacherClasses(req.session.userId)
@@ -1505,7 +1513,7 @@ app.get("/api/ai/recommendations/:id", requireLogin, async (req, res) => {
   }
 })
 
-app.get("/api/ai/at-risk", requireLogin, async (req, res) => {
+app.get("/api/ai/at-risk", requireRole("admin", "teacher"), async (req, res) => {
   try {
     let filter = {}
     const { class_id } = req.query
