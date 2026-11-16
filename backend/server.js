@@ -8,6 +8,7 @@ const { MongoStore } = require("connect-mongo")
 const bcrypt = require("bcryptjs")
 const path = require("path")
 const helmet = require("helmet")
+const { rateLimit } = require("express-rate-limit")
 const { requireRole } = require("./middleware/authz")
 
 const MONGO_URI = process.env.MONGO_URI
@@ -298,7 +299,15 @@ async function checkAndAwardBadges(studentId) {
   }
 }
 
-app.post("/api/auth/login", async (req, res) => {
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: { error: "Too many login attempts. Please try again later." },
+})
+
+app.post("/api/auth/login", loginLimiter, async (req, res) => {
   try {
     const { username, password } = req.body
     const user = await User.findOne({ username })
