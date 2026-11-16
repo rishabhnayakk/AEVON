@@ -3,7 +3,7 @@ const API_BASE =
   window.location.hostname === "localhost" ||
   window.location.hostname === "127.0.0.1"
     ? "http://localhost:6060/api"
-    : "https://aevon-4.onrender.com/api"
+    : "https://aevonn.onrender.com/api"
 
 async function apiFetch(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`
