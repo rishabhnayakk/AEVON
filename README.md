@@ -278,3 +278,16 @@ Set these environment variables in your Vercel project dashboard:
 Built for educational purposes by **Rishabh Nayak**.
 
 > *"Believe in Change."*
+
+
+## 📚 Developer Documentation
+
+Detailed technical documentation is available in the [`docs/` directory](docs/README.md):
+
+- [Architecture and data model](docs/ARCHITECTURE.md)
+- [Installation and environment configuration](docs/SETUP.md)
+- [HTTP API reference](docs/API.md)
+- [Security and production operations](docs/SECURITY.md)
+- [Testing and contribution guide](docs/CONTRIBUTING.md)
+
+The documentation describes the implementation on the current hardening branch. Review the route handlers in `backend/server.js` for authoritative request/response details. CI and end-to-end test completion must be verified in GitHub before describing the branch as production-ready.
