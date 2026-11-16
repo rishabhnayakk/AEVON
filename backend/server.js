@@ -37,6 +37,8 @@ const app = express()
 
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
   .split(",").map((origin) => origin.trim()).filter(Boolean)
+const isProd = process.env.NODE_ENV === "production"
+if (isProd && allowedOrigins.length === 0) throw new Error("ALLOWED_ORIGINS must be configured in production")
 app.use(helmet({ contentSecurityPolicy: false }))
 app.use(cors({
   credentials: true,
@@ -46,7 +48,6 @@ app.use(cors({
   },
 }))
 app.use(express.json({ limit: "1mb" }))
-const isProd = process.env.NODE_ENV === "production"
 if (isProd) {
   app.set("trust proxy", 1)
 }
@@ -314,15 +315,19 @@ app.post("/api/auth/login", async (req, res) => {
         })
     }
 
+    await new Promise((resolve, reject) => req.session.regenerate((error) => error ? reject(error) : resolve()))
     req.session.userId = user._id
     req.session.role = user.role
-    res.json({
+    req.session.save((error) => {
+      if (error) return res.status(500).json({ error: "Unable to create session" })
+      res.json({
       user: {
         id: user._id.toString(),
         username: user.username,
         role: user.role,
         student_id: user.studentId?.toString() || null,
       },
+      })
     })
   } catch (e) {
     res.status(500).json({ error: e.message })
@@ -419,6 +424,11 @@ app.get("/api/students", requireLogin, async (req, res) => {
 app.get("/api/students/:id", requireLogin, async (req, res) => {
   const s = await Student.findById(req.params.id).populate("classId")
   if (!s) return res.status(404).json({ error: "Not found" })
+  if (req.session.role === "student") {
+    const user = await User.findById(req.session.userId).select("studentId")
+    if (!user?.studentId || user.studentId.toString() !== s._id.toString()) return res.status(403).json({ error: "You can only view your own profile" })
+  }
+  if (req.session.role === "teacher" && !(await canManageStudent(req, s._id))) return res.status(403).json({ error: "You cannot view students outside your assigned classes" })
   res.json({
     id: s._id.toString(),
     name: s.name,
@@ -496,19 +506,24 @@ app.delete("/api/students/:id", requireAdmin, async (req, res) => {
   }
 })
 
-app.get("/api/marks", requireLogin, async (req, res) => {
+app.get("/api/marks", requireRole("admin", "teacher"), async (req, res) => {
   try {
     const filter = {}
     if (req.query.student_id) filter.studentId = req.query.student_id
     if (req.query.subject_id) filter.subjectId = req.query.subject_id
     if (req.query.exam_id) filter.examId = req.query.exam_id
 
+    if (req.session.role === "teacher") {
+      const allowedClassIds = await getTeacherClasses(req.session.userId)
+      filter.studentId = { $in: await Student.find({ classId: { $in: allowedClassIds } }).distinct("_id") }
+    }
     if (req.query.class_id && req.query.class_id !== "all") {
-      const studentsInClass = await Student.find({
-        classId: req.query.class_id,
-      })
-      const studentIds = studentsInClass.map((s) => s._id)
-      filter.studentId = { $in: studentIds }
+      if (req.session.role === "teacher") {
+        const allowed = (await getTeacherClasses(req.session.userId)).map((id) => id.toString())
+        if (!allowed.includes(req.query.class_id)) return res.status(403).json({ error: "Class is not assigned to you" })
+      }
+      const studentsInClass = await Student.find({ classId: req.query.class_id })
+      filter.studentId = { $in: studentsInClass.map((student) => student._id) }
     }
 
     const marks = await Mark.find(filter).populate("subjectId examId")
