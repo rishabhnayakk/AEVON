@@ -115,7 +115,8 @@ Create `backend/.env`:
 
 ```env
 MONGO_URI=mongodb://127.0.0.1:27017/aevon
-SESSION_SECRET=your-secret-key-change-this-in-production
+SESSION_SECRET=replace-with-a-random-secret-at-least-32-characters-long
+ALLOWED_ORIGINS=http://localhost:6060
 PORT=6060
 GROQ_API_KEY=your_groq_api_key_here
 ```
@@ -127,7 +128,7 @@ cd backend
 node scripts.js setup-admin
 ```
 
-> Seeds the database with a default admin user. Credentials are printed to the console. Set `ADMIN_PASSWORD` in `.env` to override.
+> Creates an admin only when one does not already exist. It does **not** clear or modify existing academic data. Set `ADMIN_PASSWORD` (12+ characters) in `.env`; if omitted, a random password is generated and shown once in the terminal. Admin reset also requires an explicit strong password.
 
 ### 4. Start the Server
 
@@ -247,6 +248,15 @@ If the Groq API is unavailable or unconfigured, `generateFallbackAnalysis()` and
 
 ---
 
+## 🔐 Security and tests
+
+- Set a unique `SESSION_SECRET` with at least 32 characters.
+- In production, set `ALLOWED_ORIGINS` to a comma-separated list of trusted frontend origins; wildcard origins are not accepted.
+- Session IDs are regenerated after successful login, JSON request bodies are capped at 1 MB, and Helmet security headers are enabled.
+- Student profile, marks, analytics, and AI endpoints enforce student ownership; teacher mark access is restricted to assigned classes; mark mutations require admin or assigned-class teacher access.
+- Admin setup is non-destructive. Never run cleanup/reset utilities against production data without a verified backup.
+- Run backend tests with `npm test --prefix backend`. GitHub Actions runs tests and JavaScript syntax checks on pushes and pull requests.
+
 ## 🚢 Deployment
 
 Configured for **Vercel** via `vercel.json`.
@@ -268,3 +278,16 @@ Set these environment variables in your Vercel project dashboard:
 Built for educational purposes by **Rishabh Nayak**.
 
 > *"Believe in Change."*
+
+
+## 📚 Developer Documentation
+
+Detailed technical documentation is available in the [`docs/` directory](docs/README.md):
+
+- [Architecture and data model](docs/ARCHITECTURE.md)
+- [Installation and environment configuration](docs/SETUP.md)
+- [HTTP API reference](docs/API.md)
+- [Security and production operations](docs/SECURITY.md)
+- [Testing and contribution guide](docs/CONTRIBUTING.md)
+
+The documentation describes the implementation on the current hardening branch. Review the route handlers in `backend/server.js` for authoritative request/response details. CI and end-to-end test completion must be verified in GitHub before describing the branch as production-ready.

@@ -7,10 +7,18 @@ const session = require("express-session")
 const { MongoStore } = require("connect-mongo")
 const bcrypt = require("bcryptjs")
 const path = require("path")
+const helmet = require("helmet")
+const { rateLimit } = require("express-rate-limit")
+const { requireRole } = require("./middleware/authz")
 
 const MONGO_URI = process.env.MONGO_URI
 const SESSION_SECRET = process.env.SESSION_SECRET
 const PORT = process.env.PORT || 6050
+
+if (!MONGO_URI) throw new Error("MONGO_URI is required")
+if (!SESSION_SECRET || SESSION_SECRET.length < 32) {
+  throw new Error("SESSION_SECRET must be set and contain at least 32 characters")
+}
 
 const {
   User,
@@ -28,9 +36,19 @@ const {
 
 const app = express()
 
-app.use(cors({ origin: true, credentials: true }))
-app.use(express.json({ limit: "10mb" }))
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
+  .split(",").map((origin) => origin.trim()).filter(Boolean)
 const isProd = process.env.NODE_ENV === "production"
+if (isProd && allowedOrigins.length === 0) throw new Error("ALLOWED_ORIGINS must be configured in production")
+app.use(helmet({ contentSecurityPolicy: false }))
+app.use(cors({
+  credentials: true,
+  origin(origin, callback) {
+    if (!origin || !allowedOrigins.length || allowedOrigins.includes(origin)) return callback(null, true)
+    return callback(new Error("Origin is not allowed by CORS"))
+  },
+}))
+app.use(express.json({ limit: "1mb" }))
 if (isProd) {
   app.set("trust proxy", 1)
 }
@@ -79,6 +97,16 @@ function requireAdmin(req, res, next) {
 async function getTeacherClasses(userId) {
   const classes = await Class.find({ teacherIds: userId })
   return classes.map((c) => c._id)
+}
+
+
+async function canManageStudent(req, studentId) {
+  if (req.session.role === "admin") return true
+  if (req.session.role !== "teacher") return false
+  const student = await Student.findById(studentId).select("classId")
+  if (!student?.classId) return false
+  const classIds = await getTeacherClasses(req.session.userId)
+  return classIds.some((id) => id.toString() === student.classId.toString())
 }
 
 async function filterRealMarks(marks, onlyPublished = false) {
@@ -271,7 +299,15 @@ async function checkAndAwardBadges(studentId) {
   }
 }
 
-app.post("/api/auth/login", async (req, res) => {
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: { error: "Too many login attempts. Please try again later." },
+})
+
+app.post("/api/auth/login", loginLimiter, async (req, res) => {
   try {
     const { username, password } = req.body
     const user = await User.findOne({ username })
@@ -288,15 +324,19 @@ app.post("/api/auth/login", async (req, res) => {
         })
     }
 
+    await new Promise((resolve, reject) => req.session.regenerate((error) => error ? reject(error) : resolve()))
     req.session.userId = user._id
     req.session.role = user.role
-    res.json({
+    req.session.save((error) => {
+      if (error) return res.status(500).json({ error: "Unable to create session" })
+      res.json({
       user: {
         id: user._id.toString(),
         username: user.username,
         role: user.role,
         student_id: user.studentId?.toString() || null,
       },
+      })
     })
   } catch (e) {
     res.status(500).json({ error: e.message })
@@ -326,10 +366,10 @@ app.post("/api/auth/change-password", requireLogin, async (req, res) => {
     const { current_password, new_password } = req.body
     if (!current_password || !new_password)
       return res.status(400).json({ error: "Both fields required" })
-    if (new_password.length < 4)
+    if (typeof new_password !== "string" || new_password.length < 12)
       return res
         .status(400)
-        .json({ error: "Password must be at least 4 characters" })
+        .json({ error: "Password must be at least 12 characters" })
     const user = await User.findById(req.session.userId)
     if (!user) return res.status(401).json({ error: "Session expired" })
     const valid = await bcrypt.compare(current_password, user.password)
@@ -393,6 +433,11 @@ app.get("/api/students", requireLogin, async (req, res) => {
 app.get("/api/students/:id", requireLogin, async (req, res) => {
   const s = await Student.findById(req.params.id).populate("classId")
   if (!s) return res.status(404).json({ error: "Not found" })
+  if (req.session.role === "student") {
+    const user = await User.findById(req.session.userId).select("studentId")
+    if (!user?.studentId || user.studentId.toString() !== s._id.toString()) return res.status(403).json({ error: "You can only view your own profile" })
+  }
+  if (req.session.role === "teacher" && !(await canManageStudent(req, s._id))) return res.status(403).json({ error: "You cannot view students outside your assigned classes" })
   res.json({
     id: s._id.toString(),
     name: s.name,
@@ -470,19 +515,24 @@ app.delete("/api/students/:id", requireAdmin, async (req, res) => {
   }
 })
 
-app.get("/api/marks", requireLogin, async (req, res) => {
+app.get("/api/marks", requireRole("admin", "teacher"), async (req, res) => {
   try {
     const filter = {}
     if (req.query.student_id) filter.studentId = req.query.student_id
     if (req.query.subject_id) filter.subjectId = req.query.subject_id
     if (req.query.exam_id) filter.examId = req.query.exam_id
 
+    if (req.session.role === "teacher") {
+      const allowedClassIds = await getTeacherClasses(req.session.userId)
+      filter.studentId = { $in: await Student.find({ classId: { $in: allowedClassIds } }).distinct("_id") }
+    }
     if (req.query.class_id && req.query.class_id !== "all") {
-      const studentsInClass = await Student.find({
-        classId: req.query.class_id,
-      })
-      const studentIds = studentsInClass.map((s) => s._id)
-      filter.studentId = { $in: studentIds }
+      if (req.session.role === "teacher") {
+        const allowed = (await getTeacherClasses(req.session.userId)).map((id) => id.toString())
+        if (!allowed.includes(req.query.class_id)) return res.status(403).json({ error: "Class is not assigned to you" })
+      }
+      const studentsInClass = await Student.find({ classId: req.query.class_id })
+      filter.studentId = { $in: studentsInClass.map((student) => student._id) }
     }
 
     const marks = await Mark.find(filter).populate("subjectId examId")
@@ -514,6 +564,10 @@ app.get("/api/marks/student/:id", requireLogin, async (req, res) => {
       return res.status(400).json({ error: "Invalid ID" })
     const student = await Student.findById(req.params.id).populate("classId")
     if (!student) return res.status(404).json({ error: "Student not found" })
+    if (req.session.role === "student") {
+      const user = await User.findById(req.session.userId).select("studentId")
+      if (!user?.studentId || user.studentId.toString() !== student._id.toString()) return res.status(403).json({ error: "You can only view your own marks" })
+    }
 
     if (req.session.role === "teacher") {
       if (!student.classId) {
@@ -564,6 +618,8 @@ app.post("/api/marks", requireLogin, async (req, res) => {
   try {
     const { student_id, subject_id, exam_id, marks_obtained } = req.body
     const marksValue = Number(marks_obtained)
+    if (!(await canManageStudent(req, student_id))) return res.status(403).json({ error: "You cannot manage marks for this student" })
+    if (!Number.isFinite(marksValue) || marksValue < 0) return res.status(400).json({ error: "Marks must be a non-negative number" })
 
     if (exam_id) {
       const exam = await Exam.findById(exam_id)
@@ -600,6 +656,12 @@ app.post("/api/marks", requireLogin, async (req, res) => {
 
 app.post("/api/marks/bulk", requireLogin, async (req, res) => {
   try {
+    if (!Array.isArray(req.body.marks) || req.body.marks.length === 0 || req.body.marks.length > 500) return res.status(400).json({ error: "Provide between 1 and 500 marks" })
+    for (const item of req.body.marks) {
+      if (!(await canManageStudent(req, item.student_id))) return res.status(403).json({ error: "You cannot manage marks for one or more students" })
+      const value = Number(item.marks_obtained)
+      if (!Number.isFinite(value) || value < 0) return res.status(400).json({ error: "Marks must be non-negative numbers" })
+    }
     const operations = (req.body.marks || []).map((m) => ({
       updateOne: {
         filter: {
@@ -633,6 +695,7 @@ app.put("/api/marks/:id", requireLogin, async (req, res) => {
   try {
     const mark = await Mark.findById(req.params.id).populate("examId")
     if (!mark) return res.status(404).json({ error: "Mark not found" })
+    if (!(await canManageStudent(req, mark.studentId))) return res.status(403).json({ error: "You cannot manage marks for this student" })
 
     if (mark.examId && mark.examId.status !== "completed") {
       return res
@@ -664,7 +727,10 @@ app.put("/api/marks/:id", requireLogin, async (req, res) => {
 })
 
 app.delete("/api/marks/:id", requireLogin, async (req, res) => {
-  await Mark.findByIdAndDelete(req.params.id)
+  const mark = await Mark.findById(req.params.id)
+  if (!mark) return res.status(404).json({ error: "Mark not found" })
+  if (!(await canManageStudent(req, mark.studentId))) return res.status(403).json({ error: "You cannot manage marks for this student" })
+  await mark.deleteOne()
   res.json({ message: "Mark deleted" })
 })
 
@@ -942,6 +1008,10 @@ app.get("/api/analytics/student/:id", requireLogin, async (req, res) => {
       return res.status(400).json({ error: "Invalid ID format" })
     const student = await Student.findById(req.params.id).populate("classId")
     if (!student) return res.status(404).json({ error: "Student not found" })
+    if (req.session.role === "student") {
+      const user = await User.findById(req.session.userId).select("studentId")
+      if (!user?.studentId || user.studentId.toString() !== student._id.toString()) return res.status(403).json({ error: "You can only view your own academic analytics" })
+    }
 
     if (req.session.role === "teacher") {
       const teacherClassIds = await getTeacherClasses(req.session.userId)
@@ -1305,6 +1375,10 @@ app.get("/api/ai/predict/:id", requireLogin, async (req, res) => {
       return res.status(400).json({ error: "Invalid ID format" })
     const student = await Student.findById(req.params.id).populate("classId")
     if (!student) return res.status(404).json({ error: "Student not found" })
+    if (req.session.role === "student") {
+      const user = await User.findById(req.session.userId).select("studentId")
+      if (!user?.studentId || user.studentId.toString() !== student._id.toString()) return res.status(403).json({ error: "You can only view your own student records" })
+    }
 
     if (req.session.role === "teacher") {
       const teacherClassIds = await getTeacherClasses(req.session.userId)
@@ -1379,6 +1453,10 @@ app.get("/api/ai/recommendations/:id", requireLogin, async (req, res) => {
       return res.status(400).json({ error: "Invalid ID format" })
     const student = await Student.findById(req.params.id).populate("classId")
     if (!student) return res.status(404).json({ error: "Student not found" })
+    if (req.session.role === "student") {
+      const user = await User.findById(req.session.userId).select("studentId")
+      if (!user?.studentId || user.studentId.toString() !== student._id.toString()) return res.status(403).json({ error: "You can only access your own AI analysis" })
+    }
 
     if (req.session.role === "teacher") {
       const teacherClassIds = await getTeacherClasses(req.session.userId)
@@ -1444,7 +1522,7 @@ app.get("/api/ai/recommendations/:id", requireLogin, async (req, res) => {
   }
 })
 
-app.get("/api/ai/at-risk", requireLogin, async (req, res) => {
+app.get("/api/ai/at-risk", requireRole("admin", "teacher"), async (req, res) => {
   try {
     let filter = {}
     const { class_id } = req.query
@@ -1829,7 +1907,7 @@ app.post("/api/exams", requireAdmin, async (req, res) => {
   }
 })
 
-app.patch("/api/exams/:id/status", requireLogin, async (req, res) => {
+app.patch("/api/exams/:id/status", requireRole("admin"), async (req, res) => {
   try {
     const { status } = req.body
     const allowed = ["scheduled", "ongoing", "completed"]

@@ -30,22 +30,15 @@ async function setupAdmin() {
   await mongoose.connect(MONGO_URI)
   console.log("[Admin Setup] Connected to MongoDB")
 
-  await Promise.all([
-    User.deleteMany(),
-    Student.deleteMany(),
-    Mark.deleteMany(),
-    Class.deleteMany(),
-    Subject.deleteMany(),
-    Exam.deleteMany(),
-    ExamConfig.deleteMany(),
-    Question.deleteMany(),
-    ExamAttempt.deleteMany(),
-  ])
-  console.log("[Admin Setup] All data cleared successfully")
-
   const adminUsername = process.env.ADMIN_USERNAME || "admin"
-  const adminPassword =
-    process.env.ADMIN_PASSWORD || crypto.randomBytes(10).toString("hex")
+  const existingAdmin = await User.findOne({ role: "admin" })
+  if (existingAdmin) {
+    console.log("[Admin Setup] An admin already exists. No data was changed.")
+    await mongoose.disconnect()
+    return
+  }
+  const adminPassword = process.env.ADMIN_PASSWORD || crypto.randomBytes(16).toString("hex")
+  if (adminPassword.length < 12) throw new Error("ADMIN_PASSWORD must contain at least 12 characters")
   const hashedPassword = await bcrypt.hash(adminPassword, 10)
 
   await User.create({ username: adminUsername, password: hashedPassword, role: "admin" })
@@ -70,7 +63,8 @@ async function resetAdmin() {
   console.log("[Admin Reset] Connected to MongoDB")
 
   const adminUsername = process.argv[3] || process.env.ADMIN_USERNAME || "admin"
-  const adminPassword = process.argv[4] || process.env.ADMIN_PASSWORD || "admin123"
+  const adminPassword = process.argv[4] || process.env.ADMIN_PASSWORD
+  if (!adminPassword || adminPassword.length < 12) throw new Error("Provide ADMIN_PASSWORD (at least 12 characters) before resetting an admin")
 
   const hashedPassword = await bcrypt.hash(adminPassword, 10)
 
@@ -93,7 +87,7 @@ async function resetAdmin() {
 
   console.log("------------------------------------------")
   console.log(`Admin Username / ID : ${adminUsername}`)
-  console.log(`Admin Password      : ${adminPassword}`)
+  console.log("Admin password updated. It is not displayed for security.")
   console.log("------------------------------------------")
 
   await mongoose.disconnect()
